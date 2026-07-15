@@ -1,9 +1,8 @@
-// src/pages/Dashboard.jsx
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopBar from '../components/dashboard/TopBar';
 import Card from '../components/commons/Card';
-import StatCard from '../components/dashboard/StatCard';
+import StatCard from '../components/dashboard/StatCard'; 
 import ActivityRow from '../components/dashboard/ActivityRow';
 import StaffCard from '../components/dashboard/StaffCard';
 import AlertCard from '../components/dashboard/AlertCard';
@@ -35,29 +34,29 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* Tarjetas principales */}
+      {/* ========== PRIMERAS 3 TARJETAS (ahora con estilo clay) ========== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <StatCard
           icon="list"
           title="Órdenes Hoy"
           value={isLoading ? '—' : stats.ordersTodayCount}
-          change={isLoading ? 'Cargando...' : `Ticket promedio: $${stats.ticketPromedio.toFixed(2)}`}
+          label={isLoading ? 'Cargando...' : `Ticket promedio: $${stats.ticketPromedio.toFixed(2)}`}
         />
         <StatCard
           icon="dollar-sign"
           title="Ventas Netas"
           value={isLoading ? '—' : `$${stats.ventasNetas.toFixed(2)}`}
-          change={isLoading ? 'Cargando...' : 'Correspondiente a pedidos de hoy'}
+          label={isLoading ? 'Cargando...' : 'Correspondiente a pedidos de hoy'}
         />
         <StatCard
           icon="users"
           title="Staff en Turno"
           value={isLoading ? '—' : stats.staffEnTurnoCount}
-          change={isLoading ? 'Cargando...' : `${stats.totalEmployees} empleados registrados`}
+          label={isLoading ? 'Cargando...' : `${stats.totalEmployees} empleados registrados`}
         />
       </div>
 
-      {/* Actividad Reciente + Estado del Equipo */}
+      {/* Actividad Reciente + Estado del Equipo (sin cambios) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-6 sm:mb-8">
         <Card className="lg:col-span-2 overflow-hidden">
           <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100">
@@ -106,7 +105,7 @@ function DashboardContent() {
         </Card>
       </div>
 
-      {/* Alertas */}
+      {/* Alertas (sin cambios) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
         <AlertCard
           type="dark"
@@ -137,71 +136,38 @@ function DashboardContent() {
           </div>
         </div>
 
+        {/* ========== 4 TARJETAS DE ACTIVIDAD GENERAL (ahora con StatCard) ========== */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
-          <Card accent className="p-4 sm:p-6">
-            <div className="flex items-start justify-between mb-3">
-              <FAIcon icon="credit-card" size="2xl" className="text-red-500" />
-            </div>
-            <p className="text-gray-600 text-sm mb-2">Ventas del Día</p>
-            <h3 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
-              {isLoading ? '—' : `$${stats.ventasNetas.toFixed(2)}`}
-            </h3>
-            <div className="mt-3 border-t border-red-200 pt-2">
-              <p className="text-xs text-gray-500">
-                {isLoading ? 'Cargando...' : `${stats.ordersTodayCount} pedidos registrados hoy`}
-              </p>
-            </div>
-          </Card>
-
-          <Card accent className="p-4 sm:p-6">
-            <div className="flex items-start justify-between mb-3">
-              <FAIcon icon="exclamation-triangle" size="2xl" className="text-orange-500" />
-              {!isLoading && (
-                <span className="text-xs font-display font-semibold text-red-600">
-                  {stats.insumosBajoStockCount} Críticos
-                </span>
-              )}
-            </div>
-            <p className="text-gray-600 text-sm mb-2">Alerta de Stock</p>
-            <h3 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
-              {isLoading ? '—' : `${stats.insumosBajoStockCount} Artículos`}
-            </h3>
-            <p className="text-xs text-gray-500 mt-3">
-              {isLoading ? 'Cargando...' : stats.primerAlertaStock}
-            </p>
-          </Card>
-
-          <Card accent className="p-4 sm:p-6">
-            <div className="flex items-start justify-between mb-3">
-              <FAIcon icon="chair" size="2xl" className="text-blue-500" />
-              {!isLoading && stats.totalMesas > 0 && (
-                <span className="text-xs font-display font-semibold text-green-600">
-                  {Math.round((stats.mesasOcupadas / stats.totalMesas) * 100)}% Capacidad
-                </span>
-              )}
-            </div>
-            <p className="text-gray-600 text-sm mb-2">Mesas en uso</p>
-            <h3 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
-              {isLoading ? '—' : `${stats.mesasOcupadas} / ${stats.totalMesas}`}
-            </h3>
-          </Card>
-
-          <Card accent className="p-4 sm:p-6">
-            <div className="flex items-start justify-between mb-3">
-              <FAIcon icon="users" size="2xl" className="text-purple-500" />
-              {!isLoading && (
-                <span className="text-xs font-display font-semibold text-green-600">+{stats.clientesNuevos}</span>
-              )}
-            </div>
-            <p className="text-gray-600 text-sm mb-2">Clientes Nuevos</p>
-            <h3 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
-              {isLoading ? '—' : stats.totalClientes}
-            </h3>
-            <p className="text-xs text-gray-500 mt-3">Últimos 7 días: {isLoading ? '—' : stats.clientesNuevos}</p>
-          </Card>
+          <StatCard
+            icon="credit-card"
+            title="Ventas del Día"
+            value={isLoading ? '—' : `$${stats.ventasNetas.toFixed(2)}`}
+            label={isLoading ? 'Cargando...' : `${stats.ordersTodayCount} pedidos registrados hoy`}
+          />
+          <StatCard
+            icon="exclamation-triangle"
+            title="Alerta de Stock"
+            value={isLoading ? '—' : `${stats.insumosBajoStockCount} Artículos`}
+            label={isLoading ? 'Cargando...' : stats.primerAlertaStock}
+            alert={!isLoading && stats.insumosBajoStockCount > 0}
+          />
+          <StatCard
+            icon="chair"
+            title="Mesas en uso"
+            value={isLoading ? '—' : `${stats.mesasOcupadas} / ${stats.totalMesas}`}
+            label={!isLoading && stats.totalMesas > 0
+              ? `${Math.round((stats.mesasOcupadas / stats.totalMesas) * 100)}% Capacidad`
+              : 'Cargando...'}
+          />
+          <StatCard
+            icon="users"
+            title="Clientes Nuevos"
+            value={isLoading ? '—' : stats.totalClientes}
+            label={isLoading ? 'Cargando...' : `Últimos 7 días: ${stats.clientesNuevos}`}
+          />
         </div>
 
-        {/* Gráfico placeholder */}
+        {/* Gráfico placeholder (sin cambios) */}
         <Card className="p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <div>
