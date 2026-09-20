@@ -1,13 +1,9 @@
 // src/pages/Dashboard.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, YAxis, PieChart, Pie, Cell, Legend } from 'recharts';
+import { XAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, YAxis, PieChart, Pie, Cell, Legend } from 'recharts';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopBar from '../components/dashboard/TopBar';
 import Card from '../components/commons/Card';
-import StatCard from '../components/dashboard/StatCard';
-import ActivityRow from '../components/dashboard/ActivityRow';
-import StaffCard from '../components/dashboard/StaffCard';
-import AlertCard from '../components/dashboard/AlertCard';
 import StockRiskPanel from '../components/dashboard/StockRiskPanel';
 import OrderDetailModal from '../components/dashboard/OrderDetailModal';
 import EmployeeDetailModal from '../components/dashboard/EmployeeDetailModal';
@@ -32,7 +28,49 @@ const ORDER_TYPE_FILTERS = [
   { id: 'local', label: 'Pedido en local' },
 ];
 
-const CHART_COLORS = ['#ef4444', '#3b82f6'];
+const CHART_COLORS = ['#a33527', '#3a577d'];
+
+// Rejilla de la tabla de actividad: se declara una vez porque encabezado y
+// filas tienen que compartir exactamente las mismas columnas.
+const ACTIVITY_GRID = 'grid-cols-[72px_84px_minmax(160px,1fr)_96px_132px_60px_36px]';
+
+// Color de cada estado de pedido. El estado se lee por su color, así que
+// conviene que sean los del sistema y no una escala aparte.
+const STATUS_TONE = {
+  COMPLETADO: 'text-ok',
+  LISTO: 'text-info',
+  PREPARANDO: 'text-warn',
+  ATRASADO: 'text-ac',
+  PENDIENTE: 'text-muted',
+  CANCELADO: 'text-muted',
+};
+
+// Avatar del equipo: la foto cuando existe y se puede cargar, y si no las
+// iniciales dentro del mismo círculo. El respaldo no es decorativo — varios
+// empleados tienen guardado un nombre de archivo suelto en vez de una URL,
+// y sin esto la lista se llena de imágenes rotas.
+const StaffAvatar = ({ name, image }) => {
+  const [failed, setFailed] = useState(false);
+  const initials = name.split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+  const usable = image && /^https?:\/\//.test(image) && !failed;
+
+  if (usable) {
+    return (
+      <img
+        src={image}
+        alt={name}
+        onError={() => setFailed(true)}
+        className="w-9 h-9 rounded-full object-cover shrink-0"
+      />
+    );
+  }
+
+  return (
+    <span className="num w-9 h-9 rounded-full border border-linealt flex items-center justify-center text-[11px] text-inkalt shrink-0">
+      {initials || '?'}
+    </span>
+  );
+};
 
 function DashboardContent() {
   const { user } = useAuth();
@@ -135,88 +173,136 @@ function DashboardContent() {
       {/* Encabezado */}
       <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-1 sm:mb-2">Actividad y Análisis</h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1 sm:mb-2">Actividad y Análisis</h1>
+          <p className="text-sm sm:text-base text-inkalt">
             {activeTab === 'actividad' ? 'Seguimiento de pedidos en tiempo real' : 'Reportes y tendencias de todo el sistema'}
           </p>
         </div>
 
-        {/* Selector de apartado: para que el dashboard no sea una sola página larguísima */}
-        <div className="flex gap-2 bg-white/70 rounded-2xl p-1.5 border border-white/80 shadow-sm w-fit">
-          <button
-            type="button"
-            onClick={() => setActiveTab('actividad')}
-            className={`px-4 py-2 rounded-xl text-sm font-display font-semibold transition-all ${
-              activeTab === 'actividad' ? 'bg-red-500 text-white shadow-[0_4px_12px_rgba(220,38,38,0.3)]' : 'text-gray-600 hover:bg-white'
-            }`}
-          >
-            <FAIcon icon="bolt" size="xs" className="mr-1.5" />
-            Actividad
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('analisis')}
-            className={`px-4 py-2 rounded-xl text-sm font-display font-semibold transition-all ${
-              activeTab === 'analisis' ? 'bg-red-500 text-white shadow-[0_4px_12px_rgba(220,38,38,0.3)]' : 'text-gray-600 hover:bg-white'
-            }`}
-          >
-            <FAIcon icon="chart-pie" size="xs" className="mr-1.5" />
-            Análisis
-          </button>
+        {/* Selector de apartado: píldoras con borde, como el resto de los
+            filtros del sistema. */}
+        <div className="flex gap-1.5 w-fit">
+          {[
+            { id: 'actividad', label: 'Actividad', icon: 'bolt' },
+            { id: 'analisis', label: 'Análisis', icon: 'chart-pie' },
+          ].map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setActiveTab(t.id)}
+              className={`flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-full border transition-colors ${
+                activeTab === t.id
+                  ? 'border-ac text-ac font-medium'
+                  : 'border-line text-inkalt hover:border-linealt'
+              }`}
+            >
+              <FAIcon icon={t.icon} size="xs" />
+              {t.label}
+            </button>
+          ))}
         </div>
       </div>
 
       {errors.length > 0 && (
-        <div className="mb-4 sm:mb-6 bg-yellow-100/80 backdrop-blur-sm border border-yellow-200 text-yellow-800 text-xs sm:text-sm rounded-2xl p-3">
+        <div className="mb-4 sm:mb-6 bg-warnsoft/80 backdrop-blur-sm border border-warn text-warn text-xs sm:text-sm rounded-none p-3">
           Algunos datos no se pudieron cargar correctamente. Verifica la conexión con el servidor.
         </div>
       )}
 
       {activeTab === 'actividad' ? (
         <>
-          {/* Tarjetas principales */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <Card className="p-4 sm:p-6">
-              <div className="flex items-start justify-between mb-3">
-                <FAIcon icon="receipt" size="2xl" className="text-red-500" />
+          {/* --- La cifra que manda: ventas netas del día ---
+              El rediseño es editorial: una sola cifra domina la pantalla y el
+              resto de indicadores la acompañan en columnas separadas por una
+              regla fina, sin tarjetas. */}
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-8 lg:gap-10 items-end pb-6 border-b border-line">
+            <div>
+              <p className="kick text-ac mb-3">Ventas netas · facturas de hoy</p>
+              <div className="flex items-baseline gap-2.5 mb-3">
+                <span className="num text-5xl sm:text-6xl leading-[0.9] tracking-tight text-ink">
+                  {isLoading ? '—' : `$${Math.trunc(stats.ventasNetas).toLocaleString('en-US')}`}
+                </span>
+                {!isLoading && (
+                  <span className="num text-xl text-muted">
+                    .{stats.ventasNetas.toFixed(2).split('.')[1]}
+                  </span>
+                )}
               </div>
-              <p className="text-gray-600 text-xs sm:text-sm mb-2">Órdenes Hoy (facturadas)</p>
-              <h3 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-3">
-                {isLoading ? '—' : stats.ordersTodayCount}
-              </h3>
-              <div className="h-16">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={todayVsYesterday}>
-                    <XAxis dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <Tooltip />
-                    <Bar dataKey="pedidos" fill="#ef4444" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
+              <p className="text-[13px] leading-relaxed text-inkalt max-w-[420px]">
+                {isLoading ? (
+                  'Cargando la actividad del día…'
+                ) : (
+                  <>
+                    Corresponde a las <span className="num">{stats.ordersTodayCount}</span> órdenes ya
+                    facturadas hoy. Ayer a esta hora iban <span className="num">{stats.ordersYesterdayCount}</span>.
+                  </>
+                )}
+              </p>
+            </div>
 
-            <StatCard
-              icon="dollar-sign"
-              title="Ventas Netas"
-              value={isLoading ? '—' : `$${stats.ventasNetas.toFixed(2)}`}
-              change={isLoading ? 'Cargando...' : 'Correspondiente a facturas de hoy'}
-            />
-            <StatCard
-              icon="clock"
-              title="Pedidos Pendientes"
-              value={isLoading ? '—' : stats.pendingOrdersCount}
-              change={isLoading ? 'Cargando...' : 'Sin facturar todavía'}
-              alert={!isLoading && stats.pendingOrdersCount > 0}
-            />
+            {/* Indicadores secundarios: regla fina arriba, sin caja */}
+            <div className="grid grid-cols-2 gap-6 sm:gap-x-8 pb-1">
+              <div className="border-t border-linealt pt-2.5">
+                <p className="kick text-muted mb-2">Órdenes hoy (facturadas)</p>
+                <div className="flex items-end justify-between gap-3">
+                  <span className="num text-2xl text-ink">{isLoading ? '—' : stats.ordersTodayCount}</span>
+                  {/* Comparativa de ayer contra hoy: dos barras bastan, no
+                      hace falta un gráfico entero para dos valores. */}
+                  {!isLoading && (
+                    <div className="flex items-end gap-1.5 h-[26px]">
+                      {todayVsYesterday.map((d, i) => {
+                        const max = Math.max(...todayVsYesterday.map((x) => x.pedidos), 1);
+                        return (
+                          <div key={d.name} className="flex flex-col items-center gap-0.5">
+                            <span
+                              className={`w-3.5 ${i === todayVsYesterday.length - 1 ? 'bg-ac' : 'bg-linealt'}`}
+                              style={{ height: `${Math.max(4, (d.pedidos / max) * 23)}px` }}
+                            />
+                            <span className="kick text-muted">{d.name}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="border-t border-ac pt-2.5">
+                <p className="kick text-ac mb-2">Pedidos pendientes</p>
+                <span className="num text-2xl text-ink">{isLoading ? '—' : stats.pendingOrdersCount}</span>
+                <p className="text-[11.5px] text-muted mt-1.5">Sin facturar todavía</p>
+              </div>
+
+              <div className="border-t border-linealt pt-2.5">
+                <p className="kick text-muted mb-2">Mesas en uso</p>
+                <span className="num text-2xl text-ink">
+                  {isLoading ? '—' : stats.mesasOcupadas}
+                  {!isLoading && <span className="text-sm text-muted">/{stats.totalMesas}</span>}
+                </span>
+                <div className="h-1 bg-page mt-2.5 overflow-hidden">
+                  <span
+                    className="block h-full bg-ac"
+                    style={{ width: isLoading || !stats.totalMesas ? '0%' : `${(stats.mesasOcupadas / stats.totalMesas) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="border-t border-linealt pt-2.5">
+                <p className="kick text-muted mb-2">Clientes nuevos</p>
+                <span className="num text-2xl text-ink">{isLoading ? '—' : stats.clientesNuevos}</span>
+                <p className="text-[11.5px] text-muted mt-1.5">Registrados hoy</p>
+              </div>
+            </div>
           </div>
 
-          {/* Actividad Reciente + Estado del Equipo */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-6 sm:mb-8">
-            <Card className="lg:col-span-2 overflow-hidden">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-6 border-b border-gray-100">
+          {/* --- Cuerpo: pedidos a la izquierda, equipo a la derecha --- */}
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(360px,26%)] xl:grid-cols-[minmax(0,1fr)_minmax(400px,24%)]">
+            <div className="py-6 lg:pr-8 lg:border-r border-line">
+              <div className="max-w-[880px]">
+              <div className="flex flex-wrap items-baseline justify-between gap-4 mb-4">
                 <div>
-                  <h2 className="text-lg sm:text-xl font-display font-bold text-gray-900">Actividad Reciente</h2>
-                  <p className="text-xs sm:text-sm text-gray-600">Últimos pedidos registrados</p>
+                  <h3 className="text-[17px] font-display text-ink mb-1">Actividad reciente</h3>
+                  <p className="text-xs text-muted">Últimos pedidos registrados</p>
                 </div>
                 <div className="flex gap-1.5 flex-wrap">
                   {ORDER_TYPE_FILTERS.map((f) => (
@@ -224,8 +310,10 @@ function DashboardContent() {
                       key={f.id}
                       type="button"
                       onClick={() => setOrderTypeFilter(f.id)}
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-colors ${
-                        orderTypeFilter === f.id ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      className={`text-[11.5px] px-2.5 py-1 rounded-full border transition-colors ${
+                        orderTypeFilter === f.id
+                          ? 'border-ac text-ac font-medium'
+                          : 'border-line text-inkalt hover:border-linealt'
                       }`}
                     >
                       {f.label}
@@ -233,136 +321,217 @@ function DashboardContent() {
                   ))}
                 </div>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[680px]">
-                  <thead className="bg-white/40 border-b border-gray-100">
-                    <tr>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-display font-semibold text-gray-700 uppercase">ID Pedido</th>
-                      {orderTypeFilter === 'all' && (
-                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-display font-semibold text-gray-700 uppercase">Tipo</th>
-                      )}
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-display font-semibold text-gray-700 uppercase">Mesa / Cliente</th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-display font-semibold text-gray-700 uppercase">cliente/ Familia</th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-display font-semibold text-gray-700 uppercase">Monto</th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-display font-semibold text-gray-700 uppercase">Estado</th>
-                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-display font-semibold text-gray-700 uppercase">Hora</th>
-                      <th className="px-4 sm:px-6 py-3 text-right text-xs font-display font-semibold text-gray-700 uppercase">Ver</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {isLoading ? (
-                      <tr><td colSpan={8} className="px-4 sm:px-6 py-6 text-center text-sm text-gray-500">Cargando pedidos...</td></tr>
-                    ) : filteredActivity.length === 0 ? (
-                      <tr><td colSpan={8} className="px-4 sm:px-6 py-6 text-center text-sm text-gray-500">No hay pedidos para este filtro</td></tr>
-                    ) : (
-                      filteredActivity.map((item, idx) => (
-                        <ActivityRow
-                          key={idx}
-                          {...item}
-                          showType={orderTypeFilter === 'all'}
-                          onView={() => setSelectedOrder(item.raw)}
-                        />
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
 
-            <Card className="p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-2 sm:mb-4 gap-2 flex-wrap">
-                <h2 className="text-lg sm:text-xl font-display font-bold text-gray-900">Estado del Equipo</h2>
-                <div className="flex items-center gap-2">
-                  {/* Disponibilidad: independiente del puesto, según si su
-                      horario configurado lo tiene trabajando ahora mismo. */}
-                  <Select
-                    size="sm"
-                    value={staffAvailabilityFilter}
-                    onChange={(e) => setStaffAvailabilityFilter(e.target.value)}
-                    className="w-auto min-w-[110px]"
-                  >
-                    <option value="all">Cualquiera</option>
-                    <option value="available">Disponibles</option>
-                    <option value="unavailable">Fuera de turno</option>
-                  </Select>
-                  <Select
-                    size="sm"
-                    value={staffTypeFilter}
-                    onChange={(e) => setStaffTypeFilter(e.target.value)}
-                    className="w-auto min-w-[110px]"
-                  >
-                    {staffTypeOptions.map((t) => (
-                      <option key={t} value={t}>{t === 'all' ? 'Todos' : (EMPLOYEE_TYPE_LABELS[t] || t)}</option>
-                    ))}
-                  </Select>
+              {/* Tabla editorial: encabezados en versalitas y filas separadas
+                  por una regla fina, sin contenedor con borde. */}
+              <div className="overflow-x-auto">
+                <div className="min-w-[640px]">
+                  <div className={`grid ${ACTIVITY_GRID} gap-3 px-1 pb-2`}>
+                    <span className="kick text-muted">Pedido</span>
+                    <span className="kick text-muted">Tipo</span>
+                    <span className="kick text-muted">Mesa / cliente</span>
+                    <span className="kick text-muted text-right">Monto</span>
+                    <span className="kick text-muted">Estado</span>
+                    <span className="kick text-muted text-right">Hora</span>
+                    <span className="kick text-muted text-right">Ver</span>
+                  </div>
+
+                  {isLoading ? (
+                    <p className="text-sm text-muted py-6 text-center border-t border-line">Cargando pedidos…</p>
+                  ) : filteredActivity.length === 0 ? (
+                    <p className="text-sm text-muted py-6 text-center border-t border-line">No hay pedidos para este filtro</p>
+                  ) : (
+                    filteredActivity.map((item, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setSelectedOrder(item.raw)}
+                        className={`row w-full text-left grid ${ACTIVITY_GRID} gap-3 items-center px-1 py-3 border-t border-line transition-colors ${
+                          idx === filteredActivity.length - 1 ? 'border-b' : ''
+                        }`}
+                      >
+                        <span className="num text-xs text-muted">{item.id}</span>
+                        <span className={`text-[11.5px] ${item.orderType === 'online' ? 'text-info' : 'text-inkalt'}`}>
+                          {item.tipo}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-[13px] text-ink truncate">{item.mesa}</p>
+                          <p className="text-[11.5px] text-muted truncate">{item.cliente}</p>
+                        </div>
+                        <span className="num text-[13px] text-ink text-right">{item.monto}</span>
+                        <span className={`kick ${STATUS_TONE[item.estado] || 'text-muted'}`}>● {item.estado}</span>
+                        <span className="num text-[11.5px] text-muted text-right">{item.hora}</span>
+                        <span className="text-right text-muted">
+                          <FAIcon icon="eye" size="sm" />
+                        </span>
+                      </button>
+                    ))
+                  )}
                 </div>
               </div>
-              <p className="text-sm text-gray-600 mb-4">
-                {isLoading ? 'Cargando personal...' : `${stats.staffWorkingNowCount} de ${stats.totalEmployees} en turno ahora`}
+              <p className="text-[11.5px] text-muted mt-3.5">
+                Se muestran los {filteredActivity.length} pedidos más recientes, sin importar el día.
               </p>
-              <div className="space-y-3 min-h-[220px]">
-                {isLoading ? (
-                  <p className="text-sm text-gray-500">Cargando personal...</p>
-                ) : paginatedItems.length === 0 ? (
-                  <p className="text-sm text-gray-500">No hay personal para este filtro</p>
-                ) : (
-                  paginatedItems.map((staff) => (
-                    <div
-                      key={staff.id}
-                      onClick={() => setSelectedEmployee(employees.find((e) => e._id === staff.id) || null)}
-                      className="cursor-pointer"
-                    >
-                      <StaffCard {...staff} />
+
+              {/* Indicadores operativos */}
+              <div className="mt-6 pt-5 border-t border-line">
+                <h3 className="text-[15px] font-display text-ink mb-3.5">Indicadores operativos</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setTablesModalOpen(true)}
+                    className="text-left block p-3.5 border border-line bg-surface hover:border-linealt transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-2.5">
+                      <p className="kick text-muted">Mesas en uso</p>
+                      <FAIcon icon="chair" size="sm" className="text-muted" />
                     </div>
+                    <span className="num text-[22px] text-ink">
+                      {isLoading ? '—' : `${stats.mesasOcupadas}/${stats.totalMesas}`}
+                    </span>
+                    <p className="text-[11.5px] text-muted mt-2">
+                      {isLoading ? 'Cargando…' : `${stats.mesasOcupadas} de ${stats.totalMesas} mesas ocupadas`}
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setStockModalOpen(true)}
+                    className="text-left block p-3.5 border border-warn bg-warnsoft transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-2.5">
+                      <p className="kick text-warn">Alerta de stock</p>
+                      <FAIcon icon="triangle-exclamation" size="sm" className="text-warn" />
+                    </div>
+                    <span className="num text-[22px] text-ink">{isLoading ? '—' : stats.insumosBajoStockCount}</span>
+                    <p className="text-[11.5px] text-inkalt mt-2">{isLoading ? 'Cargando…' : stats.primerAlertaStock}</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setClientsModalOpen(true)}
+                    className="text-left block p-3.5 border border-line bg-surface hover:border-linealt transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-2.5">
+                      <p className="kick text-muted">Clientes nuevos</p>
+                      <FAIcon icon="user-plus" size="sm" className="text-ok" />
+                    </div>
+                    <span className="num text-[22px] text-ink">{isLoading ? '—' : stats.clientesNuevos}</span>
+                    <p className="text-[11.5px] text-muted mt-2">Registrados hoy</p>
+                  </button>
+                </div>
+              </div>
+              </div>
+            </div>
+
+            {/* --- Estado del equipo --- */}
+            <div className="py-6 lg:pl-8">
+              <h3 className="text-[17px] font-display text-ink mb-4">Estado del equipo</h3>
+              <div className="flex gap-2 mb-3.5">
+                {/* Disponibilidad: independiente del puesto, según si su
+                    horario configurado lo tiene trabajando ahora mismo. */}
+                <Select
+                  size="sm"
+                  value={staffAvailabilityFilter}
+                  onChange={(e) => setStaffAvailabilityFilter(e.target.value)}
+                  className="flex-1"
+                >
+                  <option value="all">Cualquiera</option>
+                  <option value="available">Disponibles</option>
+                  <option value="unavailable">Fuera de turno</option>
+                </Select>
+                <Select
+                  size="sm"
+                  value={staffTypeFilter}
+                  onChange={(e) => setStaffTypeFilter(e.target.value)}
+                  className="flex-1"
+                >
+                  {staffTypeOptions.map((t) => (
+                    <option key={t} value={t}>{t === 'all' ? 'Todos' : (EMPLOYEE_TYPE_LABELS[t] || t)}</option>
+                  ))}
+                </Select>
+              </div>
+              <p className="text-[13px] text-muted mb-4">
+                {isLoading ? 'Cargando personal…' : `${stats.staffWorkingNowCount} de ${stats.totalEmployees} en turno ahora`}
+              </p>
+
+              <div className="flex flex-col min-h-[220px]">
+                {isLoading ? (
+                  <p className="text-sm text-muted">Cargando personal…</p>
+                ) : paginatedItems.length === 0 ? (
+                  <p className="text-sm text-muted">No hay personal para este filtro</p>
+                ) : (
+                  paginatedItems.map((staff, idx) => (
+                    <button
+                      key={staff.id}
+                      type="button"
+                      onClick={() => setSelectedEmployee(employees.find((e) => e._id === staff.id) || null)}
+                      className={`flex items-center gap-3 py-3.5 text-left ${
+                        idx < paginatedItems.length - 1 ? 'border-b border-line' : ''
+                      }`}
+                    >
+                      <StaffAvatar name={staff.name} image={staff.image} />
+                      <div className="min-w-0">
+                        <p className={`text-[14px] truncate ${staff.workingNow ? 'text-ink' : 'text-inkalt'}`}>
+                          {staff.name}
+                        </p>
+                        <p className="kick text-muted mt-1">{staff.role}</p>
+                      </div>
+                      <div className="ml-auto text-right shrink-0">
+                        <p className={`kick ${staff.workingNow ? 'text-ok' : 'text-muted'}`}>
+                          {staff.workingNow ? 'En turno' : 'Fuera de turno'}
+                        </p>
+                        <p className="num text-[11.5px] text-muted mt-1">{staff.time}</p>
+                      </div>
+                    </button>
                   ))
                 )}
               </div>
+
               {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-3 mt-4 pt-3 border-t border-gray-100">
-                  <button type="button" onClick={prev} disabled={page === 1} className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-50 border border-gray-200 disabled:opacity-40">
+                <div className="flex items-center justify-center gap-3.5 mt-4 pt-3.5 border-t border-line">
+                  <button
+                    type="button"
+                    onClick={prev}
+                    disabled={page === 1}
+                    className="w-[26px] h-[26px] flex items-center justify-center border border-line text-muted disabled:opacity-40"
+                  >
                     <FAIcon icon="chevron-left" size="xs" />
                   </button>
-                  <span className="text-xs text-gray-500">{page}/{totalPages}</span>
-                  <button type="button" onClick={next} disabled={page === totalPages} className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-50 border border-gray-200 disabled:opacity-40">
+                  <span className="num text-[11px] text-muted">{page}/{totalPages}</span>
+                  <button
+                    type="button"
+                    onClick={next}
+                    disabled={page === totalPages}
+                    className="w-[26px] h-[26px] flex items-center justify-center border border-linealt text-inkalt disabled:opacity-40"
+                  >
                     <FAIcon icon="chevron-right" size="xs" />
                   </button>
                 </div>
               )}
-            </Card>
-          </div>
 
-          {/* Indicadores operativos */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
-            <button type="button" onClick={() => setTablesModalOpen(true)} className="text-left cursor-pointer">
-              <AlertCard
-                type="dark"
-                icon="chair"
-                title="Mesas en Uso"
-                value={isLoading ? '—' : `${stats.mesasOcupadas}/${stats.totalMesas}`}
-                subtitle={isLoading ? 'Cargando...' : `${stats.mesasOcupadas} de ${stats.totalMesas} mesas ocupadas`}
-                percent={isLoading || stats.totalMesas === 0 ? 0 : (stats.mesasOcupadas / stats.totalMesas) * 100}
-              />
-            </button>
-            <button type="button" onClick={() => setStockModalOpen(true)} className="text-left cursor-pointer">
-              <AlertCard
-                type="warning"
-                icon="triangle-exclamation"
-                title="Alerta de Stock"
-                value={isLoading ? '—' : stats.insumosBajoStockCount}
-                subtitle={isLoading ? 'Cargando...' : stats.primerAlertaStock}
-                percent={isLoading ? 0 : Math.min(100, stats.insumosBajoStockCount * 20)}
-              />
-            </button>
-            <button type="button" onClick={() => setClientsModalOpen(true)} className="text-left cursor-pointer">
-              <AlertCard
-                type="success"
-                icon="user-plus"
-                title="Clientes Nuevos"
-                value={isLoading ? '—' : stats.clientesNuevos}
-                subtitle={isLoading ? 'Cargando...' : `Registrados hoy`}
-                percent={isLoading || stats.totalClientes === 0 ? 0 : (stats.clientesNuevos / stats.totalClientes) * 100}
-              />
-            </button>
+              {/* Lo que reclama atención ahora mismo. Solo aparece si de
+                  verdad hay algo pendiente: un panel que siempre dice "todo
+                  bien" deja de leerse a las dos semanas. */}
+              {!isLoading && (stats.pendingOrdersCount > 0 || stats.insumosBajoStockCount > 0) && (
+                <div className="mt-5 p-3.5 border border-acline bg-acsoft">
+                  <p className="kick text-ac mb-2">Requiere atención</p>
+                  <p className="text-[12.5px] leading-relaxed text-ink">
+                    {[
+                      stats.pendingOrdersCount > 0 && `${stats.pendingOrdersCount} pedidos sin facturar`,
+                      stats.insumosBajoStockCount > 0 && `${stats.insumosBajoStockCount} insumos por debajo de su umbral`,
+                    ].filter(Boolean).join(' y ')}.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setStockModalOpen(true)}
+                    className="inline-block mt-2.5 text-xs font-medium text-ac"
+                  >
+                    Ver alertas →
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </>
       ) : (
@@ -370,41 +539,41 @@ function DashboardContent() {
           {/* KPIs de negocio */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
             <Card accent className="p-4 sm:p-6">
-              <FAIcon icon="sack-dollar" size="2xl" className="text-red-500 mb-3" />
-              <p className="text-gray-600 text-sm mb-2">Ventas del Mes</p>
-              <h3 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
+              <FAIcon icon="sack-dollar" size="2xl" className="text-ac mb-3" />
+              <p className="text-inkalt text-sm mb-2">Ventas del Mes</p>
+              <h3 className="text-2xl sm:text-3xl font-display font-bold text-ink">
                 {isLoading ? '—' : `$${stats.monthTotal.toFixed(2)}`}
               </h3>
             </Card>
             <Card accent className="p-4 sm:p-6">
-              <FAIcon icon="receipt" size="2xl" className="text-orange-500 mb-3" />
-              <p className="text-gray-600 text-sm mb-2">Ticket Promedio</p>
-              <h3 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
+              <FAIcon icon="receipt" size="2xl" className="text-warn mb-3" />
+              <p className="text-inkalt text-sm mb-2">Ticket Promedio</p>
+              <h3 className="text-2xl sm:text-3xl font-display font-bold text-ink">
                 {isLoading ? '—' : `$${stats.avgTicket.toFixed(2)}`}
               </h3>
             </Card>
             <Card accent className="p-4 sm:p-6">
-              <FAIcon icon="globe" size="2xl" className="text-purple-500 mb-3" />
-              <p className="text-gray-600 text-sm mb-2">Ventas en línea</p>
-              <h3 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
+              <FAIcon icon="globe" size="2xl" className="text-info mb-3" />
+              <p className="text-inkalt text-sm mb-2">Ventas en línea</p>
+              <h3 className="text-2xl sm:text-3xl font-display font-bold text-ink">
                 {isLoading ? '—' : `$${(analytics?.byOrderType?.online?.total || 0).toFixed(2)}`}
               </h3>
-              <p className="text-xs text-gray-500 mt-2">Últimos 14 días</p>
+              <p className="text-xs text-muted mt-2">Últimos 14 días</p>
             </Card>
             <Card accent className="p-4 sm:p-6">
-              <FAIcon icon="store" size="2xl" className="text-sky-500 mb-3" />
-              <p className="text-gray-600 text-sm mb-2">Ventas en local</p>
-              <h3 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
+              <FAIcon icon="store" size="2xl" className="text-info mb-3" />
+              <p className="text-inkalt text-sm mb-2">Ventas en local</p>
+              <h3 className="text-2xl sm:text-3xl font-display font-bold text-ink">
                 {isLoading ? '—' : `$${(analytics?.byOrderType?.local?.total || 0).toFixed(2)}`}
               </h3>
-              <p className="text-xs text-gray-500 mt-2">Últimos 14 días</p>
+              <p className="text-xs text-muted mt-2">Últimos 14 días</p>
             </Card>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-6 sm:mb-8">
             <Card className="lg:col-span-2 p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-display font-bold text-gray-900 mb-1">Ventas de los últimos 14 días</h3>
-              <p className="text-xs sm:text-sm text-gray-600 mb-4">Basado en pedidos ya facturados</p>
+              <h3 className="text-base sm:text-lg font-display font-bold text-ink mb-1">Ventas de los últimos 14 días</h3>
+              <p className="text-xs sm:text-sm text-inkalt mb-4">Basado en pedidos ya facturados</p>
               <div className="h-64 sm:h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={salesTrendData}>
@@ -419,8 +588,8 @@ function DashboardContent() {
             </Card>
 
             <Card className="p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-display font-bold text-gray-900 mb-1">Ventas por tipo</h3>
-              <p className="text-xs sm:text-sm text-gray-600 mb-4">Últimos 14 días</p>
+              <h3 className="text-base sm:text-lg font-display font-bold text-ink mb-1">Ventas por tipo</h3>
+              <p className="text-xs sm:text-sm text-inkalt mb-4">Últimos 14 días</p>
               <div className="h-48 sm:h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -439,22 +608,22 @@ function DashboardContent() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8 sm:mb-12">
             <Card className="p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-display font-bold text-gray-900 mb-1">Productos más vendidos</h3>
-              <p className="text-xs sm:text-sm text-gray-600 mb-4">Últimos 14 días, por cantidad</p>
+              <h3 className="text-base sm:text-lg font-display font-bold text-ink mb-1">Productos más vendidos</h3>
+              <p className="text-xs sm:text-sm text-inkalt mb-4">Últimos 14 días, por cantidad</p>
               <div className="space-y-3">
                 {(analytics?.topItems || []).length === 0 ? (
-                  <p className="text-sm text-gray-500">Todavía no hay suficientes ventas para mostrar un top</p>
+                  <p className="text-sm text-muted">Todavía no hay suficientes ventas para mostrar un top</p>
                 ) : (
                   analytics.topItems.map((item, idx) => {
                     const max = analytics.topItems[0]?.quantity || 1;
                     return (
                       <div key={item.name}>
                         <div className="flex items-center justify-between text-xs sm:text-sm mb-1">
-                          <span className="font-display font-semibold text-gray-800">{idx + 1}. {item.name}</span>
-                          <span className="text-gray-500">{item.quantity} vendidos · ${item.total.toFixed(2)}</span>
+                          <span className="font-display font-semibold text-ink">{idx + 1}. {item.name}</span>
+                          <span className="text-muted">{item.quantity} vendidos · ${item.total.toFixed(2)}</span>
                         </div>
-                        <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-red-500 rounded-full" style={{ width: `${(item.quantity / max) * 100}%` }} />
+                        <div className="h-2 w-full bg-surfalt rounded-full overflow-hidden">
+                          <div className="h-full bg-ac rounded-full" style={{ width: `${(item.quantity / max) * 100}%` }} />
                         </div>
                       </div>
                     );
@@ -525,7 +694,7 @@ export default function Dashboard() {
 
   return (
     <ToastProvider>
-      <div className="flex h-screen overflow-hidden bg-[#f3f0eb]">
+      <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
         <Sidebar activeMenu="activity" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="flex-1 flex flex-col min-w-0">
           <TopBar onMenuClick={() => setSidebarOpen(true)} />

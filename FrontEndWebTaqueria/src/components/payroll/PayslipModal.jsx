@@ -20,12 +20,12 @@ const DAY_ABBR = {
 // Fila del desglose. "negative" pinta el monto en rojo con signo, para que
 // se distinga de un vistazo lo que suma de lo que resta.
 const Line = ({ label, value, negative = false, bold = false, hint }) => (
-  <div className={`flex items-start justify-between gap-3 py-2 ${bold ? 'border-t border-gray-200 mt-1 pt-2.5' : ''}`}>
+  <div className={`flex items-start justify-between gap-3 py-2 ${bold ? 'border-t border-line mt-1 pt-2.5' : ''}`}>
     <div className="min-w-0">
-      <p className={`text-sm ${bold ? 'font-display font-bold text-gray-900' : 'text-gray-700'}`}>{label}</p>
-      {hint && <p className="text-[11px] text-gray-400">{hint}</p>}
+      <p className={`text-sm ${bold ? 'font-display font-bold text-ink' : 'text-inkalt'}`}>{label}</p>
+      {hint && <p className="text-[11px] text-muted">{hint}</p>}
     </div>
-    <p className={`shrink-0 text-sm tabular-nums ${bold ? 'font-display font-bold' : ''} ${negative ? 'text-red-600' : 'text-gray-900'}`}>
+    <p className={`shrink-0 text-sm tabular-nums ${bold ? 'font-display font-bold' : ''} ${negative ? 'text-ac' : 'text-ink'}`}>
       {negative ? `- ${money(value)}` : money(value)}
     </p>
   </div>
@@ -95,8 +95,8 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName, period, fetch
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-[#f3f0eb] rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/80 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="bg-red-500 px-5 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div className="bg-surfalt rounded-none border border-line max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="bg-ac px-5 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
           <div className="min-w-0">
             <h3 className="text-white font-display font-bold text-lg truncate">Boleta de pago</h3>
             <p className="text-white/80 text-xs truncate">
@@ -106,7 +106,7 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName, period, fetch
           <button
             type="button"
             onClick={onClose}
-            className="text-white/90 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 shrink-0"
+            className="text-white/90 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface/10 shrink-0"
             aria-label="Cerrar"
           >
             <FAIcon icon="times" />
@@ -115,43 +115,43 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName, period, fetch
 
         <div className="p-5 sm:p-6">
           {loading ? (
-            <p className="text-sm text-gray-500 text-center py-10">Generando boleta...</p>
+            <p className="text-sm text-muted text-center py-10">Generando boleta...</p>
           ) : error ? (
-            <p className="text-sm text-red-500 text-center py-10">{error}</p>
+            <p className="text-sm text-ac text-center py-10">{error}</p>
           ) : payslip ? (
             <>
               {/* Identificación del empleado */}
-              <div className="bg-white/70 rounded-2xl border border-white/80 p-4 mb-4">
+              <div className="bg-surface rounded-none border border-line p-4 mb-4">
                 <div className="flex items-center gap-3 mb-3">
                   {payslip.employee.image ? (
                     <img
                       src={payslip.employee.image}
                       alt={payslip.employee.name}
-                      className="w-12 h-12 rounded-xl object-cover shadow-sm"
+                      className="w-12 h-12 rounded-none object-cover"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
+                    <div className="w-12 h-12 rounded-none bg-surfalt flex items-center justify-center text-muted">
                       <FAIcon icon="user" size="lg" />
                     </div>
                   )}
                   <div className="min-w-0">
-                    <p className="font-display font-bold text-gray-900 truncate">{payslip.employee.name}</p>
-                    <p className="text-xs text-gray-500">{payslip.employee.typeLabel}</p>
+                    <p className="font-display font-bold text-ink truncate">{payslip.employee.name}</p>
+                    <p className="text-xs text-muted">{payslip.employee.typeLabel}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
                   <div>
-                    <span className="text-gray-400">DUI / NIT</span>
-                    <p className="text-gray-700 font-medium">{payslip.employee.duiNit || '—'}</p>
+                    <span className="text-muted">DUI / NIT</span>
+                    <p className="text-inkalt font-medium">{payslip.employee.duiNit || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-gray-400">Horario</span>
-                    <p className="text-gray-700 font-medium">{payslip.employee.schedule || '—'}</p>
+                    <span className="text-muted">Horario</span>
+                    <p className="text-inkalt font-medium">{payslip.employee.schedule || '—'}</p>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-gray-400">Días de trabajo</span>
-                    <p className="text-gray-700 font-medium">
+                    <span className="text-muted">Días de trabajo</span>
+                    <p className="text-inkalt font-medium">
                       {(payslip.employee.workDays || []).map((d) => DAY_ABBR[d] || d).join(', ') || '—'}
                     </p>
                   </div>
@@ -159,19 +159,19 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName, period, fetch
               </div>
 
               {/* Ingresos */}
-              <div className="bg-white/70 rounded-2xl border border-white/80 p-4 mb-3">
-                <h4 className="text-xs font-display font-bold uppercase tracking-wide text-green-700 mb-1">
+              <div className="bg-surface rounded-none border border-line p-4 mb-3">
+                <h4 className="text-xs font-display font-bold uppercase tracking-wide text-ok mb-1">
                   Ingresos
                 </h4>
                 <Line label="Salario base" value={payslip.earnings.salary} bold />
-                <p className="text-[11px] text-gray-400 mt-1">
+                <p className="text-[11px] text-muted mt-1">
                   Los bonos no aparecen aquí: se documentan en la Planilla de bonos, sin descuentos de ley.
                 </p>
               </div>
 
               {/* Deducciones */}
-              <div className="bg-white/70 rounded-2xl border border-white/80 p-4 mb-4">
-                <h4 className="text-xs font-display font-bold uppercase tracking-wide text-red-700 mb-1">
+              <div className="bg-surface rounded-none border border-line p-4 mb-4">
+                <h4 className="text-xs font-display font-bold uppercase tracking-wide text-ac mb-1">
                   Deducciones de ley
                 </h4>
                 <Line label="AFP" hint="7.25% del salario base" value={payslip.deductions.afp} negative />
@@ -186,9 +186,9 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName, period, fetch
               </div>
 
               {/* Neto */}
-              <div className="flex items-center justify-between px-5 py-4 bg-white rounded-2xl border border-white/80 shadow-sm mb-4">
-                <span className="text-sm font-display font-bold text-gray-700">NETO A PAGAR</span>
-                <span className="text-2xl font-display font-bold text-red-600 tabular-nums">
+              <div className="flex items-center justify-between px-5 py-4 bg-surface rounded-none border border-line mb-4">
+                <span className="text-sm font-display font-bold text-inkalt">NETO A PAGAR</span>
+                <span className="text-2xl font-display font-bold text-ac tabular-nums">
                   {money(payslip.netSalary)}
                 </span>
               </div>
@@ -196,8 +196,8 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName, period, fetch
               {/* Si no se le retuvo renta, conviene explicar por qué: es la
                   duda más común al revisar una boleta. */}
               {payslip.deductions.isr === 0 && (
-                <p className="text-[11px] text-gray-500 mb-4 bg-white/60 rounded-xl p-3 border border-white/80">
-                  <FAIcon icon="circle-info" size="xs" className="text-gray-400 mr-1" />
+                <p className="text-[11px] text-muted mb-4 bg-surface rounded-none p-3 border border-line">
+                  <FAIcon icon="circle-info" size="xs" className="text-muted mr-1" />
                   No se retiene renta porque la base gravada ({money(payslip.deductions.taxableBase)}) no
                   supera el mínimo exento de $550 que establece la tabla de retención mensual.
                 </p>
@@ -207,7 +207,7 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName, period, fetch
                 <button
                   type="button"
                   onClick={handleExportPdf}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-500 text-white rounded-2xl text-sm font-display font-semibold shadow-[0_6px_16px_rgba(220,38,38,0.35),inset_1px_1px_2px_rgba(255,255,255,0.3)] hover:bg-red-600 transition-colors"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-ac text-white rounded-none text-sm font-display font-semibold hover:bg-ac transition-colors"
                 >
                   <FAIcon icon="file-pdf" />
                   Descargar boleta

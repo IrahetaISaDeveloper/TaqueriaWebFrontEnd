@@ -217,19 +217,19 @@ const AddComboModal = ({ isOpen, onClose, onSave, onEditExisting, loading, combo
   if (!isOpen) return null;
 
   const inputClasses =
-    'w-full px-4 py-2.5 bg-[#f3f0eb] border border-white/80 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition-all text-gray-700 placeholder:text-gray-400 text-sm shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05),inset_-2px_-2px_5px_rgba(255,255,255,0.7)]';
-  const labelClasses = 'block text-xs font-display font-semibold text-gray-500 uppercase tracking-wider mb-1.5';
+    'w-full px-4 py-2.5 bg-surfalt border border-line rounded-none focus:outline-none focus:ring-2 focus:ring-acline focus:border-acline transition-all text-inkalt placeholder:text-muted text-sm';
+  const labelClasses = 'block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-[#f3f0eb] rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.2),inset_1px_1px_3px_rgba(255,255,255,0.7)] w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden border border-white/80">
-        <div className="flex items-center justify-between p-4 sm:p-5 bg-red-500 text-white shadow-[inset_0_1px_2px_rgba(255,255,255,0.3),0_4px_12px_rgba(220,38,38,0.3)]">
+      <div className="bg-surfalt rounded-none w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden border border-line">
+        <div className="flex items-center justify-between p-4 sm:p-5 bg-ac text-white">
           <h2 className="text-base sm:text-lg font-display font-bold">
             {comboToEdit ? 'Actualizar combo' : 'Nuevo Combo'}
           </h2>
           <button
             onClick={onClose}
-            className="text-white/80 hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition-all"
+            className="text-white/80 hover:text-white p-1.5 rounded-none hover:bg-surface/10 transition-all"
             disabled={loading}
           >
             <FAIcon icon="times" size="lg" />
@@ -249,7 +249,7 @@ const AddComboModal = ({ isOpen, onClose, onSave, onEditExisting, loading, combo
               className={inputClasses}
               disabled={loading}
             />
-            {errors.name && <span className="text-red-500 text-xs mt-1 block font-medium">{errors.name.message}</span>}
+            {errors.name && <span className="text-ac text-xs mt-1 block font-medium">{errors.name.message}</span>}
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -268,7 +268,7 @@ const AddComboModal = ({ isOpen, onClose, onSave, onEditExisting, loading, combo
                 className={inputClasses}
                 disabled={loading}
               />
-              {errors.price && <span className="text-red-500 text-xs mt-1 block font-medium">{errors.price.message}</span>}
+              {errors.price && <span className="text-ac text-xs mt-1 block font-medium">{errors.price.message}</span>}
             </div>
             <div>
               <label className={labelClasses}>Categoría</label>
@@ -302,26 +302,26 @@ const AddComboModal = ({ isOpen, onClose, onSave, onEditExisting, loading, combo
               className={inputClasses + ' resize-none'}
               disabled={loading}
             />
-            {errors.description && <span className="text-red-500 text-xs mt-1 block font-medium">{errors.description.message}</span>}
+            {errors.description && <span className="text-ac text-xs mt-1 block font-medium">{errors.description.message}</span>}
           </div>
 
           {/* Modo selectivo */}
-          <div className="border-t border-white/60 pt-4">
-            <label className="flex items-center gap-2 text-sm text-gray-700 font-medium">
+          <div className="border-t border-line pt-4">
+            <label className="flex items-center gap-2 text-sm text-inkalt font-medium">
               <input type="checkbox" {...register('selective')} className="accent-red-500" disabled={loading} />
               Selectivo (opcional)
             </label>
-            <p className="text-[11px] text-gray-500 mt-1">
+            <p className="text-[11px] text-muted mt-1">
               Si lo activas, en vez de platillos fijos defines varias opciones y cuántas puede elegir el cliente
               (ej. "elige 1 taco entre: al pastor, de pollo, de carne").
             </p>
           </div>
 
           {selective ? (
-            <div className="border-t border-white/60 pt-4">
+            <div className="border-t border-line pt-4">
               <label className={labelClasses}>Opciones de platillo ({selectedOptionIds.length})</label>
               {loadingSaucers ? (
-                <p className="text-xs text-gray-400">Cargando platillos...</p>
+                <p className="text-xs text-muted">Cargando platillos...</p>
               ) : (
                 <CardPicker
                   items={saucers}
@@ -344,10 +344,10 @@ const AddComboModal = ({ isOpen, onClose, onSave, onEditExisting, loading, combo
               </div>
             </div>
           ) : (
-            <div className="border-t border-white/60 pt-4">
+            <div className="border-t border-line pt-4">
               <label className={labelClasses}>Platillos incluidos ({selectedSaucerIds.length})</label>
               {loadingSaucers ? (
-                <p className="text-xs text-gray-400">Cargando platillos...</p>
+                <p className="text-xs text-muted">Cargando platillos...</p>
               ) : (
                 <CardPicker
                   items={saucers}
@@ -359,24 +359,24 @@ const AddComboModal = ({ isOpen, onClose, onSave, onEditExisting, loading, combo
             </div>
           )}
 
-          <div className="border-t border-white/60 pt-4">
+          <div className="border-t border-line pt-4">
             <div className="flex items-center justify-between mb-2">
               <label className={labelClasses + ' mb-0'}>Conjuntos de bebidas permitidos ({selectedDrinkSetIds.length})</label>
               <button
                 type="button"
                 onClick={() => setIsDrinkSetModalOpen(true)}
-                className="text-xs font-display font-semibold text-amber-700 hover:text-amber-800 flex items-center gap-1"
+                className="text-xs font-display font-semibold text-warn hover:text-warn flex items-center gap-1"
               >
                 <FAIcon icon="plus" size="xs" /> Nuevo conjunto
               </button>
             </div>
-            <p className="text-[11px] text-gray-500 mb-2">
+            <p className="text-[11px] text-muted mb-2">
               El cliente elige entre las bebidas de los conjuntos que marques aquí; ya están incluidas en el precio.
               Los conjuntos son solo de conveniencia y no descuentan inventario por sí mismos.
             </p>
 
             {drinkSets.length === 0 ? (
-              <p className="text-xs text-gray-400 text-center py-3 bg-white/50 rounded-xl">
+              <p className="text-xs text-muted text-center py-3 bg-surface rounded-none">
                 Todavía no hay conjuntos creados. Usa "Nuevo conjunto" para armar el primero.
               </p>
             ) : (
@@ -388,12 +388,12 @@ const AddComboModal = ({ isOpen, onClose, onSave, onEditExisting, loading, combo
                       type="button"
                       key={set._id}
                       onClick={() => toggleDrinkSet(set._id)}
-                      className={`text-left p-3 rounded-2xl border-2 transition-all ${
-                        isSelected ? 'border-red-500 bg-red-50/50' : 'border-white/80 bg-white/70 hover:border-gray-200'
+                      className={`text-left p-3 rounded-none border-2 transition-all ${
+                        isSelected ? 'border-ac bg-acsoft/50' : 'border-line bg-surface hover:border-line'
                       }`}
                     >
-                      <p className="text-sm font-display font-semibold text-gray-800">{set.name}</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">
+                      <p className="text-sm font-display font-semibold text-ink">{set.name}</p>
+                      <p className="text-[11px] text-muted mt-0.5 line-clamp-1">
                         {(set.drinkIds || []).map((d) => d.name).join(', ') || 'Sin bebidas'}
                       </p>
                     </button>
@@ -404,19 +404,19 @@ const AddComboModal = ({ isOpen, onClose, onSave, onEditExisting, loading, combo
 
             <div className="mt-4">
               <label className={labelClasses}>o bebidas individuales sueltas ({selectedDrinkIds.length})</label>
-              <p className="text-[11px] text-gray-500 mb-2">
+              <p className="text-[11px] text-muted mb-2">
                 Se puede combinar con los conjuntos de arriba: ambas cosas quedan permitidas para el cliente.
               </p>
               <CardPicker items={thirdPartyDrinks} selectedIds={selectedDrinkIds} onToggle={toggleDrink} />
             </div>
           </div>
 
-          <div className="border-t border-white/60 pt-4">
+          <div className="border-t border-line pt-4">
             <label className={labelClasses}>Imagen (opcional)</label>
             {comboToEdit?.image && !imageFile && (
-              <div className="mb-3 flex items-center gap-2 bg-white p-2 rounded-2xl border border-white/80 shadow-sm">
-                <img src={comboToEdit.image} alt="Actual" className="w-10 h-10 object-cover rounded-xl shadow-inner" />
-                <span className="text-xs text-gray-400 truncate">Conservar imagen actual</span>
+              <div className="mb-3 flex items-center gap-2 bg-surface p-2 rounded-none border border-line">
+                <img src={comboToEdit.image} alt="Actual" className="w-10 h-10 object-cover rounded-none shadow-inner" />
+                <span className="text-xs text-muted truncate">Conservar imagen actual</span>
               </div>
             )}
             <input
@@ -427,28 +427,27 @@ const AddComboModal = ({ isOpen, onClose, onSave, onEditExisting, loading, combo
                 if (selected) setRawImageFile(selected);
                 e.target.value = '';
               }}
-              className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-500 file:text-white hover:file:bg-red-600 file:transition-colors file:shadow-[0_4px_12px_rgba(220,38,38,0.3)] cursor-pointer"
+              className="w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-xs file:font-semibold file:bg-ac file:text-white hover:file:bg-ac file:transition-colors file: cursor-pointer"
               disabled={loading}
             />
             {imageFile && (
               <div className="flex items-center gap-3 mt-2">
-                <img src={URL.createObjectURL(imageFile)} alt="Vista previa" className="w-12 h-12 rounded-xl object-cover ring-2 ring-red-400" />
-                <button type="button" onClick={() => setRawImageFile(imageFile)} className="text-xs text-gray-500 hover:text-red-500">Ajustar</button>
-                <button type="button" onClick={() => setImageFile(null)} className="text-xs text-gray-400 hover:text-red-500">Quitar</button>
+                <img src={URL.createObjectURL(imageFile)} alt="Vista previa" className="w-12 h-12 rounded-none object-cover ring-2 ring-red-400" />
+                <button type="button" onClick={() => setRawImageFile(imageFile)} className="text-xs text-muted hover:text-ac">Ajustar</button>
+                <button type="button" onClick={() => setImageFile(null)} className="text-xs text-muted hover:text-ac">Quitar</button>
               </div>
             )}
             {!comboToEdit?.image && !imageFile && (
-              <p className="text-[11px] text-gray-400 mt-1">Si no seleccionas una imagen se usará un diseño por defecto</p>
+              <p className="text-[11px] text-muted mt-1">Si no seleccionas una imagen se usará un diseño por defecto</p>
             )}
           </div>
 
-          <div className="flex gap-3 pt-4 border-t border-white/60">
+          <div className="flex gap-3 pt-4 border-t border-line">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="flex-1 px-4 py-3 bg-gray-200 text-gray-600 rounded-2xl hover:bg-gray-300 font-display font-semibold text-sm transition-all
-                shadow-[0_4px_12px_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)]
+              className="flex-1 px-4 py-3 bg-line text-inkalt rounded-none hover:bg-linealt font-display font-semibold text-sm transition-all
               "
             >
               Cancelar
@@ -456,9 +455,8 @@ const AddComboModal = ({ isOpen, onClose, onSave, onEditExisting, loading, combo
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-3 bg-red-500 text-white rounded-2xl hover:bg-red-600 font-display font-semibold text-sm transition-all
-                shadow-[0_6px_16px_rgba(220,38,38,0.35),inset_1px_1px_2px_rgba(255,255,255,0.3)]
-                active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.2)]
+              className="flex-1 px-4 py-3 bg-ac text-white rounded-none hover:bg-ac font-display font-semibold text-sm transition-all
+                active:
                 disabled:opacity-60 disabled:cursor-not-allowed
               "
             >

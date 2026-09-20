@@ -33,11 +33,11 @@ export const ToastProvider = ({ children }) => {
         {toasts.map(toast => (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg text-sm font-medium transition-all transform translate-x-0 opacity-100 ${
-              toast.type === 'success' ? 'bg-green-600 text-white' :
-              toast.type === 'error' ? 'bg-red-600 text-white' :
-              toast.type === 'warning' ? 'bg-yellow-500 text-white' :
-              'bg-blue-600 text-white'
+            className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-none text-sm font-medium transition-all transform translate-x-0 opacity-100 ${
+              toast.type === 'success' ? 'bg-ok text-white' :
+              toast.type === 'error' ? 'bg-ac text-white' :
+              toast.type === 'warning' ? 'bg-warn text-white' :
+              'bg-info text-white'
             }`}
           >
             <FAIcon

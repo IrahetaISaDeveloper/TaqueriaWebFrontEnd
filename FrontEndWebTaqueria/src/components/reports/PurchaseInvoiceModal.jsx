@@ -21,9 +21,9 @@ const EMPTY_FORM = {
 };
 
 const inputClass =
-  'w-full px-4 py-2.5 bg-[#f3f0eb] border border-white/80 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/30 text-sm text-gray-700 placeholder:text-gray-400 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05),inset_-2px_-2px_5px_rgba(255,255,255,0.7)]';
+  'w-full px-4 py-2.5 bg-surfalt border border-line rounded-none focus:outline-none focus:ring-2 focus:ring-acline text-sm text-inkalt placeholder:text-muted';
 
-const labelClass = 'block text-xs font-display font-semibold text-gray-500 uppercase tracking-wider mb-1.5';
+const labelClass = 'block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5';
 
 const PurchaseInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
   const [form, setForm] = useState(EMPTY_FORM);
@@ -89,21 +89,21 @@ const PurchaseInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.2),inset_1px_1px_3px_rgba(255,255,255,0.7)] border border-white/80 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white rounded-t-3xl">
+      <div className="bg-surface rounded-none border border-line max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-line flex items-center justify-between sticky top-0 bg-surface rounded-t-3xl">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05)]">
-              <FAIcon icon="receipt" className="text-red-500" />
+            <div className="w-10 h-10 rounded-full bg-acsoft flex items-center justify-center">
+              <FAIcon icon="receipt" className="text-ac" />
             </div>
             <div>
-              <h3 className="text-lg font-display font-bold text-gray-900">Registrar factura de compra</h3>
-              <p className="text-xs text-gray-500">Facturas que el negocio recibe de sus proveedores</p>
+              <h3 className="text-lg font-display font-bold text-ink">Registrar factura de compra</h3>
+              <p className="text-xs text-muted">Facturas que el negocio recibe de sus proveedores</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+            className="p-2 text-muted hover:text-inkalt hover:bg-surfalt rounded-none transition-colors"
             aria-label="Cerrar"
           >
             <FAIcon icon="times" />
@@ -185,7 +185,7 @@ const PurchaseInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
                 placeholder="19.50"
                 className={inputClass}
               />
-              <p className="mt-1 text-[11px] text-gray-400">
+              <p className="mt-1 text-[11px] text-muted">
                 Se sugiere el 13% del subtotal; ajústalo a lo que diga la factura.
               </p>
             </div>
@@ -210,10 +210,10 @@ const PurchaseInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
-                className="w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-display file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 file:cursor-pointer"
+                className="w-full text-xs text-inkalt file:mr-3 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-xs file:font-display file:font-semibold file:bg-surfalt file:text-inkalt hover:file:bg-line file:cursor-pointer"
               />
               {file && (
-                <p className="mt-1 text-[11px] text-green-600 font-medium truncate">
+                <p className="mt-1 text-[11px] text-ok font-medium truncate">
                   <FAIcon icon="paperclip" size="xs" /> {file.name}
                 </p>
               )}
@@ -234,15 +234,15 @@ const PurchaseInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
 
           {/* Total calculado en vivo, para que el usuario pueda contrastarlo
               con el que trae impreso la factura antes de guardar. */}
-          <div className="flex items-center justify-between px-5 py-4 bg-[#f3f0eb] rounded-2xl shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05)]">
-            <span className="text-sm font-display font-semibold text-gray-600">Total de la factura</span>
-            <span className="text-2xl font-display font-bold text-gray-900">
+          <div className="flex items-center justify-between px-5 py-4 bg-surfalt rounded-none">
+            <span className="text-sm font-display font-semibold text-inkalt">Total de la factura</span>
+            <span className="text-2xl font-display font-bold text-ink">
               ${totalPreview.toFixed(2)}
             </span>
           </div>
 
           {formError && (
-            <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-red-600">
+            <div className="px-4 py-3 bg-acsoft border border-acline rounded-none text-sm text-ac">
               {formError}
             </div>
           )}
@@ -252,14 +252,14 @@ const PurchaseInvoiceModal = ({ isOpen, onClose, onSubmit }) => {
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="px-4 py-2.5 text-sm font-display font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-colors shadow-[0_4px_10px_rgba(0,0,0,0.06),inset_0_1px_2px_rgba(255,255,255,0.8)] disabled:opacity-50 cursor-pointer"
+              className="px-4 py-2.5 text-sm font-display font-semibold text-inkalt bg-surfalt hover:bg-line rounded-none transition-colors disabled:opacity-50 cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2.5 text-sm font-display font-semibold text-white bg-red-500 hover:bg-red-600 rounded-2xl transition-colors shadow-[0_6px_16px_rgba(220,38,38,0.35),inset_1px_1px_2px_rgba(255,255,255,0.3)] disabled:opacity-50 cursor-pointer"
+              className="px-5 py-2.5 text-sm font-display font-semibold text-white bg-ac hover:bg-ac rounded-none transition-colors disabled:opacity-50 cursor-pointer"
             >
               {saving ? 'Guardando...' : 'Registrar factura'}
             </button>

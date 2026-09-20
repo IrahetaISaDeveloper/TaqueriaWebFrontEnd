@@ -23,22 +23,22 @@ const PhotoSlot = ({ label, hint, file, onPick, onClear, disabled }) => {
     <div className="flex-1 min-w-0">
       <div className="flex items-center justify-between mb-1.5">
         <div className="min-w-0">
-          <p className="text-xs font-display font-bold text-gray-700">{label}</p>
-          <p className="text-[10px] text-gray-400 truncate">{hint}</p>
+          <p className="text-xs font-display font-bold text-inkalt">{label}</p>
+          <p className="text-[10px] text-muted truncate">{hint}</p>
         </div>
         {file && !disabled && (
-          <button type="button" onClick={onClear} className="text-[11px] text-red-500 font-display font-semibold shrink-0">
+          <button type="button" onClick={onClear} className="text-[11px] text-ac font-display font-semibold shrink-0">
             Quitar
           </button>
         )}
       </div>
 
       {preview ? (
-        <img src={preview} alt={label} className="w-full h-32 object-cover rounded-2xl border border-white/80" />
+        <img src={preview} alt={label} className="w-full h-32 object-cover rounded-none border border-line" />
       ) : (
-        <label className={`flex flex-col items-center justify-center gap-1.5 h-32 rounded-2xl border-2 border-dashed border-gray-200 bg-[#f3f0eb] transition-colors ${disabled ? 'opacity-50' : 'cursor-pointer hover:bg-gray-100'}`}>
-          <FAIcon icon="camera" size="lg" className="text-gray-400" />
-          <span className="text-[11px] font-display font-semibold text-gray-500">Elegir foto</span>
+        <label className={`flex flex-col items-center justify-center gap-1.5 h-32 rounded-none border-2 border-dashed border-line bg-surfalt transition-colors ${disabled ? 'opacity-50' : 'cursor-pointer hover:bg-surfalt'}`}>
+          <FAIcon icon="camera" size="lg" className="text-muted" />
+          <span className="text-[11px] font-display font-semibold text-muted">Elegir foto</span>
           {/* En un teléfono, "capture" abre la cámara; en una computadora
               simplemente abre el explorador de archivos. */}
           <input
@@ -94,25 +94,25 @@ const DuiScanStep = ({
   if (waitingForPhone && captureSession) {
     return (
       <div className="text-center py-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-display font-semibold mb-4">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-warnsoft border border-warn text-warn text-xs font-display font-semibold mb-4">
           <FAIcon icon="mobile-screen" size="xs" />
           Esperando las fotos del teléfono
         </div>
 
-        <div className="bg-white rounded-3xl border border-white/80 shadow-sm p-5 inline-block">
-          <canvas ref={canvasRef} className="rounded-xl" />
+        <div className="bg-surface rounded-none border border-line p-5 inline-block">
+          <canvas ref={canvasRef} className="rounded-none" />
         </div>
 
-        <p className="text-sm text-gray-600 mt-4 max-w-sm mx-auto">
+        <p className="text-sm text-inkalt mt-4 max-w-sm mx-auto">
           Escanea este código con la cámara de tu teléfono. Ahí podrás tomar las
           fotos del DUI y llegarán solas a esta pantalla.
         </p>
-        <p className="text-[11px] text-gray-400 mt-1">El código vence en 10 minutos.</p>
+        <p className="text-[11px] text-muted mt-1">El código vence en 10 minutos.</p>
 
         <button
           type="button"
           onClick={cancelPhoneCapture}
-          className="mt-5 text-xs font-display font-semibold text-gray-500 hover:text-gray-700"
+          className="mt-5 text-xs font-display font-semibold text-muted hover:text-inkalt"
         >
           Cancelar y subir desde esta computadora
         </button>
@@ -124,9 +124,9 @@ const DuiScanStep = ({
   if (scanning) {
     return (
       <div className="text-center py-10">
-        <div className="w-12 h-12 mx-auto mb-3 rounded-full border-4 border-red-200 border-t-red-500 animate-spin" />
-        <p className="font-display font-bold text-gray-900">Leyendo el documento...</p>
-        <p className="text-sm text-gray-500 mt-1">Esto toma unos segundos.</p>
+        <div className="w-12 h-12 mx-auto mb-3 rounded-full border-4 border-acline border-t-red-500 animate-spin" />
+        <p className="font-display font-bold text-ink">Leyendo el documento...</p>
+        <p className="text-sm text-muted mt-1">Esto toma unos segundos.</p>
       </div>
     );
   }
@@ -135,10 +135,10 @@ const DuiScanStep = ({
   if (confirming) {
     return (
       <div>
-        <p className="text-sm text-gray-700 font-display font-semibold mb-1">
+        <p className="text-sm text-inkalt font-display font-semibold mb-1">
           ¿Se ven bien las fotos?
         </p>
-        <p className="text-xs text-gray-500 mb-4">
+        <p className="text-xs text-muted mb-4">
           Revisa que los datos del documento se lean con claridad antes de continuar.
         </p>
 
@@ -151,14 +151,14 @@ const DuiScanStep = ({
           <button
             type="button"
             onClick={() => setConfirming(false)}
-            className="flex-1 py-2.5 rounded-2xl bg-gray-100 text-gray-700 font-display font-semibold text-sm hover:bg-gray-200 transition-colors"
+            className="flex-1 py-2.5 rounded-none bg-surfalt text-inkalt font-display font-semibold text-sm hover:bg-line transition-colors"
           >
             Cambiar fotos
           </button>
           <button
             type="button"
             onClick={handleConfirmAndScan}
-            className="flex-1 py-2.5 rounded-2xl bg-red-500 text-white font-display font-semibold text-sm shadow-[0_4px_12px_rgba(220,38,38,0.3)] hover:bg-red-600 transition-colors"
+            className="flex-1 py-2.5 rounded-none bg-ac text-white font-display font-semibold text-sm hover:bg-ac transition-colors"
           >
             Sí, leer el DUI
           </button>
@@ -172,11 +172,11 @@ const DuiScanStep = ({
       {/* Si la lectura falló, se ofrece reintentar: normalmente es porque el
           servicio de IA estaba saturado, no porque la foto esté mal. */}
       {ocrFailed && (
-        <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-2xl">
-          <p className="text-sm text-amber-800 font-display font-semibold mb-1">
+        <div className="mb-4 px-4 py-3 bg-warnsoft border border-warn rounded-none">
+          <p className="text-sm text-warn font-display font-semibold mb-1">
             No se pudieron leer los datos automáticamente
           </p>
-          <p className="text-xs text-amber-700 mb-2">
+          <p className="text-xs text-warn mb-2">
             Las fotos sí se guardaron. Puedes intentar leerlas de nuevo o escribir los datos a mano.
           </p>
           <div className="flex flex-wrap gap-2">
@@ -184,7 +184,7 @@ const DuiScanStep = ({
               <button
                 type="button"
                 onClick={retryScanFromSession}
-                className="px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-display font-semibold hover:bg-amber-600 transition-colors"
+                className="px-3 py-1.5 rounded-none bg-warn text-white text-xs font-display font-semibold hover:bg-warn transition-colors"
               >
                 Reintentar lectura
               </button>
@@ -192,7 +192,7 @@ const DuiScanStep = ({
             <button
               type="button"
               onClick={onSkip}
-              className="px-3 py-1.5 rounded-xl bg-white border border-amber-300 text-amber-700 text-xs font-display font-semibold hover:bg-amber-100 transition-colors"
+              className="px-3 py-1.5 rounded-none bg-surface border border-warn text-warn text-xs font-display font-semibold hover:bg-warnsoft transition-colors"
             >
               Escribir los datos a mano
             </button>
@@ -201,7 +201,7 @@ const DuiScanStep = ({
       )}
 
       {error && (
-        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-red-600">
+        <div className="mb-4 px-4 py-3 bg-acsoft border border-acline rounded-none text-sm text-ac">
           {error}
         </div>
       )}
@@ -227,22 +227,22 @@ const DuiScanStep = ({
         type="button"
         onClick={() => setConfirming(true)}
         disabled={!front}
-        className="w-full py-2.5 rounded-2xl bg-red-500 text-white font-display font-semibold text-sm shadow-[0_4px_12px_rgba(220,38,38,0.3)] hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-3"
+        className="w-full py-2.5 rounded-none bg-ac text-white font-display font-semibold text-sm hover:bg-ac transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-3"
       >
         Continuar con estas fotos
       </button>
 
       {/* Alternativa para quien está en una computadora sin cámara decente */}
       <div className="flex items-center gap-3 my-3">
-        <div className="flex-1 h-px bg-gray-200" />
-        <span className="text-[11px] text-gray-400 font-display font-semibold uppercase tracking-wider">o</span>
-        <div className="flex-1 h-px bg-gray-200" />
+        <div className="flex-1 h-px bg-line" />
+        <span className="text-[11px] text-muted font-display font-semibold uppercase tracking-wider">o</span>
+        <div className="flex-1 h-px bg-line" />
       </div>
 
       <button
         type="button"
         onClick={startPhoneCapture}
-        className="w-full py-2.5 rounded-2xl bg-white border border-white/80 text-gray-700 font-display font-semibold text-sm shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:bg-gray-50 transition-colors inline-flex items-center justify-center gap-2"
+        className="w-full py-2.5 rounded-none bg-surface border border-line text-inkalt font-display font-semibold text-sm hover:bg-surfalt transition-colors inline-flex items-center justify-center gap-2"
       >
         <FAIcon icon="qrcode" />
         Tomar las fotos con mi teléfono
@@ -251,7 +251,7 @@ const DuiScanStep = ({
       <button
         type="button"
         onClick={onSkip}
-        className="w-full mt-3 text-xs font-display font-semibold text-gray-500 hover:text-gray-700"
+        className="w-full mt-3 text-xs font-display font-semibold text-muted hover:text-inkalt"
       >
         Prefiero escribir los datos a mano
       </button>

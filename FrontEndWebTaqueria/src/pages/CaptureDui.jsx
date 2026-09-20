@@ -22,17 +22,17 @@ const Slot = ({ label, hint, file, onPick, onClear }) => {
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
   return (
-    <div className="bg-white rounded-3xl border border-white/80 shadow-sm p-4">
+    <div className="bg-surface rounded-none border border-line p-4">
       <div className="flex items-center justify-between mb-2">
         <div>
-          <p className="font-display font-bold text-gray-900 text-sm">{label}</p>
-          <p className="text-[11px] text-gray-500">{hint}</p>
+          <p className="font-display font-bold text-ink text-sm">{label}</p>
+          <p className="text-[11px] text-muted">{hint}</p>
         </div>
         {file && (
           <button
             type="button"
             onClick={onClear}
-            className="text-xs text-red-500 font-display font-semibold"
+            className="text-xs text-ac font-display font-semibold"
           >
             Cambiar
           </button>
@@ -40,11 +40,11 @@ const Slot = ({ label, hint, file, onPick, onClear }) => {
       </div>
 
       {preview ? (
-        <img src={preview} alt={label} className="w-full h-44 object-cover rounded-2xl" />
+        <img src={preview} alt={label} className="w-full h-44 object-cover rounded-none" />
       ) : (
-        <label className="flex flex-col items-center justify-center gap-2 h-44 rounded-2xl border-2 border-dashed border-gray-200 bg-[#f3f0eb] cursor-pointer active:bg-gray-100 transition-colors">
-          <FAIcon icon="camera" size="2xl" className="text-gray-400" />
-          <span className="text-xs font-display font-semibold text-gray-500">Tomar foto</span>
+        <label className="flex flex-col items-center justify-center gap-2 h-44 rounded-none border-2 border-dashed border-line bg-surfalt cursor-pointer active:bg-surfalt transition-colors">
+          <FAIcon icon="camera" size="2xl" className="text-muted" />
+          <span className="text-xs font-display font-semibold text-muted">Tomar foto</span>
           {/* capture="environment" hace que el teléfono abra directamente la
               cámara trasera en vez del explorador de archivos. */}
           <input
@@ -134,22 +134,22 @@ export default function CaptureDui() {
 
   if (checking) {
     return (
-      <div className="min-h-screen bg-[#f3f0eb] flex items-center justify-center p-6">
-        <p className="text-sm text-gray-500">Verificando enlace...</p>
+      <div className="min-h-screen bg-surfalt flex items-center justify-center p-6">
+        <p className="text-sm text-muted">Verificando enlace...</p>
       </div>
     );
   }
 
   if (sessionError) {
     return (
-      <div className="min-h-screen bg-[#f3f0eb] flex items-center justify-center p-6">
-        <div className="bg-white rounded-3xl border border-white/80 shadow-sm p-6 max-w-sm text-center">
-          <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-red-100 flex items-center justify-center text-red-500">
+      <div className="min-h-screen bg-surfalt flex items-center justify-center p-6">
+        <div className="bg-surface rounded-none border border-line p-6 max-w-sm text-center">
+          <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-acsoft flex items-center justify-center text-ac">
             <FAIcon icon="triangle-exclamation" size="xl" />
           </div>
-          <h1 className="font-display font-bold text-gray-900 mb-1">Enlace no válido</h1>
-          <p className="text-sm text-gray-600">{sessionError}</p>
-          <p className="text-xs text-gray-400 mt-3">
+          <h1 className="font-display font-bold text-ink mb-1">Enlace no válido</h1>
+          <p className="text-sm text-inkalt">{sessionError}</p>
+          <p className="text-xs text-muted mt-3">
             Genera un código nuevo desde la computadora.
           </p>
         </div>
@@ -159,27 +159,27 @@ export default function CaptureDui() {
 
   if (sent) {
     return (
-      <div className="min-h-screen bg-[#f3f0eb] flex items-center justify-center p-6">
-        <div className="bg-white rounded-3xl border border-white/80 shadow-sm p-6 max-w-sm text-center">
-          <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+      <div className="min-h-screen bg-surfalt flex items-center justify-center p-6">
+        <div className="bg-surface rounded-none border border-line p-6 max-w-sm text-center">
+          <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-oksoft flex items-center justify-center text-ok">
             <FAIcon icon="check" size="2xl" />
           </div>
-          <h1 className="font-display font-bold text-gray-900 text-lg mb-1">¡Listo!</h1>
-          <p className="text-sm text-gray-600">
+          <h1 className="font-display font-bold text-ink text-lg mb-1">¡Listo!</h1>
+          <p className="text-sm text-inkalt">
             Las fotos ya llegaron a la computadora. Puedes volver a ella para continuar.
           </p>
-          <p className="text-xs text-gray-400 mt-4">Ya puedes cerrar esta página.</p>
+          <p className="text-xs text-muted mt-4">Ya puedes cerrar esta página.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f3f0eb] p-4 sm:p-6">
+    <div className="min-h-screen bg-surfalt p-4 sm:p-6">
       <div className="max-w-md mx-auto">
         <div className="text-center mb-5">
-          <h1 className="font-display font-bold text-gray-900 text-xl mb-1">Foto del DUI</h1>
-          <p className="text-sm text-gray-600">
+          <h1 className="font-display font-bold text-ink text-xl mb-1">Foto del DUI</h1>
+          <p className="text-sm text-inkalt">
             Toma las dos caras del documento. Cuida que se lean bien los datos.
           </p>
         </div>
@@ -202,7 +202,7 @@ export default function CaptureDui() {
         </div>
 
         {error && (
-          <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-red-600">
+          <div className="mb-4 px-4 py-3 bg-acsoft border border-acline rounded-none text-sm text-ac">
             {error}
           </div>
         )}
@@ -211,12 +211,12 @@ export default function CaptureDui() {
           type="button"
           onClick={handleSend}
           disabled={!front || sending}
-          className="w-full py-3.5 rounded-2xl bg-red-500 text-white font-display font-bold shadow-[0_6px_16px_rgba(220,38,38,0.35)] active:bg-red-600 transition-colors disabled:opacity-50"
+          className="w-full py-3.5 rounded-none bg-ac text-white font-display font-bold active:bg-ac transition-colors disabled:opacity-50"
         >
           {sending ? 'Enviando...' : 'Enviar fotos'}
         </button>
 
-        <p className="text-[11px] text-gray-400 text-center mt-3">
+        <p className="text-[11px] text-muted text-center mt-3">
           Este enlace es temporal y solo sirve para enviar estas fotos.
         </p>
       </div>

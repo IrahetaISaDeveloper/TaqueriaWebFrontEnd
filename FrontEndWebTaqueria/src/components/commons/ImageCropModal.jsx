@@ -150,16 +150,15 @@ const ImageCropModal = ({ file, onCancel, onConfirm }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-sm bg-white rounded-3xl border border-white/80 overflow-hidden
-        shadow-[0_20px_60px_rgba(0,0,0,0.25),inset_1px_1px_3px_rgba(255,255,255,0.7)]">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h3 className="font-display font-bold text-gray-900 text-base">Ajustar foto de perfil</h3>
-          <p className="text-xs text-gray-500 mt-0.5">Arrastra la imagen y usa el control para acercarla</p>
+      <div className="w-full max-w-sm bg-surface rounded-none border border-line overflow-hidden">
+        <div className="px-5 py-4 border-b border-line">
+          <h3 className="font-display font-bold text-ink text-base">Ajustar foto de perfil</h3>
+          <p className="text-xs text-muted mt-0.5">Arrastra la imagen y usa el control para acercarla</p>
         </div>
 
         <div className="p-5 flex flex-col items-center gap-4">
           <div
-            className="relative rounded-full overflow-hidden bg-gray-100 border-2 border-red-400 shadow-inner touch-none select-none"
+            className="relative rounded-full overflow-hidden bg-surfalt border-2 border-acline shadow-inner touch-none select-none"
             style={{ width: FRAME_SIZE, height: FRAME_SIZE, cursor: isDragging ? 'grabbing' : 'grab' }}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
@@ -183,7 +182,7 @@ const ImageCropModal = ({ file, onCancel, onConfirm }) => {
           </div>
 
           <div className="w-full flex items-center gap-3">
-            <FAIcon icon="magnifying-glass-minus" size="sm" className="text-gray-400" />
+            <FAIcon icon="magnifying-glass-minus" size="sm" className="text-muted" />
             <input
               type="range"
               min={MIN_ZOOM}
@@ -194,23 +193,22 @@ const ImageCropModal = ({ file, onCancel, onConfirm }) => {
               className="flex-1 accent-red-500"
               aria-label="Acercar o alejar la foto"
             />
-            <FAIcon icon="magnifying-glass-plus" size="sm" className="text-gray-400" />
+            <FAIcon icon="magnifying-glass-plus" size="sm" className="text-muted" />
           </div>
         </div>
 
-        <div className="flex gap-2 px-5 py-4 border-t border-gray-100">
+        <div className="flex gap-2 px-5 py-4 border-t border-line">
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 px-4 py-2.5 rounded-2xl font-display font-semibold text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+            className="flex-1 px-4 py-2.5 rounded-none font-display font-semibold text-sm text-inkalt bg-surfalt hover:bg-line transition-colors"
           >
             Cancelar
           </button>
           <button
             type="button"
             onClick={handleConfirm}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl font-display font-semibold text-sm text-white bg-red-500 hover:bg-red-600 transition-colors
-              shadow-[0_6px_16px_rgba(220,38,38,0.35),inset_1px_1px_2px_rgba(255,255,255,0.3)]"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-none font-display font-semibold text-sm text-white bg-ac hover:bg-ac transition-colors"
           >
             <FAIcon icon="check" size="sm" />
             Aplicar

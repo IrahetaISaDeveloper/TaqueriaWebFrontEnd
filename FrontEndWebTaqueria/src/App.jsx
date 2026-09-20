@@ -18,6 +18,7 @@ import DrinkSets from './pages/DrinkSets'
 import Dishes from './pages/Dishes'
 import ClientManagement from './pages/ClientManagement'
 import Extras from './pages/Extras'
+import Promotions from './pages/Promotions'
 import EmployeeManagement from './pages/EmployeeManagement'
 import Tables from './pages/Tables'
 import Inventory from './pages/Inventory'
@@ -81,6 +82,7 @@ export default function App() {
 					<Route path="/dishes" element={<ProtectedRoute requiredPermission="dishes"><Dishes /></ProtectedRoute>} />
 					<Route path="/clients" element={<ProtectedRoute requiredPermission="clients"><ClientManagement /></ProtectedRoute>} />
 					<Route path="/extras" element={<ProtectedRoute requiredPermission="extras"><Extras /></ProtectedRoute>} />
+					<Route path="/promociones" element={<ProtectedRoute requiredPermission="promotions"><Promotions /></ProtectedRoute>} />
 					<Route path="/employees" element={<ProtectedRoute requiredPermission="employees"><EmployeeManagement /></ProtectedRoute>} />
 					<Route path="/mesas" element={<ProtectedRoute requiredPermission="tables"><Tables /></ProtectedRoute>} />
 					<Route path="/inventario" element={<ProtectedRoute requiredPermission="inventory"><Inventory /></ProtectedRoute>} />

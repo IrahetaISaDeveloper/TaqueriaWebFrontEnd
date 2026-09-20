@@ -25,18 +25,18 @@ const PAYMENT_STATUS_LABELS = {
 
 const InfoRow = ({ label, value, icon }) => (
   <div className="flex items-start gap-3 py-2">
-    {icon && <FAIcon icon={icon} size="sm" className="text-gray-400 mt-0.5 w-4" />}
+    {icon && <FAIcon icon={icon} size="sm" className="text-muted mt-0.5 w-4" />}
     <div className="min-w-0">
-      <p className="text-[11px] uppercase tracking-wide text-gray-400 font-display font-semibold">{label}</p>
-      <p className="text-sm text-gray-800 font-medium break-words">{value || '—'}</p>
+      <p className="text-[11px] uppercase tracking-wide text-muted font-display font-semibold">{label}</p>
+      <p className="text-sm text-ink font-medium break-words">{value || '—'}</p>
     </div>
   </div>
 );
 
 const Section = ({ title, children }) => (
-  <div className="bg-white/70 rounded-2xl border border-white/80 p-4 mb-4">
-    <h4 className="text-xs font-display font-bold uppercase tracking-wide text-gray-500 mb-1">{title}</h4>
-    <div className="divide-y divide-gray-100">{children}</div>
+  <div className="bg-surface rounded-none border border-line p-4 mb-4">
+    <h4 className="text-xs font-display font-bold uppercase tracking-wide text-muted mb-1">{title}</h4>
+    <div className="divide-y divide-line">{children}</div>
   </div>
 );
 
@@ -54,15 +54,15 @@ const OrderDetailModal = ({ isOpen, onClose, order }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-[#f3f0eb] rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/80 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="bg-red-500 px-5 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div className="bg-surfalt rounded-none border border-line max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="bg-ac px-5 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
           <div>
             <h3 className="text-white font-display font-bold text-lg">
               Pedido #{(order._id || '').toString().slice(-4).toUpperCase()}
             </h3>
             <p className="text-white/80 text-xs">{isOnline ? 'Pedido en línea' : 'Pedido en local'}</p>
           </div>
-          <button type="button" onClick={onClose} className="text-white/90 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">
+          <button type="button" onClick={onClose} className="text-white/90 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface/10">
             <FAIcon icon="times" />
           </button>
         </div>
@@ -70,11 +70,11 @@ const OrderDetailModal = ({ isOpen, onClose, order }) => {
         <div className="p-5 sm:p-6">
           <Section title="Estado del pedido">
             <div className="flex items-center gap-2 py-1">
-              <span className="px-2.5 py-1 rounded-full text-xs font-display font-semibold bg-red-100 text-red-600 border border-red-200">
+              <span className="px-2.5 py-1 rounded-full text-xs font-display font-semibold bg-acsoft text-ac border border-acline">
                 {STATUS_LABELS[order.status] || order.status}
               </span>
               {order.createdAt && (
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-muted">
                   {new Date(order.createdAt).toLocaleString('es-SV', { dateStyle: 'medium', timeStyle: 'short' })}
                 </span>
               )}
@@ -120,16 +120,16 @@ const OrderDetailModal = ({ isOpen, onClose, order }) => {
 
           <Section title="Productos">
             {(order.items || []).length === 0 ? (
-              <p className="text-sm text-gray-500 py-2">Sin productos registrados</p>
+              <p className="text-sm text-muted py-2">Sin productos registrados</p>
             ) : (
               order.items.map((item, idx) => (
                 <div key={idx} className="flex items-center justify-between py-2 text-sm">
-                  <span className="text-gray-700">{item.quantity}× {item.name}</span>
-                  <span className="font-display font-semibold text-gray-900">${(item.price * item.quantity).toFixed(2)}</span>
+                  <span className="text-inkalt">{item.quantity}× {item.name}</span>
+                  <span className="font-display font-semibold text-ink">${(item.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))
             )}
-            <div className="flex items-center justify-between pt-2 text-sm font-display font-bold text-gray-900">
+            <div className="flex items-center justify-between pt-2 text-sm font-display font-bold text-ink">
               <span>Total</span>
               <span>${(Number(order.total) || 0).toFixed(2)}</span>
             </div>

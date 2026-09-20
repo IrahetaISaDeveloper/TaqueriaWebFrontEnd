@@ -42,19 +42,19 @@ const RecipeBuilder = ({ rows, setRows, categories = [], showRemovable = false, 
   };
 
   const inputClasses =
-    'w-full px-4 py-2.5 bg-[#f3f0eb] border border-white/80 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition-all text-gray-700 placeholder:text-gray-400 text-sm shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05),inset_-2px_-2px_5px_rgba(255,255,255,0.7)]';
+    'w-full px-4 py-2.5 bg-surfalt border border-line rounded-none focus:outline-none focus:ring-2 focus:ring-acline focus:border-acline transition-all text-inkalt placeholder:text-muted text-sm';
 
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
         <div>
-          <p className="font-display font-semibold text-gray-800 text-sm">{title}</p>
-          {helperText && <p className="text-xs text-gray-500">{helperText}</p>}
+          <p className="font-display font-semibold text-ink text-sm">{title}</p>
+          {helperText && <p className="text-xs text-muted">{helperText}</p>}
         </div>
         <button
           type="button"
           onClick={addRow}
-          className="text-xs font-display font-semibold text-red-500 hover:text-red-600 flex items-center gap-1"
+          className="text-xs font-display font-semibold text-ac hover:text-ac flex items-center gap-1"
         >
           <FAIcon icon="plus" size="xs" /> Agregar ingrediente
         </button>
@@ -68,7 +68,7 @@ const RecipeBuilder = ({ rows, setRows, categories = [], showRemovable = false, 
             : [];
 
           return (
-            <div key={row.key} className="p-3 bg-white/70 rounded-2xl border border-white/80 space-y-2">
+            <div key={row.key} className="p-3 bg-surface rounded-none border border-line space-y-2">
               <div className="flex items-center gap-2">
                 <div className="flex-1 relative">
                   <input
@@ -82,13 +82,13 @@ const RecipeBuilder = ({ rows, setRows, categories = [], showRemovable = false, 
                     className={inputClasses}
                   />
                   {search && matches.length > 0 && (
-                    <div className="absolute z-10 mt-1 w-full bg-white rounded-xl shadow-lg border border-gray-100 max-h-32 overflow-y-auto">
+                    <div className="absolute z-10 mt-1 w-full bg-surface rounded-none border border-line max-h-32 overflow-y-auto">
                       {matches.map((insumo) => (
                         <button
                           type="button"
                           key={insumo._id}
                           onClick={() => pickExistingInsumo(row.key, insumo)}
-                          className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50"
+                          className="w-full text-left px-3 py-2 text-xs hover:bg-surfalt"
                         >
                           {insumo.name} {insumo.pending ? '(pendiente)' : ''}
                         </button>
@@ -99,7 +99,7 @@ const RecipeBuilder = ({ rows, setRows, categories = [], showRemovable = false, 
                 <button
                   type="button"
                   onClick={() => removeRow(row.key)}
-                  className="p-2 text-gray-400 hover:text-red-500"
+                  className="p-2 text-muted hover:text-ac"
                   aria-label="Quitar ingrediente"
                 >
                   <FAIcon icon="trash" size="sm" />
@@ -125,7 +125,7 @@ const RecipeBuilder = ({ rows, setRows, categories = [], showRemovable = false, 
               </div>
 
               <div className="flex items-center gap-4 flex-wrap">
-                <label className="flex items-center gap-1.5 text-xs text-gray-600 font-medium">
+                <label className="flex items-center gap-1.5 text-xs text-inkalt font-medium">
                   <input
                     type="checkbox"
                     checked={row.tracked}
@@ -136,7 +136,7 @@ const RecipeBuilder = ({ rows, setRows, categories = [], showRemovable = false, 
                   Guardar en inventario
                 </label>
                 {showRemovable && (
-                  <label className="flex items-center gap-1.5 text-xs text-gray-600 font-medium">
+                  <label className="flex items-center gap-1.5 text-xs text-inkalt font-medium">
                     <input
                       type="checkbox"
                       checked={row.removable}
@@ -150,7 +150,7 @@ const RecipeBuilder = ({ rows, setRows, categories = [], showRemovable = false, 
 
               {row.tracked && !row.inventoryId && categories.length > 0 && (
                 <div className="flex items-center gap-2">
-                  <p className="text-[11px] text-amber-600 flex-1">
+                  <p className="text-[11px] text-warn flex-1">
                     Se creará como insumo pendiente en Inventario al guardar
                   </p>
                   <Select
@@ -167,7 +167,7 @@ const RecipeBuilder = ({ rows, setRows, categories = [], showRemovable = false, 
           );
         })}
         {rows.length === 0 && (
-          <p className="text-xs text-gray-400 text-center py-2">Sin ingredientes agregados todavía</p>
+          <p className="text-xs text-muted text-center py-2">Sin ingredientes agregados todavía</p>
         )}
       </div>
 
@@ -177,19 +177,19 @@ const RecipeBuilder = ({ rows, setRows, categories = [], showRemovable = false, 
             type="button"
             onClick={() => setPage(Math.max(0, currentPage - 1))}
             disabled={currentPage === 0}
-            className="p-2 text-gray-500 hover:text-red-500 disabled:opacity-30 disabled:hover:text-gray-500"
+            className="p-2 text-muted hover:text-ac disabled:opacity-30 disabled:hover:text-muted"
             aria-label="Página anterior"
           >
             <FAIcon icon="chevron-left" size="sm" />
           </button>
-          <span className="text-xs text-gray-500 font-medium">
+          <span className="text-xs text-muted font-medium">
             Página {currentPage + 1} de {totalPages}
           </span>
           <button
             type="button"
             onClick={() => setPage(Math.min(totalPages - 1, currentPage + 1))}
             disabled={currentPage >= totalPages - 1}
-            className="p-2 text-gray-500 hover:text-red-500 disabled:opacity-30 disabled:hover:text-gray-500"
+            className="p-2 text-muted hover:text-ac disabled:opacity-30 disabled:hover:text-muted"
             aria-label="Página siguiente"
           >
             <FAIcon icon="chevron-right" size="sm" />

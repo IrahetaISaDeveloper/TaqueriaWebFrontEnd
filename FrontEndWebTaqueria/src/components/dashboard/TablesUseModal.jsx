@@ -12,10 +12,10 @@ const STATUS_OPTIONS = [
 ];
 
 const STATUS_STYLES = {
-  libre: 'bg-green-100 text-green-700 border-green-200',
-  ocupada: 'bg-red-100 text-red-700 border-red-200',
-  reservada: 'bg-purple-100 text-purple-700 border-purple-200',
-  limpieza: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+  libre: 'bg-oksoft text-ok border-ok',
+  ocupada: 'bg-acsoft text-ac border-acline',
+  reservada: 'bg-infosoft text-info border-info',
+  limpieza: 'bg-warnsoft text-warn border-warn',
 };
 
 const TableCard = ({ table, onUpdate, addToast }) => {
@@ -37,13 +37,13 @@ const TableCard = ({ table, onUpdate, addToast }) => {
   };
 
   return (
-    <div className="bg-white/80 rounded-2xl border border-white/80 p-4 flex flex-col gap-3">
+    <div className="bg-surface rounded-none border border-line p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <FAIcon icon="chair" size="sm" className="text-gray-400" />
-          <span className="font-display font-bold text-gray-900">Mesa {table.number}</span>
+          <FAIcon icon="chair" size="sm" className="text-muted" />
+          <span className="font-display font-bold text-ink">Mesa {table.number}</span>
         </div>
-        <span className={`px-2 py-0.5 rounded-full text-[11px] font-display font-semibold border ${STATUS_STYLES[status] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+        <span className={`px-2 py-0.5 rounded-full text-[11px] font-display font-semibold border ${STATUS_STYLES[status] || 'bg-surfalt text-inkalt border-line'}`}>
           {STATUS_OPTIONS.find((s) => s.value === status)?.label || status}
         </span>
       </div>
@@ -75,17 +75,17 @@ const TablesUseModal = ({ isOpen, onClose, tables, onUpdate, onBulkUpdate, addTo
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
-        <div className="bg-[#f3f0eb] rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/80 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="bg-red-500 px-5 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="bg-surfalt rounded-none border border-line max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-ac px-5 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
             <h3 className="text-white font-display font-bold text-lg">Mesas</h3>
-            <button type="button" onClick={onClose} className="text-white/90 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">
+            <button type="button" onClick={onClose} className="text-white/90 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface/10">
               <FAIcon icon="times" />
             </button>
           </div>
 
           <div className="p-5 sm:p-6">
             {onBulkUpdate && (
-              <div className="flex items-center gap-1.5 bg-white rounded-xl border border-gray-200 p-1 mb-4 w-fit">
+              <div className="flex items-center gap-1.5 bg-surface rounded-none border border-line p-1 mb-4 w-fit">
                 <Select variant="ghost" value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)}>
                   {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </Select>
@@ -93,7 +93,7 @@ const TablesUseModal = ({ isOpen, onClose, tables, onUpdate, onBulkUpdate, addTo
                   type="button"
                   onClick={() => setConfirmBulk(true)}
                   disabled={tables.length === 0}
-                  className="px-3 py-1.5 rounded-lg text-xs font-display font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50"
+                  className="px-3 py-1.5 rounded-none text-xs font-display font-semibold text-inkalt bg-surfalt hover:bg-line transition-colors disabled:opacity-50"
                 >
                   Aplicar a todas
                 </button>
@@ -107,7 +107,7 @@ const TablesUseModal = ({ isOpen, onClose, tables, onUpdate, onBulkUpdate, addTo
                   type="button"
                   onClick={() => setFilter(f)}
                   className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-colors ${
-                    filter === f ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    filter === f ? 'bg-ac text-white' : 'bg-surfalt text-inkalt hover:bg-line'
                   }`}
                 >
                   {f === 'all' ? 'Todas' : STATUS_OPTIONS.find((s) => s.value === f)?.label}
@@ -116,7 +116,7 @@ const TablesUseModal = ({ isOpen, onClose, tables, onUpdate, onBulkUpdate, addTo
             </div>
 
             {shown.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-6">No hay mesas para este filtro</p>
+              <p className="text-sm text-muted text-center py-6">No hay mesas para este filtro</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {shown.map((t) => <TableCard key={t._id} table={t} onUpdate={onUpdate} addToast={addToast} />)}

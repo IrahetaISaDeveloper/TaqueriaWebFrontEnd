@@ -24,8 +24,8 @@ const DISH_CATEGORIES = ['Burritos', 'Tortas', 'Tacos', 'Sopas', 'Especiales'];
 
 // Color del borde de la portada, a juego con el degradado de cada libro
 const BOOK_BORDERS = {
-  drinks: 'border-amber-900/70',
-  dishes: 'border-red-950/70',
+  drinks: 'border-warn',
+  dishes: 'border-acline',
   extras: 'border-emerald-950/70',
 };
 
@@ -138,7 +138,7 @@ function RecipesContent() {
   const activeBook = BOOKS.find((b) => b.id === typeFilter);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f3f0eb]">
+    <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -152,10 +152,10 @@ function RecipesContent() {
           <div className="p-4 sm:p-6 lg:p-8">
             <div className="mb-6 sm:mb-8 relative">
               <div className="text-center">
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-1 sm:mb-2">
+                <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1 sm:mb-2">
                   Recetario
                 </h1>
-                <p className="text-sm sm:text-base text-gray-600">
+                <p className="text-sm sm:text-base text-inkalt">
                   Elige un libro: cada receta es una página, cada categoría un separador.
                 </p>
               </div>
@@ -184,10 +184,10 @@ function RecipesContent() {
                   key={book.id}
                   type="button"
                   onClick={() => handleBookChange(book.id)}
-                  className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-display font-semibold text-sm transition-all ${
+                  className={`flex items-center gap-2 px-5 py-3 rounded-none font-display font-semibold text-sm transition-all ${
                     typeFilter === book.id
-                      ? `bg-gradient-to-br ${book.color} text-white shadow-[0_8px_20px_rgba(0,0,0,0.25)] scale-105`
-                      : 'bg-white text-gray-600 border border-white/80 hover:bg-gray-50'
+                      ? `bg-gradient-to-br ${book.color} text-white scale-105`
+                      : 'bg-surface text-inkalt border border-line hover:bg-surfalt'
                   }`}
                 >
                   <FAIcon icon={book.icon} size="sm" />
@@ -198,39 +198,39 @@ function RecipesContent() {
 
             {loading && (
               <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
-                <span className="ml-3 text-gray-600 font-medium">Abriendo el libro...</span>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ac"></div>
+                <span className="ml-3 text-inkalt font-medium">Abriendo el libro...</span>
               </div>
             )}
 
             {!loading && (
               <div key={typeFilter} className="max-w-3xl mx-auto animate-[fadeIn_0.25s_ease-out]">
                 <div
-                  className={`relative flex rounded-r-3xl rounded-l-md shadow-[0_25px_60px_rgba(0,0,0,0.3)] border-4 bg-gradient-to-br ${BOOK_BORDERS[typeFilter] || 'border-red-950/70'} overflow-hidden min-h-[380px]`}
+                  className={`relative flex rounded-r-3xl rounded-l-md border-4 bg-gradient-to-br ${BOOK_BORDERS[typeFilter] || 'border-acline'} overflow-hidden min-h-[380px]`}
                 >
                   {/* Lomo del libro */}
-                  <div className={`w-3 sm:w-4 bg-gradient-to-r ${activeBook.color} shadow-[inset_-4px_0_10px_rgba(0,0,0,0.4)]`} />
+                  <div className={`w-3 sm:w-4 bg-gradient-to-r ${activeBook.color}`} />
 
                   {/* Página */}
-                  <div className="flex-1 bg-white relative p-5 sm:p-8 flex flex-col">
+                  <div className="flex-1 bg-surface relative p-5 sm:p-8 flex flex-col">
                     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_left,rgba(0,0,0,0.06),transparent_60%)] pointer-events-none" />
 
                     {!current ? (
                       <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
-                        <FAIcon icon="feather" size="3x" className="text-gray-300 mb-3" />
-                        <p className="text-gray-500 font-display font-semibold">
+                        <FAIcon icon="feather" size="3x" className="text-muted mb-3" />
+                        <p className="text-muted font-display font-semibold">
                           Este libro todavía no tiene páginas escritas
                         </p>
-                        <p className="text-gray-400 text-xs sm:text-sm mt-1">
+                        <p className="text-muted text-xs sm:text-sm mt-1">
                           {EMPTY_BOOK_HINTS[typeFilter] || EMPTY_BOOK_HINTS.dishes}
                         </p>
                       </div>
                     ) : (
                       <>
-                        <div className="flex items-start justify-between gap-3 mb-4 border-b-2 border-dashed border-gray-200 pb-3">
+                        <div className="flex items-start justify-between gap-3 mb-4 border-b-2 border-dashed border-line pb-3">
                           <div>
-                            <h2 className="font-display font-bold text-xl text-gray-900">{current.title || current.name}</h2>
-                            <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[11px] font-semibold">
+                            <h2 className="font-display font-bold text-xl text-ink">{current.title || current.name}</h2>
+                            <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-surfalt text-inkalt text-[11px] font-semibold">
                               {typeFilter === 'drinks'
                                 ? (current.subcategory || 'Sin subcategoría')
                                 : (current.category || 'Sin categoría')}
@@ -241,32 +241,32 @@ function RecipesContent() {
                             {EDIT_ROUTES[typeFilter] && (
                               <Link
                                 to={EDIT_ROUTES[typeFilter].path}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 text-gray-600 text-[11px] font-display font-semibold hover:bg-gray-200 hover:text-gray-800 transition-colors"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none bg-surfalt text-inkalt text-[11px] font-display font-semibold hover:bg-line hover:text-ink transition-colors"
                                 title={EDIT_ROUTES[typeFilter].label}
                               >
                                 <FAIcon icon="pen" size="xs" />
                                 Editar
                               </Link>
                             )}
-                            <FAIcon icon={activeBook.icon} size="xl" className="text-gray-200" />
+                            <FAIcon icon={activeBook.icon} size="xl" className="text-muted" />
                           </div>
                         </div>
 
                         <ul className="space-y-2 flex-1">
                           {current.recipe.map((ingredient, idx) => (
-                            <li key={idx} className="flex items-center justify-between text-sm text-gray-700 border-b border-gray-100 pb-2 last:border-0">
+                            <li key={idx} className="flex items-center justify-between text-sm text-inkalt border-b border-line pb-2 last:border-0">
                               <span className="flex items-center gap-2">
                                 <FAIcon
                                   icon={ingredient.tracked ? 'box' : 'circle-info'}
                                   size="xs"
-                                  className={ingredient.tracked ? 'text-green-600' : 'text-gray-400'}
+                                  className={ingredient.tracked ? 'text-ok' : 'text-muted'}
                                 />
                                 {ingredient.name}
                                 {ingredient.removable && (
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Quitable</span>
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-warnsoft text-warn">Quitable</span>
                                 )}
                               </span>
-                              <span className="text-gray-500 text-xs">
+                              <span className="text-muted text-xs">
                                 {ingredient.quantity
                                   ? `${ingredient.quantity} ${UNIT_LABELS[ingredient.unit] || ingredient.unit || ''}`
                                   : ingredient.unit}
@@ -275,7 +275,7 @@ function RecipesContent() {
                           ))}
                         </ul>
 
-                        <p className="text-center text-xs text-gray-400 font-display italic mt-4">
+                        <p className="text-center text-xs text-muted font-display italic mt-4">
                           — página {currentIndex + 1} de {filteredItems.length} —
                         </p>
                       </>
@@ -292,8 +292,8 @@ function RecipesContent() {
                         title={c === 'all' ? 'Todas' : c}
                         className={`writing-mode-vertical px-1.5 py-2.5 rounded-r-lg text-[10px] font-display font-bold tracking-wide transition-all ${
                           subFilter === c
-                            ? 'bg-red-500 text-white shadow-[2px_2px_8px_rgba(0,0,0,0.25)] -mr-1'
-                            : 'bg-white/80 text-gray-500 hover:bg-gray-50'
+                            ? 'bg-ac text-white -mr-1'
+                            : 'bg-surface text-muted hover:bg-surfalt'
                         }`}
                         style={{ writingMode: 'vertical-rl' }}
                       >
@@ -310,17 +310,17 @@ function RecipesContent() {
                       type="button"
                       onClick={() => setPageIndex((i) => Math.max(0, i - 1))}
                       disabled={currentIndex === 0}
-                      className="flex items-center gap-1.5 px-4 py-2 bg-white rounded-xl text-sm font-display font-semibold text-gray-600 border border-white/80 disabled:opacity-30 hover:bg-gray-50 transition-all"
+                      className="flex items-center gap-1.5 px-4 py-2 bg-surface rounded-none text-sm font-display font-semibold text-inkalt border border-line disabled:opacity-30 hover:bg-surfalt transition-all"
                     >
                       <FAIcon icon="chevron-left" size="sm" />
                       Página anterior
                     </button>
-                    <span className="text-xs text-gray-400">{currentIndex + 1} / {filteredItems.length}</span>
+                    <span className="text-xs text-muted">{currentIndex + 1} / {filteredItems.length}</span>
                     <button
                       type="button"
                       onClick={() => setPageIndex((i) => Math.min(filteredItems.length - 1, i + 1))}
                       disabled={currentIndex === filteredItems.length - 1}
-                      className="flex items-center gap-1.5 px-4 py-2 bg-white rounded-xl text-sm font-display font-semibold text-gray-600 border border-white/80 disabled:opacity-30 hover:bg-gray-50 transition-all"
+                      className="flex items-center gap-1.5 px-4 py-2 bg-surface rounded-none text-sm font-display font-semibold text-inkalt border border-line disabled:opacity-30 hover:bg-surfalt transition-all"
                     >
                       Página siguiente
                       <FAIcon icon="chevron-right" size="sm" />

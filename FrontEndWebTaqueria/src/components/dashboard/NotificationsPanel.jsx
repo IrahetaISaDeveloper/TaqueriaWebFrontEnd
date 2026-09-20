@@ -36,23 +36,22 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
       <div
         className="fixed left-1/2 top-20 -translate-x-1/2 w-[calc(100vw-2rem)] max-w-sm
           sm:absolute sm:left-auto sm:top-full sm:right-0 sm:translate-x-0 sm:mt-2
-          z-50 bg-white rounded-3xl border border-white/80 overflow-hidden
-          shadow-[0_20px_60px_rgba(0,0,0,0.2),inset_1px_1px_3px_rgba(255,255,255,0.7)]"
+          z-50 bg-surface rounded-none border border-line overflow-hidden"
         role="dialog"
         aria-label="Notificaciones"
       >
         {/* Encabezado */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-line">
           <div>
-            <h3 className="font-display font-bold text-gray-900 text-sm">Notificaciones</h3>
-            <p className="text-xs text-gray-500">
+            <h3 className="font-display font-bold text-ink text-sm">Notificaciones</h3>
+            <p className="text-xs text-muted">
               {unreadCount > 0 ? `${unreadCount} sin leer` : 'Todo al día'}
             </p>
           </div>
           {unreadCount > 0 && (
             <button
               onClick={markAllRead}
-              className="text-xs font-display font-semibold text-red-500 hover:text-red-600 transition-colors"
+              className="text-xs font-display font-semibold text-ac hover:text-ac transition-colors"
             >
               Marcar todas
             </button>
@@ -62,13 +61,13 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
         {/* Listado */}
         <div className="max-h-96 overflow-y-auto">
           {isLoading && notifications.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-gray-500">Cargando notificaciones...</p>
+            <p className="px-4 py-8 text-center text-sm text-muted">Cargando notificaciones...</p>
           ) : error ? (
-            <p className="px-4 py-8 text-center text-sm text-gray-500">{error}</p>
+            <p className="px-4 py-8 text-center text-sm text-muted">{error}</p>
           ) : visibleNotifications.length === 0 ? (
             <div className="px-4 py-10 text-center">
-              <FAIcon icon="bell-slash" size="2xl" className="text-gray-300 mb-2" />
-              <p className="text-sm text-gray-500">No hay movimientos todavía</p>
+              <FAIcon icon="bell-slash" size="2xl" className="text-muted mb-2" />
+              <p className="text-sm text-muted">No hay movimientos todavía</p>
             </div>
           ) : (
             visibleNotifications.map((notification) => {
@@ -78,8 +77,8 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
                 <button
                   key={notification._id}
                   onClick={() => handleItemClick(notification)}
-                  className={`w-full text-left flex gap-3 px-4 py-3 border-b border-gray-50 transition-colors hover:bg-gray-50 ${
-                    isRead ? 'opacity-60' : 'bg-red-50/40'
+                  className={`w-full text-left flex gap-3 px-4 py-3 border-b border-line transition-colors hover:bg-surfalt ${
+                    isRead ? 'opacity-60' : 'bg-acsoft/40'
                   }`}
                 >
                   <span
@@ -91,19 +90,19 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
                   </span>
 
                   <span className="flex-1 min-w-0">
-                    <span className="block font-display font-semibold text-gray-900 text-xs mb-0.5">
+                    <span className="block font-display font-semibold text-ink text-xs mb-0.5">
                       {notification.title}
                     </span>
-                    <span className="block text-xs text-gray-600 leading-snug break-words">
+                    <span className="block text-xs text-inkalt leading-snug break-words">
                       {notification.message}
                     </span>
-                    <span className="block text-[11px] text-gray-400 mt-1">
+                    <span className="block text-[11px] text-muted mt-1">
                       {formatRelativeTime(notification.createdAt)}
                     </span>
                   </span>
 
                   {!isRead && (
-                    <span className="shrink-0 w-2 h-2 mt-1 rounded-full bg-red-500" aria-label="Sin leer" />
+                    <span className="shrink-0 w-2 h-2 mt-1 rounded-full bg-ac" aria-label="Sin leer" />
                   )}
                 </button>
               );
@@ -115,7 +114,7 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
         <Link
           to="/notificaciones"
           onClick={onClose}
-          className="block px-4 py-3 text-center text-xs font-display font-semibold text-gray-700 hover:bg-gray-50 border-t border-gray-100 transition-colors"
+          className="block px-4 py-3 text-center text-xs font-display font-semibold text-inkalt hover:bg-surfalt border-t border-line transition-colors"
         >
           Ver todas las notificaciones
         </Link>

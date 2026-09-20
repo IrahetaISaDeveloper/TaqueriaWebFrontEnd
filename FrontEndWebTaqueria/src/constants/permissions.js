@@ -8,6 +8,7 @@ export const PERMISSIONS = [
   { id: 'drink_sets', label: 'Conjuntos de bebidas', group: 'Pantallas', type: 'screen' },
   { id: 'dishes', label: 'Platillos', group: 'Pantallas', type: 'screen' },
   { id: 'extras', label: 'Extras', group: 'Pantallas', type: 'screen' },
+  { id: 'promotions', label: 'Promociones de hoy', group: 'Pantallas', type: 'screen' },
   { id: 'recipes', label: 'Recetas', group: 'Pantallas', type: 'screen' },
 
   { id: 'orders', label: 'Pedidos y Órdenes', group: 'Pantallas', type: 'screen' },
@@ -39,6 +40,7 @@ export const SCREEN_ROUTES = {
   drink_sets: '/drink-sets',
   dishes: '/dishes',
   extras: '/extras',
+  promotions: '/promociones',
   recipes: '/recetas',
   orders: '/pedidos',
   tables: '/mesas',

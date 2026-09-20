@@ -31,9 +31,9 @@ const buildPeriodOptions = () => {
 };
 
 const BADGE_BY_TYPE = {
-  Gerente: 'bg-gray-100 text-gray-700 border border-gray-200',
-  Cocina: 'bg-blue-50 text-blue-700 border border-blue-200',
-  Cajero: 'bg-blue-50 text-blue-700 border border-blue-200',
+  Gerente: 'bg-surfalt text-inkalt border border-line',
+  Cocina: 'bg-infosoft text-info border border-info',
+  Cajero: 'bg-infosoft text-info border border-info',
 };
 
 // Las dos planillas del apartado. Van separadas porque el bono es un pago
@@ -81,7 +81,7 @@ function PayrollContent() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f3f0eb]">
+    <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -95,10 +95,10 @@ function PayrollContent() {
             {/* Encabezado */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-1">
+                <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1">
                   Planilla
                 </h1>
-                <p className="text-sm sm:text-base text-gray-600">
+                <p className="text-sm sm:text-base text-inkalt">
                   {tab === 'general'
                     ? 'Salarios y descuentos de ley del personal por período.'
                     : 'Bonos asignados al personal por período, sin descuentos de ley.'}
@@ -142,10 +142,10 @@ function PayrollContent() {
                   key={t.id}
                   type="button"
                   onClick={() => handleTabChange(t.id)}
-                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-display font-semibold transition-colors ${
+                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-none text-sm font-display font-semibold transition-colors ${
                     tab === t.id
-                      ? 'bg-red-500 text-white shadow-[0_4px_12px_rgba(220,38,38,0.3)]'
-                      : 'bg-white text-gray-600 border border-white/80 hover:bg-gray-50'
+                      ? 'bg-ac text-white'
+                      : 'bg-surface text-inkalt border border-line hover:bg-surfalt'
                   }`}
                 >
                   <FAIcon icon={t.icon} size="sm" />
@@ -208,9 +208,9 @@ function PayrollContent() {
             )}
 
             {/* Tabla de planilla */}
-            <div className="bg-white rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.08),inset_1px_1px_3px_rgba(255,255,255,0.7)] border border-white/80 overflow-hidden">
-              <div className="p-4 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100">
-                <h2 className="text-lg font-display font-bold text-gray-800">
+            <div className="bg-surface rounded-none border border-line overflow-hidden">
+              <div className="p-4 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-line">
+                <h2 className="text-lg font-display font-bold text-ink">
                   {tab === 'general' ? 'Detalle de' : 'Bonos de'} {formatPeriodLabel(active.period)}
                 </h2>
 
@@ -220,7 +220,7 @@ function PayrollContent() {
                     placeholder="Buscar empleado..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="px-4 py-2 bg-[#f3f0eb] border border-white/80 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/30 text-sm text-gray-700 placeholder:text-gray-400 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05),inset_-2px_-2px_5px_rgba(255,255,255,0.7)]"
+                    className="px-4 py-2 bg-surfalt border border-line rounded-none focus:outline-none focus:ring-2 focus:ring-acline text-sm text-inkalt placeholder:text-muted"
                   />
 
                   <Select
@@ -250,21 +250,21 @@ function PayrollContent() {
 
               <div className="overflow-x-auto">
                 {active.loading ? (
-                  <div className="p-8 text-center text-gray-500 text-sm">Calculando planilla...</div>
+                  <div className="p-8 text-center text-muted text-sm">Calculando planilla...</div>
                 ) : active.error ? (
-                  <div className="p-8 text-center text-red-500 text-sm">{active.error}</div>
+                  <div className="p-8 text-center text-ac text-sm">{active.error}</div>
                 ) : active.rows.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500 text-sm">
+                  <div className="p-8 text-center text-muted text-sm">
                     No hay empleados en la planilla de este período.
                   </div>
                 ) : filteredRows.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500 text-sm">
+                  <div className="p-8 text-center text-muted text-sm">
                     Ningún empleado coincide con la búsqueda.
                   </div>
                 ) : tab === 'general' ? (
                   <table className="w-full text-left border-collapse min-w-[860px]">
                     <thead>
-                      <tr className="bg-gray-50/80 text-xs font-display font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                      <tr className="bg-surfalt/80 text-xs font-display font-semibold text-muted uppercase tracking-wider border-b border-line">
                         <th className="p-3 sm:p-4 pl-4 sm:pl-6">Empleado</th>
                         <th className="p-3 sm:p-4">Puesto</th>
                         <th className="p-3 sm:p-4 text-right">Salario base</th>
@@ -276,47 +276,47 @@ function PayrollContent() {
                       </tr>
                     </thead>
 
-                    <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+                    <tbody className="divide-y divide-line text-sm text-inkalt">
                       {paginatedItems.map((row) => {
                         const isInactive = row.status !== 'active';
 
                         return (
                           <tr
                             key={row.employeeId}
-                            className={`hover:bg-gray-50/80 transition-colors ${isInactive ? 'opacity-60 bg-gray-50/30' : ''}`}
+                            className={`hover:bg-surfalt/80 transition-colors ${isInactive ? 'opacity-60 bg-surfalt/30' : ''}`}
                           >
                             <td className="p-3 sm:p-4 pl-4 sm:pl-6">
                               <div className="flex items-center gap-3">
                                 {row.image ? (
-                                  <img src={row.image} alt={row.name} className="w-9 h-9 rounded-xl object-cover shadow-sm" />
+                                  <img src={row.image} alt={row.name} className="w-9 h-9 rounded-none object-cover" />
                                 ) : (
-                                  <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
+                                  <div className="w-9 h-9 rounded-none bg-surfalt flex items-center justify-center text-muted">
                                     <FAIcon icon="user" />
                                   </div>
                                 )}
                                 <div>
-                                  <div className="font-display font-bold text-gray-900">{row.name}</div>
+                                  <div className="font-display font-bold text-ink">{row.name}</div>
                                   {isInactive && (
-                                    <div className="text-xs text-red-500 font-medium">Inactivo</div>
+                                    <div className="text-xs text-ac font-medium">Inactivo</div>
                                   )}
                                 </div>
                               </div>
                             </td>
 
                             <td className="p-3 sm:p-4">
-                              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-display font-semibold ${BADGE_BY_TYPE[row.typeLabel] || 'bg-orange-50 text-orange-700 border border-orange-200'}`}>
+                              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-display font-semibold ${BADGE_BY_TYPE[row.typeLabel] || 'bg-warnsoft text-warn border border-warn'}`}>
                                 {row.typeLabel}
                               </span>
                             </td>
 
                             <td className="p-3 sm:p-4 text-right font-medium">{money(row.grossSalary)}</td>
-                            <td className="p-3 sm:p-4 text-right text-gray-500">-{money(row.afp)}</td>
-                            <td className="p-3 sm:p-4 text-right text-gray-500">-{money(row.isss)}</td>
+                            <td className="p-3 sm:p-4 text-right text-muted">-{money(row.afp)}</td>
+                            <td className="p-3 sm:p-4 text-right text-muted">-{money(row.isss)}</td>
                             {/* Siempre se muestra el monto, aunque sea $0: un
                                 "—" aquí se podía confundir con que la renta no
                                 se estaba calculando en absoluto. */}
-                            <td className="p-3 sm:p-4 text-right text-gray-500">-{money(row.isr)}</td>
-                            <td className="p-3 sm:p-4 text-right font-display font-bold text-gray-900">
+                            <td className="p-3 sm:p-4 text-right text-muted">-{money(row.isr)}</td>
+                            <td className="p-3 sm:p-4 text-right font-display font-bold text-ink">
                               {money(row.netSalary)}
                             </td>
                             <td className="p-3 sm:p-4 pr-4 sm:pr-6 text-center">
@@ -325,7 +325,7 @@ function PayrollContent() {
                                 onClick={() => setPayslipTarget({ id: row.employeeId, name: row.name })}
                                 title={`Ver boleta de pago de ${row.name}`}
                                 aria-label={`Ver boleta de pago de ${row.name}`}
-                                className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-red-500 transition-colors shadow-sm"
+                                className="inline-flex items-center justify-center w-9 h-9 rounded-none border border-line text-muted hover:bg-surfalt hover:text-ac transition-colors"
                               >
                                 <FAIcon icon="receipt" size="sm" />
                               </button>
@@ -339,7 +339,7 @@ function PayrollContent() {
                         no sobre lo que quedó visible tras filtrar o paginar. */}
                     {general.totals && (
                       <tfoot>
-                        <tr className="bg-gray-50/80 border-t-2 border-gray-200 text-sm font-display font-bold text-gray-900">
+                        <tr className="bg-surfalt/80 border-t-2 border-line text-sm font-display font-bold text-ink">
                           <td className="p-3 sm:p-4 pl-4 sm:pl-6" colSpan={2}>
                             TOTALES ({general.rows.length})
                           </td>
@@ -347,7 +347,7 @@ function PayrollContent() {
                           <td className="p-3 sm:p-4 text-right">-{money(general.totals.afp)}</td>
                           <td className="p-3 sm:p-4 text-right">-{money(general.totals.isss)}</td>
                           <td className="p-3 sm:p-4 text-right">-{money(general.totals.isr)}</td>
-                          <td className="p-3 sm:p-4 text-right text-red-600">
+                          <td className="p-3 sm:p-4 text-right text-ac">
                             {money(general.totals.netSalary)}
                           </td>
                           <td className="p-3 sm:p-4 pr-4 sm:pr-6" />
@@ -358,48 +358,48 @@ function PayrollContent() {
                 ) : (
                   <table className="w-full text-left border-collapse min-w-[560px]">
                     <thead>
-                      <tr className="bg-gray-50/80 text-xs font-display font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                      <tr className="bg-surfalt/80 text-xs font-display font-semibold text-muted uppercase tracking-wider border-b border-line">
                         <th className="p-3 sm:p-4 pl-4 sm:pl-6">Empleado</th>
                         <th className="p-3 sm:p-4">Puesto</th>
                         <th className="p-3 sm:p-4 pr-4 sm:pr-6 text-right">Bono asignado</th>
                       </tr>
                     </thead>
 
-                    <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+                    <tbody className="divide-y divide-line text-sm text-inkalt">
                       {paginatedItems.map((row) => {
                         const isInactive = row.status !== 'active';
 
                         return (
                           <tr
                             key={row.employeeId}
-                            className={`hover:bg-gray-50/80 transition-colors ${isInactive ? 'opacity-60 bg-gray-50/30' : ''}`}
+                            className={`hover:bg-surfalt/80 transition-colors ${isInactive ? 'opacity-60 bg-surfalt/30' : ''}`}
                           >
                             <td className="p-3 sm:p-4 pl-4 sm:pl-6">
                               <div className="flex items-center gap-3">
                                 {row.image ? (
-                                  <img src={row.image} alt={row.name} className="w-9 h-9 rounded-xl object-cover shadow-sm" />
+                                  <img src={row.image} alt={row.name} className="w-9 h-9 rounded-none object-cover" />
                                 ) : (
-                                  <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
+                                  <div className="w-9 h-9 rounded-none bg-surfalt flex items-center justify-center text-muted">
                                     <FAIcon icon="user" />
                                   </div>
                                 )}
                                 <div>
-                                  <div className="font-display font-bold text-gray-900">{row.name}</div>
+                                  <div className="font-display font-bold text-ink">{row.name}</div>
                                   {isInactive && (
-                                    <div className="text-xs text-red-500 font-medium">Inactivo</div>
+                                    <div className="text-xs text-ac font-medium">Inactivo</div>
                                   )}
                                 </div>
                               </div>
                             </td>
 
                             <td className="p-3 sm:p-4">
-                              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-display font-semibold ${BADGE_BY_TYPE[row.typeLabel] || 'bg-orange-50 text-orange-700 border border-orange-200'}`}>
+                              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-display font-semibold ${BADGE_BY_TYPE[row.typeLabel] || 'bg-warnsoft text-warn border border-warn'}`}>
                                 {row.typeLabel}
                               </span>
                             </td>
 
-                            <td className="p-3 sm:p-4 pr-4 sm:pr-6 text-right font-display font-bold text-gray-900">
-                              {row.bonus > 0 ? money(row.bonus) : <span className="text-gray-400 font-normal">Sin bono</span>}
+                            <td className="p-3 sm:p-4 pr-4 sm:pr-6 text-right font-display font-bold text-ink">
+                              {row.bonus > 0 ? money(row.bonus) : <span className="text-muted font-normal">Sin bono</span>}
                             </td>
                           </tr>
                         );
@@ -408,11 +408,11 @@ function PayrollContent() {
 
                     {bonuses.totals && (
                       <tfoot>
-                        <tr className="bg-gray-50/80 border-t-2 border-gray-200 text-sm font-display font-bold text-gray-900">
+                        <tr className="bg-surfalt/80 border-t-2 border-line text-sm font-display font-bold text-ink">
                           <td className="p-3 sm:p-4 pl-4 sm:pl-6" colSpan={2}>
                             TOTALES ({bonuses.totals.employeeCount})
                           </td>
-                          <td className="p-3 sm:p-4 pr-4 sm:pr-6 text-right text-red-600">
+                          <td className="p-3 sm:p-4 pr-4 sm:pr-6 text-right text-ac">
                             {money(bonuses.totals.totalBonus)}
                           </td>
                         </tr>
@@ -433,7 +433,7 @@ function PayrollContent() {
               )}
             </div>
 
-            <p className="mt-4 text-xs text-gray-500">
+            <p className="mt-4 text-xs text-muted">
               {tab === 'general' ? (
                 <>
                   AFP (7.25%), ISSS (3%, con tope de $30) y renta se calculan solo sobre el salario base

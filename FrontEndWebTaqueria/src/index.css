@@ -1,5 +1,128 @@
+/* ============================================================
+   SYSCOR · sistema de diseño
+   ------------------------------------------------------------
+   Rediseño editorial (Claude Design, "Nocturne"): superficies planas,
+   bordes de 1px, esquinas rectas y una cifra que manda en cada pantalla.
+   Sustituye al estilo "clay" anterior (fondo hueso, esquinas muy
+   redondeadas y sombras con brillo interno).
+
+   Todo el color vive en los tokens de abajo. El modo oscuro NO repinta
+   clases de Tailwind una por una: solo redefine estos tokens, y como los
+   componentes leen los tokens, el tema cambia entero de golpe.
+   ============================================================ */
+@import "tailwindcss";
+
+@theme {
+  /* Tipografía: Archivo titula, Inter lee, IBM Plex Mono para toda cifra
+     (tabular, para que las columnas de dinero alineen). */
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Archivo", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Cada token se declara con su valor de modo claro. El modo oscuro
+     redefine estas mismas variables más abajo, así que basta con cambiarlas
+     ahí para que todo el sistema cambie de tema. */
+  --color-page: #e4e7f5;
+  --color-bg: #f3f5fe;
+  --color-surface: #ffffff;
+  --color-surfalt: #f3f5fe;
+  --color-ink: #292b31;
+  --color-inkalt: #3f424d;
+  --color-muted: #75798c;
+  --color-line: #e4e7f5;
+  --color-linealt: #cfd3e5;
+  --color-ac: #a33527;
+  --color-acsoft: rgba(163, 53, 39, 0.10);
+  --color-acline: rgba(163, 53, 39, 0.35);
+  --color-ok: #3d6b4f;
+  --color-oksoft: rgba(61, 107, 79, 0.12);
+  --color-warn: #8a5f16;
+  --color-warnsoft: rgba(138, 95, 22, 0.12);
+  --color-info: #3a577d;
+  --color-infosoft: rgba(58, 87, 125, 0.12);
+}
+
+:root {
+  color-scheme: light;
+}
+
+/* --- Modo oscuro --- */
+html[data-theme="dark"] {
+  --color-page: #101220;
+  --color-bg: #161826;
+  --color-surface: #232532;
+  --color-surfalt: #292b31;
+  --color-ink: #e9e9ed;
+  --color-inkalt: #cfd3e5;
+  --color-muted: #9397ab;
+  --color-line: #3f424d;
+  --color-linealt: #595d6c;
+  /* En oscuro el acento no es el rojo aclarado, sino el morado del sistema:
+     es el color que llevan los trazos de la ilustración del login, y sobre
+     fondo azul noche tiene mejor contraste que un rojo lavado. */
+  --color-ac: #9184d9;
+  --color-acsoft: rgba(145, 132, 217, 0.13);
+  --color-acline: rgba(145, 132, 217, 0.45);
+  --color-ok: #7fb695;
+  --color-oksoft: rgba(127, 182, 149, 0.14);
+  --color-warn: #d7a54d;
+  --color-warnsoft: rgba(215, 165, 77, 0.14);
+  --color-info: #89a6d6;
+  --color-infosoft: rgba(137, 166, 214, 0.14);
+  color-scheme: dark;
+}
+
 body {
-  background-color: #f3f0eb;
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+h1, h2, h3, h4 {
+  font-family: "Archivo", system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-ac);
+  outline-offset: 2px;
+}
+
+/* Cifras: mismo ancho por dígito, para que las columnas de dinero y las
+   tablas de planilla no bailen al cambiar de valor. */
+.num {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Etiqueta pequeña en versalitas: encabezados de columna, rótulos de
+   estadística y pestañas. Es el recurso tipográfico que ordena la jerarquía
+   en lugar de las cajas y sombras del diseño anterior. */
+.kick {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Fila de tabla/listado */
+.row:hover {
+  background-color: var(--color-surfalt);
+}
+
+/* Enlace de la barra superior: el destino activo se marca con la línea roja */
+.navlink {
+  font-size: 13px;
+  color: var(--color-inkalt);
+  padding: 6px 0;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.navlink:hover {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-acline);
 }
 
 /* Chile del logo (ver components/commons/Logo.jsx): es la única parte del
@@ -13,252 +136,9 @@ body {
   animation: chiliWiggle 2.8s ease-in-out infinite;
 }
 
-/* ============================================================
-   Modo oscuro (toggle en Ajustes > Apariencia, ver themeContext.jsx)
-   Se aplica vía [data-theme="dark"] en <html> para no depender de la
-   estrategia de "dark mode" de Tailwind: sobrescribimos directamente las
-   clases utilitarias que usa el sistema de diseño "clay" (bg-white,
-   bg-[#f3f0eb], text-gray-*, border-white/*...) para no tener que tocar
-   cada componente uno por uno.
-   ============================================================ */
-:root {
-  --dark-bg: #1a1a1e;       /* fondo del sistema */
-  --dark-navbar: #121214;   /* sidebar, topbar y superficies equivalentes */
-  --dark-surface: #202024;  /* tarjetas */
-  --dark-title: #d0d3ce;    /* títulos y subtítulos */
-  --dark-text: #5f5e5d;     /* texto normal */
-  --dark-border: rgba(208, 211, 206, 0.12);
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-linealt);
 }
-
-html[data-theme="dark"] {
-  color-scheme: dark;
-}
-
-html[data-theme="dark"] body {
-  background-color: var(--dark-bg);
-}
-
-/* Fondo del sistema */
-html[data-theme="dark"] .bg-\[\#f3f0eb\] {
-  background-color: var(--dark-bg) !important;
-}
-
-/* Navbar: Sidebar y TopBar son los únicos que usan bg-white/90 */
-html[data-theme="dark"] .bg-white\/90 {
-  background-color: var(--dark-navbar) !important;
-}
-
-/* Tarjetas y demás superficies (modales, dropdowns, inputs...). No se incluyen
-   bg-white/10 ni bg-white/20: esas son overlays de hover sobre fondos de color
-   (ej. botón de cerrar en un header rojo) y deben seguir siendo translúcidas
-   sin importar el tema. */
-html[data-theme="dark"] .bg-white,
-html[data-theme="dark"] .bg-white\/80,
-html[data-theme="dark"] .bg-white\/70,
-html[data-theme="dark"] .bg-white\/60,
-html[data-theme="dark"] .bg-white\/50,
-html[data-theme="dark"] .bg-white\/40,
-html[data-theme="dark"] .bg-white\/30,
-html[data-theme="dark"] .bg-gray-50,
-html[data-theme="dark"] .bg-gray-100 {
-  background-color: var(--dark-surface) !important;
-}
-
-html[data-theme="dark"] .bg-gray-200 {
-  background-color: #2b2b30 !important;
-}
-
-/* Franjas de tablas/listas (divide-y): Tailwind aplica el borde al elemento
-   siguiente, no a la clase misma, así que necesita su propio selector */
-html[data-theme="dark"] .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
-html[data-theme="dark"] .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
-  border-color: var(--dark-border) !important;
-}
-
-/* Paneles de alerta/aviso (advertencias en amarillo/ámbar, franjas rojas de
-   error) sobre fondo de color muy claro: se oscurecen a la misma tonalidad
-   pero traslúcida, para que no queden como un cuadro claro roto en medio de
-   una pantalla oscura. El "/" ancla el substring a esa tonalidad exacta y
-   evita que, por ejemplo, "bg-red-50/" combine por error con "bg-red-500". */
-html[data-theme="dark"] [class*="bg-yellow-100/"],
-html[data-theme="dark"] [class*="bg-yellow-50/"] {
-  background-color: rgba(234, 179, 8, 0.15) !important;
-}
-
-html[data-theme="dark"] [class*="bg-amber-100/"],
-html[data-theme="dark"] [class*="bg-amber-50/"] {
-  background-color: rgba(245, 158, 11, 0.15) !important;
-}
-
-html[data-theme="dark"] [class*="bg-red-100/"],
-html[data-theme="dark"] [class*="bg-red-50/"] {
-  background-color: rgba(239, 68, 68, 0.12) !important;
-}
-
-html[data-theme="dark"] [class*="bg-green-100/"],
-html[data-theme="dark"] [class*="bg-green-50/"] {
-  background-color: rgba(34, 197, 94, 0.12) !important;
-}
-
-/* Etiquetas/insignias de estado y tipo (ej. "Actividad Reciente": estado del
-   pedido, tipo en línea/local; también mesas, empleados, inventario...).
-   Son la combinación clásica de Tailwind bg-color-100 + text-color-600/700/800
-   + border-color-200/300, pensada para fondo claro: en oscuro se ven como un
-   parche de color plano fuera de lugar. Se traduce cada familia a una versión
-   traslúcida con texto más claro, sin perder el significado del color. */
-html[data-theme="dark"] .bg-green-100 { background-color: rgba(34, 197, 94, 0.18) !important; }
-html[data-theme="dark"] .text-green-600,
-html[data-theme="dark"] .text-green-700,
-html[data-theme="dark"] .text-green-800 { color: #4ade80 !important; }
-html[data-theme="dark"] .border-green-200,
-html[data-theme="dark"] .border-green-300 { border-color: rgba(34, 197, 94, 0.35) !important; }
-
-html[data-theme="dark"] .bg-blue-100 { background-color: rgba(59, 130, 246, 0.18) !important; }
-html[data-theme="dark"] .text-blue-600,
-html[data-theme="dark"] .text-blue-700,
-html[data-theme="dark"] .text-blue-800 { color: #60a5fa !important; }
-html[data-theme="dark"] .border-blue-200,
-html[data-theme="dark"] .border-blue-300 { border-color: rgba(59, 130, 246, 0.35) !important; }
-
-html[data-theme="dark"] .bg-sky-100 { background-color: rgba(14, 165, 233, 0.18) !important; }
-html[data-theme="dark"] .text-sky-600,
-html[data-theme="dark"] .text-sky-700,
-html[data-theme="dark"] .text-sky-800 { color: #38bdf8 !important; }
-html[data-theme="dark"] .border-sky-200,
-html[data-theme="dark"] .border-sky-300 { border-color: rgba(14, 165, 233, 0.35) !important; }
-
-html[data-theme="dark"] .bg-purple-100 { background-color: rgba(168, 85, 247, 0.18) !important; }
-html[data-theme="dark"] .text-purple-600,
-html[data-theme="dark"] .text-purple-700,
-html[data-theme="dark"] .text-purple-800 { color: #c084fc !important; }
-html[data-theme="dark"] .border-purple-200,
-html[data-theme="dark"] .border-purple-300 { border-color: rgba(168, 85, 247, 0.35) !important; }
-
-html[data-theme="dark"] .bg-orange-100 { background-color: rgba(249, 115, 22, 0.18) !important; }
-html[data-theme="dark"] .text-orange-600,
-html[data-theme="dark"] .text-orange-700,
-html[data-theme="dark"] .text-orange-800 { color: #fb923c !important; }
-html[data-theme="dark"] .border-orange-200,
-html[data-theme="dark"] .border-orange-300 { border-color: rgba(249, 115, 22, 0.35) !important; }
-
-html[data-theme="dark"] .bg-yellow-100 { background-color: rgba(234, 179, 8, 0.18) !important; }
-html[data-theme="dark"] .text-yellow-600,
-html[data-theme="dark"] .text-yellow-700,
-html[data-theme="dark"] .text-yellow-800 { color: #facc15 !important; }
-html[data-theme="dark"] .border-yellow-200,
-html[data-theme="dark"] .border-yellow-300 { border-color: rgba(234, 179, 8, 0.35) !important; }
-
-html[data-theme="dark"] .bg-amber-100 { background-color: rgba(245, 158, 11, 0.18) !important; }
-html[data-theme="dark"] .text-amber-600,
-html[data-theme="dark"] .text-amber-700,
-html[data-theme="dark"] .text-amber-800 { color: #fbbf24 !important; }
-html[data-theme="dark"] .border-amber-200,
-html[data-theme="dark"] .border-amber-300 { border-color: rgba(245, 158, 11, 0.35) !important; }
-
-html[data-theme="dark"] .bg-red-100 { background-color: rgba(239, 68, 68, 0.18) !important; }
-html[data-theme="dark"] .text-red-600,
-html[data-theme="dark"] .text-red-700,
-html[data-theme="dark"] .text-red-800 { color: #f87171 !important; }
-html[data-theme="dark"] .border-red-200,
-html[data-theme="dark"] .border-red-300 { border-color: rgba(239, 68, 68, 0.35) !important; }
-
-/* Títulos y subtítulos */
-html[data-theme="dark"] .text-gray-900,
-html[data-theme="dark"] .text-gray-800,
-html[data-theme="dark"] .text-gray-700 {
-  color: var(--dark-title) !important;
-}
-
-/* Texto normal */
-html[data-theme="dark"] .text-gray-600,
-html[data-theme="dark"] .text-gray-500,
-html[data-theme="dark"] .text-gray-400,
-html[data-theme="dark"] .text-gray-300 {
-  color: var(--dark-text) !important;
-}
-
-/* Texto oscuro de acento (ej. tarjetas destacadas en rojo con
-   texto-red-900): sobre el fondo traslúcido oscuro quedaría casi invisible */
-html[data-theme="dark"] .text-red-900 {
-  color: var(--dark-title) !important;
-}
-
-/* Bordes: el selector por substring atrapa cualquier variante (border-white,
-   border-white/80, border-white/60, border-l-white, border-gray-100..900...)
-   sin tener que enumerarlas todas una por una */
-html[data-theme="dark"] [class*="border-white"],
-html[data-theme="dark"] [class*="border-gray-"] {
-  border-color: var(--dark-border) !important;
-}
-
-/* Quita el estilo "brilloso" tipo clay: el diseño usa por todos lados sombras
-   compuestas shadow-[...] con un realce interno blanco (inset ...
-   rgba(255,255,255,x)) que simula un brillo/bisel de luz. En vez de reescribir
-   cada una de esas decenas de combinaciones una por una, el selector por
-   substring [class*="shadow-["] atrapa cualquier clase que use sombra
-   arbitraria de Tailwind y la reemplaza por una sombra plana y oscura, sin brillo. */
-html[data-theme="dark"] [class*="shadow-["] {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45) !important;
-}
-
-/* Inputs, selects y textareas: sobre el mismo tono que el navbar, para
-   distinguirse de la tarjeta que los contiene */
-html[data-theme="dark"] input,
-html[data-theme="dark"] select,
-html[data-theme="dark"] textarea {
-  background-color: var(--dark-navbar);
-  color: var(--dark-title);
-}
-
-html[data-theme="dark"] input::placeholder,
-html[data-theme="dark"] textarea::placeholder {
-  color: var(--dark-text) !important;
-}
-
-/* Estados hover: todas las filas de datagrid y varios botones usan
-   hover:bg-gray-50/80 (o variantes sin opacidad) para dar feedback al pasar
-   el mouse. Como son selectores :hover, son más específicos que las reglas
-   de fondo de arriba y nunca las heredan: sin esto, el fondo se va a blanco
-   real en hover y el texto (ya reescrito a tonos claros por el modo oscuro)
-   queda ilegible. */
-html[data-theme="dark"] .hover\:bg-gray-50:hover,
-html[data-theme="dark"] [class*="hover\:bg-gray-50\/"]:hover,
-html[data-theme="dark"] .hover\:bg-gray-100:hover,
-html[data-theme="dark"] .hover\:bg-white:hover {
-  background-color: #2b2b30 !important;
-}
-
-html[data-theme="dark"] .hover\:bg-red-50:hover,
-html[data-theme="dark"] [class*="hover\:bg-red-50\/"]:hover,
-html[data-theme="dark"] .hover\:bg-red-100:hover {
-  background-color: rgba(239, 68, 68, 0.18) !important;
-}
-
-html[data-theme="dark"] .hover\:bg-amber-100:hover {
-  background-color: rgba(245, 158, 11, 0.22) !important;
-}
-
-html[data-theme="dark"] .hover\:bg-green-100:hover {
-  background-color: rgba(34, 197, 94, 0.22) !important;
-}
-
-html[data-theme="dark"] .hover\:bg-blue-100:hover {
-  background-color: rgba(59, 130, 246, 0.22) !important;
-}
-
-/* Fondos pálidos usados "en seco" sin sufijo de opacidad (bg-amber-50,
-   bg-green-50, bg-red-50): las reglas de arriba solo cubren la variante con
-   "/" porque el selector ancla ese carácter para no atrapar por accidente
-   bg-red-500. Estos son los mismos tres colores pero sin opacidad. */
-html[data-theme="dark"] .bg-amber-50 { background-color: rgba(245, 158, 11, 0.15) !important; }
-html[data-theme="dark"] .bg-green-50 { background-color: rgba(34, 197, 94, 0.12) !important; }
-html[data-theme="dark"] .bg-red-50 { background-color: rgba(239, 68, 68, 0.12) !important; }
-
-/* Scrollbar */
-html[data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background-color: var(--dark-navbar);
-}
-
-html[data-theme="dark"] ::-webkit-scrollbar-track {
-  background-color: var(--dark-bg);
+::-webkit-scrollbar-track {
+  background-color: var(--color-surfalt);
 }

@@ -28,7 +28,7 @@ const TextInput = ({ id, label, type, name, value, onChange, placeholder, disabl
 
   return (
     <div className="w-full">
-      <label htmlFor={id} className="block text-xs font-display font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+      <label htmlFor={id} className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
         {label}
       </label>
       <div className="relative">
@@ -40,7 +40,7 @@ const TextInput = ({ id, label, type, name, value, onChange, placeholder, disabl
           onChange={onChange}
           placeholder={placeholder}
           disabled={disabled}
-          className={`w-full px-4 py-2.5 ${isPasswordField ? 'pr-11' : ''} bg-[#f3f0eb] border border-white/80 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition-all text-gray-700 placeholder:text-gray-400 text-sm shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05),inset_-2px_-2px_5px_rgba(255,255,255,0.7)] disabled:opacity-60`}
+          className={`w-full px-4 py-2.5 ${isPasswordField ? 'pr-11' : ''} bg-surfalt border border-line rounded-none focus:outline-none focus:ring-2 focus:ring-acline focus:border-acline transition-all text-inkalt placeholder:text-muted text-sm disabled:opacity-60`}
         />
         {isPasswordField && (
           <button
@@ -49,13 +49,13 @@ const TextInput = ({ id, label, type, name, value, onChange, placeholder, disabl
             disabled={disabled}
             tabIndex={-1}
             aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-inkalt transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         )}
       </div>
-      {error && <p className="mt-1 text-xs text-red-500 font-medium">{error}</p>}
+      {error && <p className="mt-1 text-xs text-ac font-medium">{error}</p>}
     </div>
   );
 };

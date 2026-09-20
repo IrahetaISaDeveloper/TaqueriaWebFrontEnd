@@ -25,9 +25,9 @@ import FAIcon from './FAIcon';
 
 const SIZE_CLASSES = {
   // Filtros de encabezado: más chico, para no competir con el título.
-  sm: 'px-3 py-1.5 text-xs rounded-xl',
+  sm: 'px-3 py-1.5 text-xs rounded-none',
   // Campos de formulario: mismo tamaño que el resto de inputs del sistema.
-  md: 'px-4 py-2.5 text-sm rounded-2xl',
+  md: 'px-4 py-2.5 text-sm rounded-none',
 };
 
 // Recorre los children (<option>/<optgroup>) y arma una lista plana de
@@ -70,9 +70,8 @@ const parseOptions = (children) => {
 // contenedor que ya trae su propio borde/fondo (ej. un control combinado
 // select + botón) — evita el doble relieve.
 const TRIGGER_VARIANT_CLASSES = {
-  default: `bg-[#f3f0eb] border border-white/80
-    shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05),inset_-2px_-2px_5px_rgba(255,255,255,0.7)]`,
-  ghost: 'border-0 bg-transparent shadow-none',
+  default: `bg-surfalt border border-line`,
+  ghost: 'border-0 bg-transparent',
 };
 
 const Select = forwardRef(({
@@ -167,16 +166,16 @@ const Select = forwardRef(({
         type="button"
         onClick={handleToggle}
         disabled={disabled}
-        className={`w-full flex items-center justify-between gap-2 font-display font-medium text-gray-700
-          focus:outline-none focus:ring-2 focus:ring-red-500/30 transition-shadow
+        className={`w-full flex items-center justify-between gap-2 font-display font-medium text-inkalt
+          focus:outline-none focus:ring-2 focus:ring-acline transition-shadow
           disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer
           ${TRIGGER_VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]}`}
         {...rest}
       >
-        <span className={`truncate ${!selected ? 'text-gray-400' : ''}`}>
+        <span className={`truncate ${!selected ? 'text-muted' : ''}`}>
           {selected ? selected.label : (placeholder || '')}
         </span>
-        <FAIcon icon="chevron-down" size="xs" className="text-gray-400 shrink-0" />
+        <FAIcon icon="chevron-down" size="xs" className="text-muted shrink-0" />
       </button>
 
       {/* Input oculto: es donde react-hook-form engancha su ref/name cuando
@@ -189,13 +188,12 @@ const Select = forwardRef(({
       {isOpen && !disabled && (
         <div
           role="listbox"
-          className="absolute z-50 mt-1 w-full max-h-64 overflow-y-auto rounded-2xl border border-white/80 bg-[#f3f0eb]
-            shadow-[0_12px_32px_rgba(0,0,0,0.18),inset_1px_1px_2px_rgba(255,255,255,0.6)] p-1.5"
+          className="absolute z-50 mt-1 w-full max-h-64 overflow-y-auto rounded-none border border-line bg-surfalt p-1.5"
         >
           {groupedOptions.map((group, gi) => (
             <div key={group.label ?? `g${gi}`}>
               {group.label && (
-                <p className="px-2.5 pt-1.5 pb-1 text-[10px] font-display font-bold uppercase tracking-wider text-gray-400">
+                <p className="px-2.5 pt-1.5 pb-1 text-[10px] font-display font-bold uppercase tracking-wider text-muted">
                   {group.label}
                 </p>
               )}
@@ -209,11 +207,11 @@ const Select = forwardRef(({
                     aria-selected={isSelected}
                     disabled={opt.disabled}
                     onClick={() => handleSelect(opt)}
-                    className={`w-full text-left px-2.5 py-2 rounded-xl text-sm font-display font-medium transition-colors
+                    className={`w-full text-left px-2.5 py-2 rounded-none text-sm font-display font-medium transition-colors
                       disabled:opacity-40 disabled:cursor-not-allowed
                       ${isSelected
-                        ? 'bg-red-500 text-white'
-                        : 'text-gray-700 hover:bg-red-50 hover:text-red-600'}`}
+                        ? 'bg-ac text-white'
+                        : 'text-inkalt hover:bg-acsoft hover:text-ac'}`}
                   >
                     {opt.label}
                   </button>
@@ -222,7 +220,7 @@ const Select = forwardRef(({
             </div>
           ))}
           {options.length === 0 && (
-            <p className="px-2.5 py-2 text-xs text-gray-400">Sin opciones</p>
+            <p className="px-2.5 py-2 text-xs text-muted">Sin opciones</p>
           )}
         </div>
       )}

@@ -49,7 +49,7 @@ function ClientManagementContent() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f3f0eb]">
+    <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -65,10 +65,10 @@ function ClientManagementContent() {
           <div className="p-4 sm:p-6 lg:p-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-1 sm:mb-2">
+                <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1 sm:mb-2">
                   Gestión de Clientes
                 </h1>
-                <p className="text-sm sm:text-base text-gray-600">
+                <p className="text-sm sm:text-base text-inkalt">
                   Base de datos de comensales registrados en la plataforma
                 </p>
               </div>

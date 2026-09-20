@@ -83,8 +83,8 @@ const AssistantChatWidget = () => {
       )}
 
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-[70] w-[92vw] max-w-md h-[32rem] max-h-[75vh] bg-[#f3f0eb] rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.25),inset_1px_1px_3px_rgba(255,255,255,0.7)] border border-white/80 flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between p-4 bg-red-500 text-white shadow-[inset_0_1px_2px_rgba(255,255,255,0.3),0_4px_12px_rgba(220,38,38,0.3)]">
+        <div className="fixed bottom-6 right-6 z-[70] w-[92vw] max-w-md h-[32rem] max-h-[75vh] bg-surfalt rounded-none border border-line flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between p-4 bg-ac text-white">
             <div className="flex items-center gap-2 min-w-0">
               <FAIcon icon="robot" size="sm" />
               <span className="font-display font-bold text-sm truncate">Asistente SYSCOR</span>
@@ -94,14 +94,14 @@ const AssistantChatWidget = () => {
                 type="button"
                 onClick={reset}
                 title="Nueva conversación"
-                className="text-white/80 hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition-all"
+                className="text-white/80 hover:text-white p-1.5 rounded-none hover:bg-surface/10 transition-all"
               >
                 <FAIcon icon="rotate-left" size="sm" />
               </button>
               <button
                 type="button"
                 onClick={close}
-                className="text-white/80 hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition-all"
+                className="text-white/80 hover:text-white p-1.5 rounded-none hover:bg-surface/10 transition-all"
               >
                 <FAIcon icon="times" size="lg" />
               </button>
@@ -109,7 +109,7 @@ const AssistantChatWidget = () => {
           </div>
 
           {/* Selector de contexto: le dice al asistente de qué pantalla habla el admin */}
-          <div className="px-3 pt-2.5 pb-1.5 border-b border-white/60 bg-white/40">
+          <div className="px-3 pt-2.5 pb-1.5 border-b border-line bg-surface/40">
             <Select size="sm" value={context} onChange={(e) => setContext(e.target.value)}>
               <option value="">Sin contexto específico</option>
               {CONTEXT_OPTIONS.map((c) => (
@@ -120,7 +120,7 @@ const AssistantChatWidget = () => {
 
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-2">
             <div className="flex justify-start">
-              <div className="max-w-[85%] bg-white rounded-2xl rounded-bl-sm px-3 py-2 text-sm text-gray-700 shadow-sm border border-white/80">
+              <div className="max-w-[85%] bg-surface rounded-none rounded-bl-sm px-3 py-2 text-sm text-inkalt border border-line">
                 {WELCOME_MESSAGE}
               </div>
             </div>
@@ -136,12 +136,12 @@ const AssistantChatWidget = () => {
               return (
                 <div key={idx} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div
-                    className={`max-w-[85%] px-3 py-2 text-sm rounded-2xl shadow-sm whitespace-pre-wrap ${
+                    className={`max-w-[85%] px-3 py-2 text-sm rounded-none whitespace-pre-wrap ${
                       m.role === 'user'
-                        ? 'bg-red-500 text-white rounded-br-sm'
+                        ? 'bg-ac text-white rounded-br-sm'
                         : m.actionSuccess === false
-                        ? 'bg-red-50 text-red-700 border border-red-200 rounded-bl-sm'
-                        : 'bg-white text-gray-700 border border-white/80 rounded-bl-sm'
+                        ? 'bg-acsoft text-ac border border-acline rounded-bl-sm'
+                        : 'bg-surface text-inkalt border border-line rounded-bl-sm'
                     }`}
                   >
                     {m.text}
@@ -158,11 +158,11 @@ const AssistantChatWidget = () => {
 
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-white rounded-2xl rounded-bl-sm px-3 py-2 border border-white/80 shadow-sm">
+                <div className="bg-surface rounded-none rounded-bl-sm px-3 py-2 border border-line">
                   <span className="flex gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.3s]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.15s]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-muted animate-bounce [animation-delay:-0.3s]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-muted animate-bounce [animation-delay:-0.15s]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-muted animate-bounce" />
                   </span>
                 </div>
               </div>
@@ -172,10 +172,10 @@ const AssistantChatWidget = () => {
           {pendingFiles.length > 0 && (
             <div className="px-3 pb-1 flex flex-wrap gap-1.5">
               {pendingFiles.map((f, idx) => (
-                <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-white/80 rounded-lg text-[11px] text-gray-600">
+                <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 bg-surface border border-line rounded-none text-[11px] text-inkalt">
                   <FAIcon icon="image" size="xs" />
                   {f.name.length > 16 ? `${f.name.slice(0, 16)}...` : f.name}
-                  <button type="button" onClick={() => setPendingFiles((prev) => prev.filter((_, i) => i !== idx))} className="text-gray-400 hover:text-red-500">
+                  <button type="button" onClick={() => setPendingFiles((prev) => prev.filter((_, i) => i !== idx))} className="text-muted hover:text-ac">
                     <FAIcon icon="times" size="xs" />
                   </button>
                 </span>
@@ -183,14 +183,14 @@ const AssistantChatWidget = () => {
             </div>
           )}
 
-          <form onSubmit={handleSend} className="p-3 border-t border-white/60 flex items-center gap-2">
+          <form onSubmit={handleSend} className="p-3 border-t border-line flex items-center gap-2">
             <input ref={fileInputRef} type="file" accept="image/*" multiple hidden onChange={handleFilePick} />
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={loading}
               title="Adjuntar imagen"
-              className="w-9 h-9 shrink-0 flex items-center justify-center bg-white border border-white/80 text-gray-500 rounded-xl hover:bg-gray-50 transition-all disabled:opacity-50"
+              className="w-9 h-9 shrink-0 flex items-center justify-center bg-surface border border-line text-muted rounded-none hover:bg-surfalt transition-all disabled:opacity-50"
             >
               <FAIcon icon="paperclip" size="sm" />
             </button>
@@ -200,12 +200,12 @@ const AssistantChatWidget = () => {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Pregúntame o pídeme algo..."
               disabled={loading}
-              className="flex-1 min-w-0 px-3 py-2 bg-white border border-white/80 rounded-xl text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/30 disabled:opacity-60"
+              className="flex-1 min-w-0 px-3 py-2 bg-surface border border-line rounded-none text-sm text-inkalt placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-acline disabled:opacity-60"
             />
             <button
               type="submit"
               disabled={loading || (!input.trim() && pendingFiles.length === 0)}
-              className="w-9 h-9 shrink-0 flex items-center justify-center bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all disabled:opacity-50"
+              className="w-9 h-9 shrink-0 flex items-center justify-center bg-ac text-white rounded-none hover:bg-ac transition-all disabled:opacity-50"
             >
               <FAIcon icon="paper-plane" size="sm" />
             </button>

@@ -86,32 +86,32 @@ const EmployeeDetailModal = ({ isOpen, onClose, employee, onSave, onSendPassword
     );
   };
 
-  const inputClass = `w-full mt-1 px-3 py-2 rounded-xl bg-white border border-gray-200 text-sm ${readOnly ? 'opacity-70 cursor-not-allowed' : ''}`;
+  const inputClass = `w-full mt-1 px-3 py-2 rounded-none bg-surface border border-line text-sm ${readOnly ? 'opacity-70 cursor-not-allowed' : ''}`;
 
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
-        <div className="bg-[#f3f0eb] rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/80 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-          <div className="bg-red-500 px-5 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+        <div className="bg-surfalt rounded-none border border-line max-w-lg w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-ac px-5 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
             <div>
               <h3 className="text-white font-display font-bold text-lg">{readOnly ? 'Información del empleado' : 'Ficha del empleado'}</h3>
               <p className="text-white/80 text-xs">{email}</p>
             </div>
-            <button type="button" onClick={onClose} className="text-white/90 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">
+            <button type="button" onClick={onClose} className="text-white/90 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface/10">
               <FAIcon icon="times" />
             </button>
           </div>
 
           <div className="p-5 sm:p-6 space-y-4">
             <div className="flex items-center gap-2">
-              <span className={`px-2.5 py-1 rounded-full text-xs font-display font-semibold ${isActive ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-gray-200 text-gray-600 border border-gray-300'}`}>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-display font-semibold ${isActive ? 'bg-oksoft text-ok border border-ok' : 'bg-line text-inkalt border border-linealt'}`}>
                 {isActive ? 'Activo' : 'Inactivo'}
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-display font-semibold text-gray-500">Nombre</label>
+                <label className="text-xs font-display font-semibold text-muted">Nombre</label>
                 <input
                   disabled={readOnly}
                   className={inputClass}
@@ -120,7 +120,7 @@ const EmployeeDetailModal = ({ isOpen, onClose, employee, onSave, onSendPassword
                 />
               </div>
               <div>
-                <label className="text-xs font-display font-semibold text-gray-500">Apellido</label>
+                <label className="text-xs font-display font-semibold text-muted">Apellido</label>
                 <input
                   disabled={readOnly}
                   className={inputClass}
@@ -129,7 +129,7 @@ const EmployeeDetailModal = ({ isOpen, onClose, employee, onSave, onSendPassword
                 />
               </div>
               <div>
-                <label className="text-xs font-display font-semibold text-gray-500">Teléfono</label>
+                <label className="text-xs font-display font-semibold text-muted">Teléfono</label>
                 <input
                   disabled={readOnly}
                   className={inputClass}
@@ -138,7 +138,7 @@ const EmployeeDetailModal = ({ isOpen, onClose, employee, onSave, onSendPassword
                 />
               </div>
               <div>
-                <label className="text-xs font-display font-semibold text-gray-500">Puesto</label>
+                <label className="text-xs font-display font-semibold text-muted">Puesto</label>
                 <Select
                   disabled={readOnly}
                   value={form.type}
@@ -148,7 +148,7 @@ const EmployeeDetailModal = ({ isOpen, onClose, employee, onSave, onSendPassword
                 </Select>
               </div>
               <div>
-                <label className="text-xs font-display font-semibold text-gray-500">Salario</label>
+                <label className="text-xs font-display font-semibold text-muted">Salario</label>
                 <input
                   type="number"
                   disabled={readOnly}
@@ -158,7 +158,7 @@ const EmployeeDetailModal = ({ isOpen, onClose, employee, onSave, onSendPassword
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="text-xs font-display font-semibold text-gray-500">Dirección</label>
+                <label className="text-xs font-display font-semibold text-muted">Dirección</label>
                 <input
                   disabled={readOnly}
                   className={inputClass}
@@ -169,7 +169,7 @@ const EmployeeDetailModal = ({ isOpen, onClose, employee, onSave, onSendPassword
             </div>
 
             <div>
-              <label className="text-xs font-display font-semibold text-gray-500">Días que trabaja</label>
+              <label className="text-xs font-display font-semibold text-muted">Días que trabaja</label>
               <div className="flex flex-wrap gap-1.5 mt-1.5">
                 {DAYS.map((d) => (
                   <button
@@ -177,11 +177,11 @@ const EmployeeDetailModal = ({ isOpen, onClose, employee, onSave, onSendPassword
                     type="button"
                     disabled={readOnly}
                     onClick={() => toggleDay(d.value)}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-display font-semibold border transition-colors ${
+                    className={`px-2.5 py-1.5 rounded-none text-xs font-display font-semibold border transition-colors ${
                       form.workDays.includes(d.value)
-                        ? 'bg-red-500 text-white border-red-500'
-                        : 'bg-white text-gray-500 border-gray-200'
-                    } ${readOnly ? 'cursor-not-allowed opacity-80' : 'hover:border-red-300'}`}
+                        ? 'bg-ac text-white border-ac'
+                        : 'bg-surface text-muted border-line'
+                    } ${readOnly ? 'cursor-not-allowed opacity-80' : 'hover:border-acline'}`}
                   >
                     {d.label}
                   </button>
@@ -191,7 +191,7 @@ const EmployeeDetailModal = ({ isOpen, onClose, employee, onSave, onSendPassword
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-display font-semibold text-gray-500">Hora de entrada</label>
+                <label className="text-xs font-display font-semibold text-muted">Hora de entrada</label>
                 <input
                   type="time"
                   disabled={readOnly}
@@ -201,7 +201,7 @@ const EmployeeDetailModal = ({ isOpen, onClose, employee, onSave, onSendPassword
                 />
               </div>
               <div>
-                <label className="text-xs font-display font-semibold text-gray-500">Hora de salida</label>
+                <label className="text-xs font-display font-semibold text-muted">Hora de salida</label>
                 <input
                   type="time"
                   disabled={readOnly}
@@ -214,12 +214,12 @@ const EmployeeDetailModal = ({ isOpen, onClose, employee, onSave, onSendPassword
 
             {!readOnly && (
               <>
-                <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200">
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-line">
                   <button
                     type="button"
                     onClick={handleSendReset}
                     disabled={sendingInvite}
-                    className="px-3 py-2 rounded-xl text-xs font-display font-semibold bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50 inline-flex items-center gap-1.5"
+                    className="px-3 py-2 rounded-none text-xs font-display font-semibold bg-surface border border-line text-inkalt hover:bg-surfalt disabled:opacity-50 inline-flex items-center gap-1.5"
                   >
                     <FAIcon icon="key" size="xs" />
                     {sendingInvite ? 'Enviando...' : 'Enviar invitación para cambiar contraseña'}
@@ -227,8 +227,8 @@ const EmployeeDetailModal = ({ isOpen, onClose, employee, onSave, onSendPassword
                   <button
                     type="button"
                     onClick={() => setConfirmToggleOpen(true)}
-                    className={`px-3 py-2 rounded-xl text-xs font-display font-semibold border inline-flex items-center gap-1.5 ${
-                      isActive ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100' : 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
+                    className={`px-3 py-2 rounded-none text-xs font-display font-semibold border inline-flex items-center gap-1.5 ${
+                      isActive ? 'bg-acsoft border-acline text-ac hover:bg-acsoft' : 'bg-oksoft border-ok text-ok hover:bg-oksoft'
                     }`}
                   >
                     <FAIcon icon={isActive ? 'user-slash' : 'user-check'} size="xs" />
@@ -237,14 +237,14 @@ const EmployeeDetailModal = ({ isOpen, onClose, employee, onSave, onSendPassword
                 </div>
 
                 <div className="flex justify-end gap-3 pt-2">
-                  <button type="button" onClick={onClose} className="px-4 py-2.5 text-sm font-display font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-2xl">
+                  <button type="button" onClick={onClose} className="px-4 py-2.5 text-sm font-display font-semibold text-inkalt bg-surfalt hover:bg-line rounded-none">
                     Cerrar
                   </button>
                   <button
                     type="button"
                     onClick={handleSave}
                     disabled={saving}
-                    className="px-4 py-2.5 text-sm font-display font-semibold text-white bg-red-500 hover:bg-red-600 rounded-2xl disabled:opacity-60"
+                    className="px-4 py-2.5 text-sm font-display font-semibold text-white bg-ac hover:bg-ac rounded-none disabled:opacity-60"
                   >
                     {saving ? 'Guardando...' : 'Guardar cambios'}
                   </button>
@@ -254,7 +254,7 @@ const EmployeeDetailModal = ({ isOpen, onClose, employee, onSave, onSendPassword
 
             {readOnly && (
               <div className="flex justify-end pt-2">
-                <button type="button" onClick={onClose} className="px-4 py-2.5 text-sm font-display font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-2xl">
+                <button type="button" onClick={onClose} className="px-4 py-2.5 text-sm font-display font-semibold text-inkalt bg-surfalt hover:bg-line rounded-none">
                   Cerrar
                 </button>
               </div>

@@ -114,27 +114,27 @@ const ReportButton = ({
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         disabled={generating}
-        className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-gray-700 rounded-2xl text-sm font-display font-semibold border border-white/80 shadow-[0_4px_12px_rgba(0,0,0,0.06),inset_0_1px_2px_rgba(255,255,255,0.8)] hover:bg-gray-50 transition-colors disabled:opacity-60 disabled:cursor-wait"
+        className="inline-flex items-center gap-2 px-4 py-2.5 bg-surface text-inkalt rounded-none text-sm font-display font-semibold border border-line hover:bg-surfalt transition-colors disabled:opacity-60 disabled:cursor-wait"
       >
         <FAIcon icon={generating ? 'spinner' : 'file-arrow-down'} className={generating ? 'animate-spin' : ''} />
         {generating ? 'Generando...' : 'Generar reporte'}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.18)] border border-white/80 z-50 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100">
-            <p className="text-xs font-display font-bold text-gray-700 uppercase tracking-wider">
+        <div className="absolute right-0 mt-2 w-72 bg-surface rounded-none border border-line z-50 overflow-hidden">
+          <div className="px-4 py-3 border-b border-line">
+            <p className="text-xs font-display font-bold text-inkalt uppercase tracking-wider">
               Reporte de {title}
             </p>
-            <p className="text-[11px] text-gray-500 mt-0.5">
+            <p className="text-[11px] text-muted mt-0.5">
               {rows.length} registro{rows.length === 1 ? '' : 's'} según los filtros aplicados
             </p>
           </div>
 
           {/* Selector de imágenes: solo en pantallas cuyos registros tienen foto */}
           {hasImages && (
-            <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-[11px] font-display font-semibold text-gray-500 uppercase tracking-wider mb-2">
+            <div className="px-4 py-3 border-b border-line">
+              <p className="text-[11px] font-display font-semibold text-muted uppercase tracking-wider mb-2">
                 Imágenes
               </p>
               <div className="space-y-1">
@@ -151,16 +151,16 @@ const ReportButton = ({
                       className="mt-0.5 accent-red-500"
                     />
                     <span className="min-w-0">
-                      <span className="block text-xs font-medium text-gray-700 group-hover:text-gray-900">
+                      <span className="block text-xs font-medium text-inkalt group-hover:text-ink">
                         {mode.label}
                       </span>
-                      <span className="block text-[10px] text-gray-400">{mode.hint}</span>
+                      <span className="block text-[10px] text-muted">{mode.hint}</span>
                     </span>
                   </label>
                 ))}
               </div>
               {imageMode === 'thumbnail' && (
-                <p className="mt-2 text-[10px] text-amber-600">
+                <p className="mt-2 text-[10px] text-warn">
                   Las miniaturas solo se incrustan en el PDF; en XML y JSON se exporta el enlace.
                 </p>
               )}
@@ -174,14 +174,14 @@ const ReportButton = ({
                 type="button"
                 onClick={() => handleGenerate(format.id)}
                 disabled={generating}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-none text-left hover:bg-surfalt transition-colors disabled:opacity-50"
               >
-                <FAIcon icon={format.icon} className="text-gray-400" />
+                <FAIcon icon={format.icon} className="text-muted" />
                 <span className="min-w-0">
-                  <span className="block text-sm font-display font-semibold text-gray-800">
+                  <span className="block text-sm font-display font-semibold text-ink">
                     {format.label}
                   </span>
-                  <span className="block text-[10px] text-gray-400">{format.hint}</span>
+                  <span className="block text-[10px] text-muted">{format.hint}</span>
                 </span>
               </button>
             ))}

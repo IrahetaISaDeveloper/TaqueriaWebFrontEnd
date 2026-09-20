@@ -17,9 +17,9 @@ const ORDER_STATUS_LABELS = {
 };
 
 const ORDER_STATUS_STYLES = {
-  delivered: 'bg-green-100 text-green-700 border-green-200',
-  cancelled: 'bg-red-100 text-red-700 border-red-200',
-  atrasado: 'bg-amber-100 text-amber-700 border-amber-200',
+  delivered: 'bg-oksoft text-ok border-ok',
+  cancelled: 'bg-acsoft text-ac border-acline',
+  atrasado: 'bg-warnsoft text-warn border-warn',
 };
 
 // Deja solo los dígitos del teléfono para armar los enlaces de llamada y
@@ -37,18 +37,18 @@ const toWhatsAppNumber = (phone) => {
 
 const InfoRow = ({ icon, label, value }) => (
   <div className="flex items-start gap-3 py-2">
-    <FAIcon icon={icon} size="sm" className="text-gray-400 mt-0.5 w-4" />
+    <FAIcon icon={icon} size="sm" className="text-muted mt-0.5 w-4" />
     <div className="min-w-0">
-      <p className="text-[11px] uppercase tracking-wide text-gray-400 font-display font-semibold">{label}</p>
-      <p className="text-sm text-gray-800 font-medium break-words">{value || '—'}</p>
+      <p className="text-[11px] uppercase tracking-wide text-muted font-display font-semibold">{label}</p>
+      <p className="text-sm text-ink font-medium break-words">{value || '—'}</p>
     </div>
   </div>
 );
 
 const Section = ({ title, children }) => (
-  <div className="bg-white/70 rounded-2xl border border-white/80 p-4 mb-4">
-    <h4 className="text-xs font-display font-bold uppercase tracking-wide text-gray-500 mb-1">{title}</h4>
-    <div className="divide-y divide-gray-100">{children}</div>
+  <div className="bg-surface rounded-none border border-line p-4 mb-4">
+    <h4 className="text-xs font-display font-bold uppercase tracking-wide text-muted mb-1">{title}</h4>
+    <div className="divide-y divide-line">{children}</div>
   </div>
 );
 
@@ -114,13 +114,13 @@ const ClientDetailModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-[#f3f0eb] rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/80 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="bg-red-500 px-5 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div className="bg-surfalt rounded-none border border-line max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="bg-ac px-5 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
           <div className="flex items-center gap-3 min-w-0">
             {client.personalInfo?.image ? (
               <img src={client.personalInfo.image} alt={fullName} className="w-10 h-10 rounded-full object-cover ring-2 ring-white/80 shrink-0" />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-display font-bold text-sm shrink-0">
+              <div className="w-10 h-10 rounded-full bg-surface/20 flex items-center justify-center text-white font-display font-bold text-sm shrink-0">
                 {fullName.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()}
               </div>
             )}
@@ -129,19 +129,19 @@ const ClientDetailModal = ({
               <p className="text-white/80 text-xs truncate">{client.loginInfo?.email}</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="text-white/90 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 shrink-0">
+          <button type="button" onClick={onClose} className="text-white/90 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface/10 shrink-0">
             <FAIcon icon="times" />
           </button>
         </div>
 
         <div className="p-5 sm:p-6">
           <div className="flex flex-wrap items-center gap-2 mb-4">
-            <span className={`px-2.5 py-1 rounded-full text-xs font-display font-semibold ${isVerified ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'}`}>
+            <span className={`px-2.5 py-1 rounded-full text-xs font-display font-semibold ${isVerified ? 'bg-oksoft text-ok border border-ok' : 'bg-warnsoft text-warn border border-warn'}`}>
               {isVerified ? 'Cuenta verificada' : 'Sin verificar'}
             </span>
             {/* Una cuenta desactivada no puede iniciar sesión, así que
                 conviene que se vea de inmediato al abrir la ficha. */}
-            <span className={`px-2.5 py-1 rounded-full text-xs font-display font-semibold border ${isActive ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
+            <span className={`px-2.5 py-1 rounded-full text-xs font-display font-semibold border ${isActive ? 'bg-infosoft text-info border-info' : 'bg-acsoft text-ac border-acline'}`}>
               {isActive ? 'Cuenta activa' : 'Cuenta desactivada'}
             </span>
           </div>
@@ -153,7 +153,7 @@ const ClientDetailModal = ({
               {primaryPhone && (
                 <a
                   href={`tel:${toPhoneDigits(primaryPhone)}`}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white text-gray-700 text-xs font-display font-semibold border border-white/80 shadow-[0_4px_10px_rgba(0,0,0,0.06)] hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-none bg-surface text-inkalt text-xs font-display font-semibold border border-line hover:bg-surfalt transition-colors"
                 >
                   <FAIcon icon="phone" size="xs" /> Llamar
                 </a>
@@ -163,7 +163,7 @@ const ClientDetailModal = ({
                   href={`https://wa.me/${whatsappNumber}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-green-50 text-green-700 text-xs font-display font-semibold border border-green-200 hover:bg-green-100 transition-colors"
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-none bg-oksoft text-ok text-xs font-display font-semibold border border-ok hover:bg-oksoft transition-colors"
                 >
                   <FAIcon icon="paper-plane" size="xs" /> WhatsApp
                 </a>
@@ -171,7 +171,7 @@ const ClientDetailModal = ({
               {email && (
                 <a
                   href={`mailto:${email}`}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white text-gray-700 text-xs font-display font-semibold border border-white/80 shadow-[0_4px_10px_rgba(0,0,0,0.06)] hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-none bg-surface text-inkalt text-xs font-display font-semibold border border-line hover:bg-surfalt transition-colors"
                 >
                   <FAIcon icon="envelope" size="xs" /> Correo
                 </a>
@@ -204,43 +204,43 @@ const ClientDetailModal = ({
           {/* Historial de pedidos. Solo los pedidos en línea llevan cliente
               con cuenta: los de local los anota el mesero sin asociarlos. */}
           {fetchClientOrders && (
-            <div className="bg-white/70 rounded-2xl border border-white/80 p-4 mb-4">
+            <div className="bg-surface rounded-none border border-line p-4 mb-4">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xs font-display font-bold uppercase tracking-wide text-gray-500">
+                <h4 className="text-xs font-display font-bold uppercase tracking-wide text-muted">
                   Historial de pedidos
                 </h4>
                 {orderSummary && orderSummary.totalOrders > 0 && (
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-muted">
                     {orderSummary.deliveredOrders} entregados · {money(orderSummary.totalSpent)}
                   </span>
                 )}
               </div>
 
               {loadingOrders ? (
-                <p className="text-sm text-gray-500 py-3 text-center">Cargando historial...</p>
+                <p className="text-sm text-muted py-3 text-center">Cargando historial...</p>
               ) : orders.length === 0 ? (
-                <p className="text-sm text-gray-400 py-3 text-center">
+                <p className="text-sm text-muted py-3 text-center">
                   Este cliente todavía no ha hecho pedidos en línea.
                 </p>
               ) : (
-                <ul className="divide-y divide-gray-100 max-h-56 overflow-y-auto">
+                <ul className="divide-y divide-line max-h-56 overflow-y-auto">
                   {orders.map((order) => (
                     <li key={order._id} className="flex items-center justify-between gap-3 py-2.5">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-800">
+                        <p className="text-sm font-medium text-ink">
                           {money(order.total)}
-                          <span className="text-xs text-gray-400 font-normal ml-2">
+                          <span className="text-xs text-muted font-normal ml-2">
                             {order.items?.length || 0} producto{(order.items?.length || 0) === 1 ? '' : 's'}
                           </span>
                         </p>
-                        <p className="text-[11px] text-gray-400">
+                        <p className="text-[11px] text-muted">
                           {order.createdAt
                             ? new Date(order.createdAt).toLocaleDateString('es-SV', { dateStyle: 'medium' })
                             : '—'}
                           {order.isDelivery ? ' · A domicilio' : ''}
                         </p>
                       </div>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-display font-semibold border shrink-0 ${ORDER_STATUS_STYLES[order.status] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-display font-semibold border shrink-0 ${ORDER_STATUS_STYLES[order.status] || 'bg-surfalt text-inkalt border-line'}`}>
                         {ORDER_STATUS_LABELS[order.status] || order.status}
                       </span>
                     </li>
@@ -254,11 +254,11 @@ const ClientDetailModal = ({
               "clients_manage_status": ver la ficha no basta para cerrarle
               el acceso a alguien. */}
           {canManageStatus && onToggleStatus && (
-            <div className="bg-white/70 rounded-2xl border border-white/80 p-4">
-              <h4 className="text-xs font-display font-bold uppercase tracking-wide text-gray-500 mb-1">
+            <div className="bg-surface rounded-none border border-line p-4">
+              <h4 className="text-xs font-display font-bold uppercase tracking-wide text-muted mb-1">
                 Estado de la cuenta
               </h4>
-              <p className="text-xs text-gray-500 mb-3">
+              <p className="text-xs text-muted mb-3">
                 {isActive
                   ? 'Al desactivarla, el cliente no podrá iniciar sesión. Su historial de pedidos se conserva.'
                   : 'Al reactivarla, el cliente podrá volver a iniciar sesión con sus mismas credenciales.'}
@@ -267,10 +267,10 @@ const ClientDetailModal = ({
                 type="button"
                 onClick={handleToggleStatus}
                 disabled={togglingStatus}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-display font-semibold transition-colors disabled:opacity-50 cursor-pointer ${
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-none text-sm font-display font-semibold transition-colors disabled:opacity-50 cursor-pointer ${
                   isActive
-                    ? 'bg-red-500 text-white hover:bg-red-600 shadow-[0_6px_16px_rgba(220,38,38,0.35),inset_1px_1px_2px_rgba(255,255,255,0.3)]'
-                    : 'bg-green-500 text-white hover:bg-green-600 shadow-[0_6px_16px_rgba(34,197,94,0.35),inset_1px_1px_2px_rgba(255,255,255,0.3)]'
+                    ? 'bg-ac text-white hover:bg-ac'
+                    : 'bg-ok text-white hover:bg-ok'
                 }`}
               >
                 <FAIcon icon={isActive ? 'ban' : 'check-circle'} size="sm" />

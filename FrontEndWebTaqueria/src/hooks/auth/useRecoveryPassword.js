@@ -9,8 +9,39 @@ const API_URL = import.meta.env.VITE_API_URL || '/api';
 // horas después solo porque el dato seguía en el navegador.
 const RECOVERY_FLOW_TTL_MS = 15 * 60 * 1000;
 
-export default function useRecoveryPassword() {
+/**
+ * Flujo de recuperación de contraseña.
+ *
+ * Sirve a dos presentaciones a la vez: las pantallas completas (/recovery,
+ * /verify-code, /reset-password) y el panel que se abre sobre el login. En
+ * las pantallas hay que navegar entre rutas para avanzar de paso; dentro del
+ * panel no, porque los tres pasos ocurren en el mismo sitio.
+ *
+ * Por eso el avance no se hace aquí directamente: se delega en `onStep`. Si
+ * no se pasa (caso de las pantallas), se cae al `navigate` de siempre, así
+ * que el comportamiento anterior no cambia.
+ */
+export default function useRecoveryPassword({ onStep, onExit } = {}) {
   const navigate = useNavigate();
+
+  // Avanzar de paso: el panel lo resuelve cambiando lo que muestra; las
+  // pantallas, cambiando de ruta.
+  const goToStep = (step, route) => {
+    if (onStep) {
+      onStep(step);
+      return;
+    }
+    navigate(route, { replace: true });
+  };
+
+  // Salir del flujo (cancelar o terminar).
+  const leaveFlow = () => {
+    if (onExit) {
+      onExit();
+      return;
+    }
+    navigate('/', { replace: true });
+  };
 
   // Usamos sessionStorage (no localStorage): se borra automáticamente al
   // cerrar la pestaña o el navegador. Esto es justo lo que necesitamos
@@ -99,7 +130,7 @@ export default function useRecoveryPassword() {
   const handleConfirmLeave = () => {
     clearRecoveryData();
     setShowConfirmModal(false);
-    navigate('/', { replace: true });
+    leaveFlow();
   };
 
   // --- VALIDADORES DE GUARDIA DE RUTA ---
@@ -108,7 +139,7 @@ export default function useRecoveryPassword() {
   const validateVerifyStep = () => {
     const storedEmail = sessionStorage.getItem('recovery_email');
     if (!storedEmail || !isRecoveryFlowValid()) {
-      navigate('/', { replace: true });
+      leaveFlow();
     }
   };
 
@@ -117,7 +148,7 @@ export default function useRecoveryPassword() {
   const validateResetStep = () => {
     const step = sessionStorage.getItem('recovery_step');
     if (step !== 'verified' || !isRecoveryFlowValid()) {
-      navigate('/', { replace: true });
+      leaveFlow();
     }
   };
 
@@ -172,7 +203,7 @@ export default function useRecoveryPassword() {
       setSuccess(true);
       setTimeout(() => {
         // replace: true evita que al darle atrás en el navegador vuelva al formulario de solicitar código
-        navigate('/verify-code', { replace: true });
+        goToStep('verify', '/verify-code');
       }, 1200);
     } catch (err) {
       console.error('Error enviando código:', err);
@@ -192,7 +223,7 @@ export default function useRecoveryPassword() {
     const storedRole = sessionStorage.getItem('recovery_role') || role;
 
     if (!storedEmail) {
-      navigate('/', { replace: true });
+      leaveFlow();
       return;
     }
 
@@ -303,7 +334,7 @@ export default function useRecoveryPassword() {
       setSuccess(true);
       setTimeout(() => {
         // Reemplaza la vista para no poder volver a meter el código
-        navigate('/reset-password', { replace: true });
+        goToStep('reset', '/reset-password');
       }, 1000);
     } catch (err) {
       console.error('Error verificando código:', err);
@@ -364,9 +395,13 @@ export default function useRecoveryPassword() {
       clearRecoveryData();
 
       setSuccess(true);
-      setTimeout(() => {
-        navigate('/', { replace: true });
-      }, 2000);
+      // En el panel no se redirige sola: el usuario cierra cuando quiera,
+      // así que la salida automática solo aplica a las pantallas completas.
+      if (!onExit) {
+        setTimeout(() => {
+          navigate('/', { replace: true });
+        }, 2000);
+      }
     } catch (err) {
       console.error('Error al actualizar contraseña:', err);
       setApiError({

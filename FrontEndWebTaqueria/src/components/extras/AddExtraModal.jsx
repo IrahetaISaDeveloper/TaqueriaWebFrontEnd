@@ -253,19 +253,19 @@ const AddExtraModal = ({ isOpen, onClose, onAdd, onEditExisting, editingExtra = 
 
   // Estilos clay para inputs
   const inputClasses =
-    'w-full px-4 py-2.5 bg-[#f3f0eb] border border-white/80 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition-all text-gray-700 placeholder:text-gray-400 text-sm shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05),inset_-2px_-2px_5px_rgba(255,255,255,0.7)]';
+    'w-full px-4 py-2.5 bg-surfalt border border-line rounded-none focus:outline-none focus:ring-2 focus:ring-acline focus:border-acline transition-all text-inkalt placeholder:text-muted text-sm';
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-[#f3f0eb] rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.2),inset_1px_1px_3px_rgba(255,255,255,0.7)] w-full max-w-md max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden border border-white/80">
+      <div className="bg-surfalt rounded-none w-full max-w-md max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden border border-line">
         {/* Cabecera roja con relieve */}
-        <div className="flex items-center justify-between p-4 sm:p-5 bg-red-500 text-white shadow-[inset_0_1px_2px_rgba(255,255,255,0.3),0_4px_12px_rgba(220,38,38,0.3)]">
+        <div className="flex items-center justify-between p-4 sm:p-5 bg-ac text-white">
           <h2 className="text-base sm:text-lg font-display font-bold">
             {editingExtra ? 'Editar extra' : 'Nuevo extra'}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-white/80 hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition-all"
+            className="text-white/80 hover:text-white p-1.5 rounded-none hover:bg-surface/10 transition-all"
           >
             <FAIcon icon="times" size="lg" />
           </button>
@@ -273,16 +273,16 @@ const AddExtraModal = ({ isOpen, onClose, onAdd, onEditExisting, editingExtra = 
 
         {missingIngredients.length > 0 ? (
           <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
-            <div className="bg-amber-100/80 border border-amber-300 text-amber-800 px-4 py-3 rounded-2xl text-sm flex items-start gap-2">
+            <div className="bg-warnsoft/80 border border-warn text-warn px-4 py-3 rounded-none text-sm flex items-start gap-2">
               <FAIcon icon="triangle-exclamation" size="sm" className="mt-0.5" />
               <span>El stock actual no alcanza para estos ingredientes. Puedes reabastecer aquí mismo o confirmar de todas formas.</span>
             </div>
 
             <div className="space-y-3">
               {missingIngredients.map((item) => (
-                <div key={item.ingredientId} className="bg-white rounded-2xl p-3 border border-white/80 shadow-sm">
-                  <p className="font-display font-semibold text-gray-900 text-sm">{item.name}</p>
-                  <p className="text-xs text-gray-500 mb-2">
+                <div key={item.ingredientId} className="bg-surface rounded-none p-3 border border-line">
+                  <p className="font-display font-semibold text-ink text-sm">{item.name}</p>
+                  <p className="text-xs text-muted mb-2">
                     {item.reason || `Disponible: ${item.available ?? 0} ${item.unit || ''} · Necesario: ${item.needed ?? 0} ${item.unit || ''}`}
                   </p>
                   <div className="flex items-center gap-2">
@@ -297,7 +297,7 @@ const AddExtraModal = ({ isOpen, onClose, onAdd, onEditExisting, editingExtra = 
                     <button
                       type="button"
                       onClick={() => handleAddStock(item.ingredientId)}
-                      className="px-4 py-2.5 bg-red-500 text-white rounded-2xl text-xs font-display font-semibold hover:bg-red-600 transition-all shrink-0"
+                      className="px-4 py-2.5 bg-ac text-white rounded-none text-xs font-display font-semibold hover:bg-ac transition-all shrink-0"
                     >
                       Agregar
                     </button>
@@ -310,14 +310,14 @@ const AddExtraModal = ({ isOpen, onClose, onAdd, onEditExisting, editingExtra = 
               <button
                 type="button"
                 onClick={() => { setMissingIngredients([]); setPendingFormData(null); }}
-                className="flex-1 px-4 py-3 bg-gray-200 text-gray-600 rounded-2xl hover:bg-gray-300 font-display font-semibold text-sm transition-all"
+                className="flex-1 px-4 py-3 bg-line text-inkalt rounded-none hover:bg-linealt font-display font-semibold text-sm transition-all"
               >
                 Volver
               </button>
               <button
                 type="button"
                 onClick={handleConfirmAnyway}
-                className="flex-1 px-4 py-3 bg-red-500 text-white rounded-2xl hover:bg-red-600 font-display font-semibold text-sm transition-all"
+                className="flex-1 px-4 py-3 bg-ac text-white rounded-none hover:bg-ac font-display font-semibold text-sm transition-all"
               >
                 Confirmar de todas formas
               </button>
@@ -327,7 +327,7 @@ const AddExtraModal = ({ isOpen, onClose, onAdd, onEditExisting, editingExtra = 
         <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto flex-1">
           {/* Nombre */}
           <div>
-            <label className="block text-xs font-display font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
               Nombre del extra
             </label>
             <input
@@ -339,12 +339,12 @@ const AddExtraModal = ({ isOpen, onClose, onAdd, onEditExisting, editingExtra = 
               placeholder="Ej: Queso Cheddar"
               className={inputClasses}
             />
-            {errors.name && <span className="text-red-500 text-xs mt-1 block font-medium">{errors.name.message}</span>}
+            {errors.name && <span className="text-ac text-xs mt-1 block font-medium">{errors.name.message}</span>}
           </div>
 
           {/* Precio */}
           <div>
-            <label className="block text-xs font-display font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
               Precio ($)
             </label>
             <input
@@ -359,12 +359,12 @@ const AddExtraModal = ({ isOpen, onClose, onAdd, onEditExisting, editingExtra = 
               placeholder="Ej: 1.50"
               className={inputClasses}
             />
-            {errors.price && <span className="text-red-500 text-xs mt-1 block font-medium">{errors.price.message}</span>}
+            {errors.price && <span className="text-ac text-xs mt-1 block font-medium">{errors.price.message}</span>}
           </div>
 
           {/* Categoría */}
           <div>
-            <label className="block text-xs font-display font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
               Categoría
             </label>
             <input
@@ -385,7 +385,7 @@ const AddExtraModal = ({ isOpen, onClose, onAdd, onEditExisting, editingExtra = 
 
           {/* Estado */}
           <div>
-            <label className="block text-xs font-display font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
               Estado
             </label>
             <Select {...register('status')}>
@@ -395,8 +395,8 @@ const AddExtraModal = ({ isOpen, onClose, onAdd, onEditExisting, editingExtra = 
           </div>
 
           {/* ¿Depende de insumos de inventario? */}
-          <div className="border-t border-white/60 pt-4">
-            <label className="flex items-center gap-2 text-sm text-gray-700 font-medium">
+          <div className="border-t border-line pt-4">
+            <label className="flex items-center gap-2 text-sm text-inkalt font-medium">
               <input type="checkbox" {...register('isCompound')} className="accent-red-500" />
               ¿Este extra depende de insumos de inventario? (se produce a partir de otros insumos)
             </label>
@@ -407,7 +407,7 @@ const AddExtraModal = ({ isOpen, onClose, onAdd, onEditExisting, editingExtra = 
                   type="button"
                   onClick={handleSuggestRecipe}
                   disabled={suggestingRecipe}
-                  className="text-xs font-display font-semibold text-red-500 hover:text-red-600 flex items-center gap-1.5 disabled:opacity-50"
+                  className="text-xs font-display font-semibold text-ac hover:text-ac flex items-center gap-1.5 disabled:opacity-50"
                 >
                   <FAIcon icon="wand-magic-sparkles" size="xs" />
                   {suggestingRecipe ? 'Consultando IA...' : 'Sugerir receta con IA'}
@@ -427,13 +427,13 @@ const AddExtraModal = ({ isOpen, onClose, onAdd, onEditExisting, editingExtra = 
 
           {/* Imagen */}
           <div>
-            <label className="block text-xs font-display font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
               Imagen (opcional)
             </label>
             {editingExtra?.image && !imageFile && (
-              <div className="mb-3 flex items-center gap-2 bg-white p-2 rounded-2xl border border-white/80 shadow-sm">
-                <img src={editingExtra.image} alt="Actual" className="w-10 h-10 object-cover rounded-xl shadow-inner" />
-                <span className="text-xs text-gray-400 truncate">Conservar imagen actual</span>
+              <div className="mb-3 flex items-center gap-2 bg-surface p-2 rounded-none border border-line">
+                <img src={editingExtra.image} alt="Actual" className="w-10 h-10 object-cover rounded-none shadow-inner" />
+                <span className="text-xs text-muted truncate">Conservar imagen actual</span>
               </div>
             )}
             <input
@@ -444,36 +444,34 @@ const AddExtraModal = ({ isOpen, onClose, onAdd, onEditExisting, editingExtra = 
                 if (selected) setRawImageFile(selected);
                 e.target.value = '';
               }}
-              className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-500 file:text-white hover:file:bg-red-600 file:transition-colors file:shadow-[0_4px_12px_rgba(220,38,38,0.3)] cursor-pointer"
+              className="w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-xs file:font-semibold file:bg-ac file:text-white hover:file:bg-ac file:transition-colors file: cursor-pointer"
             />
             {imageFile && (
               <div className="flex items-center gap-3 mt-2">
-                <img src={URL.createObjectURL(imageFile)} alt="Vista previa" className="w-12 h-12 rounded-xl object-cover ring-2 ring-red-400" />
-                <button type="button" onClick={() => setRawImageFile(imageFile)} className="text-xs text-gray-500 hover:text-red-500">Ajustar</button>
-                <button type="button" onClick={() => setImageFile(null)} className="text-xs text-gray-400 hover:text-red-500">Quitar</button>
+                <img src={URL.createObjectURL(imageFile)} alt="Vista previa" className="w-12 h-12 rounded-none object-cover ring-2 ring-red-400" />
+                <button type="button" onClick={() => setRawImageFile(imageFile)} className="text-xs text-muted hover:text-ac">Ajustar</button>
+                <button type="button" onClick={() => setImageFile(null)} className="text-xs text-muted hover:text-ac">Quitar</button>
               </div>
             )}
             {!editingExtra?.image && !imageFile && (
-              <p className="text-[11px] text-gray-400 mt-1">Si no seleccionas una imagen se usará un diseño por defecto</p>
+              <p className="text-[11px] text-muted mt-1">Si no seleccionas una imagen se usará un diseño por defecto</p>
             )}
           </div>
 
           {/* Botones */}
-          <div className="flex gap-3 pt-4 border-t border-white/60">
+          <div className="flex gap-3 pt-4 border-t border-line">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 bg-gray-200 text-gray-600 rounded-2xl hover:bg-gray-300 font-display font-semibold text-sm transition-all
-                shadow-[0_4px_12px_rgba(0,0,0,0.05),inset_0_1px_2px_rgba(255,255,255,0.8)]
+              className="flex-1 px-4 py-3 bg-line text-inkalt rounded-none hover:bg-linealt font-display font-semibold text-sm transition-all
               "
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-3 bg-red-500 text-white rounded-2xl hover:bg-red-600 font-display font-semibold text-sm transition-all
-                shadow-[0_6px_16px_rgba(220,38,38,0.35),inset_1px_1px_2px_rgba(255,255,255,0.3)]
-                active:shadow-[inset_2px_2px_5px_rgba(0,0,0,0.2)]
+              className="flex-1 px-4 py-3 bg-ac text-white rounded-none hover:bg-ac font-display font-semibold text-sm transition-all
+                active:
               "
             >
               {editingExtra ? 'Actualizar extra' : 'Agregar extra'}

@@ -53,7 +53,7 @@ const PeriodSelector = ({ value, onChange, customRange, onCustomRangeChange }) =
             type="button"
             onClick={() => handlePresetClick(p.id)}
             className={`px-3 py-1.5 rounded-full text-xs font-display font-semibold transition-colors ${
-              value === p.id ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              value === p.id ? 'bg-ac text-white' : 'bg-surfalt text-inkalt hover:bg-line'
             }`}
           >
             {p.label}
@@ -63,7 +63,7 @@ const PeriodSelector = ({ value, onChange, customRange, onCustomRangeChange }) =
           type="button"
           onClick={handleCustomToggle}
           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-display font-semibold transition-colors ${
-            value === 'custom' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            value === 'custom' ? 'bg-ac text-white' : 'bg-surfalt text-inkalt hover:bg-line'
           }`}
         >
           <FAIcon icon="calendar" size="xs" />
@@ -72,23 +72,23 @@ const PeriodSelector = ({ value, onChange, customRange, onCustomRangeChange }) =
       </div>
 
       {showCustom && (
-        <div className="flex flex-wrap items-center gap-2 mt-2.5 p-3 bg-white/70 rounded-2xl border border-white/80">
-          <label className="flex items-center gap-1.5 text-xs text-gray-600">
+        <div className="flex flex-wrap items-center gap-2 mt-2.5 p-3 bg-surface rounded-none border border-line">
+          <label className="flex items-center gap-1.5 text-xs text-inkalt">
             Desde
             <input
               type="date"
               value={customRange?.from || ''}
               onChange={(e) => handleDateChange('from', e.target.value)}
-              className="px-2.5 py-1.5 bg-[#f3f0eb] border border-white/80 rounded-xl text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500/30"
+              className="px-2.5 py-1.5 bg-surfalt border border-line rounded-none text-xs text-inkalt focus:outline-none focus:ring-2 focus:ring-acline"
             />
           </label>
-          <label className="flex items-center gap-1.5 text-xs text-gray-600">
+          <label className="flex items-center gap-1.5 text-xs text-inkalt">
             Hasta
             <input
               type="date"
               value={customRange?.to || ''}
               onChange={(e) => handleDateChange('to', e.target.value)}
-              className="px-2.5 py-1.5 bg-[#f3f0eb] border border-white/80 rounded-xl text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500/30"
+              className="px-2.5 py-1.5 bg-surfalt border border-line rounded-none text-xs text-inkalt focus:outline-none focus:ring-2 focus:ring-acline"
             />
           </label>
         </div>

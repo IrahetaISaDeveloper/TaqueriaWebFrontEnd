@@ -1,14 +1,15 @@
-// src/components/layout/Sidebar.jsx
+// src/components/dashboard/Sidebar.jsx
+//
+// Cajón de navegación para móvil. En escritorio no se muestra: el rediseño
+// movió la navegación a la barra superior (NavMenu).
 import React from 'react';
 import { Link } from 'react-router-dom';
 import FAIcon from '../commons/FAIcon';
-import { useLogout } from '../../hooks/auth/useLogout';
 import { useTheme } from '../../context/themeContext';
 import { useAuth } from '../../hooks/auth/useAuth';
 import { hasPermission } from '../../constants/permissions';
 
 const Sidebar = ({ activeMenu, isOpen, onClose }) => {
-  const { logout, loading } = useLogout();
   const { theme } = useTheme();
   const { user } = useAuth();
   // Dentro del sistema el logo es el PNG plano, sin la animación del chile
@@ -33,6 +34,7 @@ const Sidebar = ({ activeMenu, isOpen, onClose }) => {
         { id: 'drink-sets', label: 'Conjuntos de bebidas', icon: 'layer-group', path: '/drink-sets', permission: 'drink_sets' },
         { id: 'dishes', label: 'Platillos', icon: 'utensils', path: '/dishes', permission: 'dishes' },
         { id: 'extras', label: 'Extras', icon: 'star', path: '/extras', permission: 'extras' },
+        { id: 'promotions', label: 'Promociones de hoy', icon: 'tag', path: '/promociones', permission: 'promotions' },
         { id: 'recipes', label: 'Recetas', icon: 'flask', path: '/recetas', permission: 'recipes' },
       ],
     },
@@ -61,12 +63,6 @@ const Sidebar = ({ activeMenu, isOpen, onClose }) => {
     }))
     .filter((category) => category.items.length > 0);
 
-  const handleLogout = async (e) => {
-    e.preventDefault();
-    if (loading) return;
-    await logout();
-  };
-
   const renderNavItem = (item, onItemClick) => {
     const isActive = activeMenu === item.id;
     return (
@@ -74,18 +70,18 @@ const Sidebar = ({ activeMenu, isOpen, onClose }) => {
         key={item.id}
         to={item.path}
         onClick={onItemClick}
-        className={`group relative flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-display font-medium transition-all duration-200 ${isActive
-            ? 'bg-red-500 text-white shadow-[0_4px_12px_rgba(220,38,38,0.3),inset_1px_1px_2px_rgba(255,255,255,0.3)]'
-            : 'text-gray-600 hover:bg-white/20 hover:text-gray-900'
+        className={`group relative flex items-center gap-3 px-4 py-2.5 rounded-none text-sm font-display font-medium transition-all duration-200 ${isActive
+            ? 'bg-ac text-white'
+            : 'text-inkalt hover:bg-surface/20 hover:text-ink'
           }`}
       >
         <FAIcon
           icon={item.icon}
-          className={isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}
+          className={isActive ? 'text-white' : 'text-muted group-hover:text-inkalt'}
         />
         <span>{item.label}</span>
         {isActive && (
-          <span className="ml-auto w-2 h-2 rounded-full bg-white shadow-sm" />
+          <span className="ml-auto w-2 h-2 rounded-full bg-surface" />
         )}
       </Link>
     );
@@ -96,8 +92,8 @@ const Sidebar = ({ activeMenu, isOpen, onClose }) => {
   const renderNavigation = (onItemClick = undefined) => (
     <div className="space-y-4">
       {menuCategories.map((category, idx) => (
-        <div key={idx} className="bg-gray-50 border border-white/60 rounded-2xl p-3">
-          <h3 className="px-1 mb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+        <div key={idx} className="bg-surfalt border border-line rounded-none p-3">
+          <h3 className="px-1 mb-2 text-xs font-bold text-muted uppercase tracking-wider">
             {category.title}
           </h3>
           <div className="space-y-1">
@@ -110,33 +106,23 @@ const Sidebar = ({ activeMenu, isOpen, onClose }) => {
 
   return (
     <>
-      {/* Escritorio */}
-      <aside className="hidden lg:flex lg:flex-col relative w-64 bg-white/90 backdrop-blur-sm shadow-[0_10px_40px_rgba(0,0,0,0.08),inset_1px_1px_3px_rgba(255,255,255,0.7)] border border-white/60 h-screen sticky top-0">
-        <div className="relative p-4 border-b border-white/80 shrink-0">
-          <div className="w-full flex items-center justify-center py-4">
-            <img src={logoSrc} alt="SYSCOR" className="h-14 w-auto object-contain" draggable={false} />
-          </div>
-        </div>
-
-        <nav className="relative p-4 flex-1 overflow-y-auto custom-scrollbar">
-          {renderNavigation()}
-        </nav>
-
-      </aside>
-
+      {/* Solo móvil: en pantallas grandes la navegación vive en la barra
+          superior (ver components/dashboard/NavMenu.jsx) y esta barra lateral
+          ya no se monta. Aquí se conserva como cajón deslizante porque cuatro
+          menús desplegables no caben en un teléfono. */}
       {/* Móvil */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white/90 backdrop-blur-sm shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-bg backdrop-blur-sm transform transition-transform duration-300 ease-in-out lg:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
       >
         <div className="flex flex-col h-full relative overflow-hidden">
-          <div className="relative flex items-center justify-between p-4 border-b border-white/80 shrink-0">
+          <div className="relative flex items-center justify-between p-4 border-b border-line shrink-0">
             <div className="flex items-center justify-center">
               <img src={logoSrc} alt="SYSCOR" className="h-10 w-auto object-contain" draggable={false} />
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-500 hover:text-gray-900 hover:bg-white/60 rounded-xl transition-colors"
+              className="p-2 text-muted hover:text-ink hover:bg-surface rounded-none transition-colors"
               aria-label="Cerrar menú"
             >
               <FAIcon icon="times" size="lg" />

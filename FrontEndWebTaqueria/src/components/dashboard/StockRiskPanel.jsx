@@ -40,30 +40,30 @@ const StockRiskPanel = () => {
     <Card className="p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div>
-          <h3 className="text-base sm:text-lg font-display font-bold text-gray-900 flex items-center gap-2">
-            <FAIcon icon="wand-magic-sparkles" size="sm" className="text-red-500" />
+          <h3 className="text-base sm:text-lg font-display font-bold text-ink flex items-center gap-2">
+            <FAIcon icon="wand-magic-sparkles" size="sm" className="text-ac" />
             Stock en riesgo
           </h3>
-          <p className="text-xs sm:text-sm text-gray-600">Proyección de IA sobre lo que podría agotarse pronto</p>
+          <p className="text-xs sm:text-sm text-inkalt">Proyección de IA sobre lo que podría agotarse pronto</p>
         </div>
         <button
           type="button"
           onClick={() => fetchForecast(true)}
           disabled={loading}
-          className="text-xs font-display font-semibold text-red-500 hover:text-red-600 disabled:opacity-50"
+          className="text-xs font-display font-semibold text-ac hover:text-ac disabled:opacity-50"
         >
           {loading ? 'Cargando...' : 'Actualizar'}
         </button>
       </div>
 
       {!available && (
-        <p className="text-xs text-gray-400 text-center py-6">
+        <p className="text-xs text-muted text-center py-6">
           La proyección de IA no está disponible en este momento.
         </p>
       )}
 
       {available && !loading && alerts.length === 0 && (
-        <p className="text-xs text-gray-400 text-center py-6">
+        <p className="text-xs text-muted text-center py-6">
           Sin riesgos detectados por ahora.
         </p>
       )}
@@ -71,13 +71,13 @@ const StockRiskPanel = () => {
       {available && alerts.length > 0 && (
         <div className="space-y-2">
           {alerts.map((alert, idx) => (
-            <div key={idx} className="flex items-start gap-3 bg-amber-50/80 border border-amber-200 rounded-2xl p-3">
-              <FAIcon icon="triangle-exclamation" size="sm" className="text-amber-600 mt-0.5 shrink-0" />
+            <div key={idx} className="flex items-start gap-3 bg-warnsoft/80 border border-warn rounded-none p-3">
+              <FAIcon icon="triangle-exclamation" size="sm" className="text-warn mt-0.5 shrink-0" />
               <div className="min-w-0">
-                <p className="text-sm font-display font-semibold text-gray-900">
+                <p className="text-sm font-display font-semibold text-ink">
                   {alert.ingredient} · {alert.currentStock} {alert.unit}
                 </p>
-                <p className="text-xs text-gray-600 mt-0.5">
+                <p className="text-xs text-inkalt mt-0.5">
                   Se agotaría en ~{alert.projectedDaysLeft} día(s). {alert.recommendation}
                 </p>
               </div>

@@ -89,10 +89,10 @@ function SectionTabs({ section, setSection }) {
           key={tab.id}
           type="button"
           onClick={() => setSection(tab.id)}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-display font-semibold text-sm transition-all ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-none font-display font-semibold text-sm transition-all ${
             section === tab.id
-              ? 'bg-red-500 text-white shadow-[0_6px_16px_rgba(220,38,38,0.3)]'
-              : 'bg-white text-gray-600 border border-white/80 hover:bg-gray-50'
+              ? 'bg-ac text-white'
+              : 'bg-surface text-inkalt border border-line hover:bg-surfalt'
           }`}
         >
           <FAIcon icon={tab.icon} size="sm" />
@@ -190,15 +190,15 @@ function OrdersPanel() {
     <>
       {/* Filtro por tipo de pedido */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        <span className="text-xs font-display font-bold text-gray-500 uppercase tracking-wider mr-1">Tipo:</span>
+        <span className="text-xs font-display font-bold text-muted uppercase tracking-wider mr-1">Tipo:</span>
         {ORDER_TYPE_FILTERS.map((f) => (
           <button
             key={f.id}
             onClick={() => setOrderTypeFilter(f.id)}
-            className={`px-3 py-1.5 text-xs font-display font-semibold rounded-xl transition-all ${
+            className={`px-3 py-1.5 text-xs font-display font-semibold rounded-none transition-all ${
               orderTypeFilter === f.id
-                ? 'bg-gray-800 text-white'
-                : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+                ? 'bg-ink text-white'
+                : 'bg-surface text-muted border border-line hover:bg-surfalt'
             }`}
           >
             {f.label}
@@ -226,15 +226,15 @@ function OrdersPanel() {
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1">
           {/* Tabs de estado */}
-          <div className="bg-white/80 backdrop-blur-sm p-1 rounded-2xl flex flex-wrap gap-1 border border-white/80 shadow-sm mb-6 w-fit">
+          <div className="bg-surface backdrop-blur-sm p-1 rounded-none flex flex-wrap gap-1 border border-line mb-6 w-fit">
             {STATUS_TABS.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setTabActiva(tab.key)}
-                className={`px-4 py-2 text-xs font-display font-bold rounded-xl transition-all ${
+                className={`px-4 py-2 text-xs font-display font-bold rounded-none transition-all ${
                   tabActiva === tab.key
-                    ? 'bg-red-500 text-white shadow-[0_4px_12px_rgba(220,38,38,0.3),inset_1px_1px_2px_rgba(255,255,255,0.3)]'
-                    : 'bg-transparent text-gray-500 hover:text-gray-700'
+                    ? 'bg-ac text-white'
+                    : 'bg-transparent text-muted hover:text-inkalt'
                 }`}
               >
                 {tab.label} ({listasPorEstado[tab.key]?.length || 0})
@@ -270,17 +270,17 @@ function OrdersPanel() {
           </div>
 
           {loading ? (
-            <div className="text-center py-10 text-gray-500 font-medium">Cargando pedidos...</div>
+            <div className="text-center py-10 text-muted font-medium">Cargando pedidos...</div>
           ) : (
             <div>
-              <h3 className="text-lg font-display font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-red-500 rounded-full"></span>
+              <h3 className="text-lg font-display font-bold text-ink mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-ac rounded-full"></span>
                 {STATUS_TABS.find((t) => t.key === tabActiva)?.label}
-                {soloMasCaro && <span className="text-xs font-medium text-gray-400 ml-1">(pedido más caro)</span>}
+                {soloMasCaro && <span className="text-xs font-medium text-muted ml-1">(pedido más caro)</span>}
               </h3>
 
               {listaActiva.length === 0 ? (
-                <div className="text-center py-10 font-display font-bold text-gray-400 text-xs uppercase tracking-wider">
+                <div className="text-center py-10 font-display font-bold text-muted text-xs uppercase tracking-wider">
                   No hay pedidos en este estado.
                 </div>
               ) : (
@@ -302,10 +302,10 @@ function OrdersPanel() {
 
         {/* Panel lateral de resumen con estilo clay */}
         <div className="w-full lg:w-72 flex flex-col gap-6">
-          <div className="bg-white rounded-3xl p-5 shadow-[0_10px_40px_rgba(0,0,0,0.08),inset_1px_1px_3px_rgba(255,255,255,0.7)] border border-white/80">
-            <h3 className="text-sm font-display font-bold text-gray-800 mb-4">Tráfico de Pedidos por Hora</h3>
+          <div className="bg-surface rounded-none p-5 border border-line">
+            <h3 className="text-sm font-display font-bold text-ink mb-4">Tráfico de Pedidos por Hora</h3>
             {traficoPorHora.length === 0 ? (
-              <div className="h-28 flex items-center justify-center text-xs text-gray-400 text-center px-2">
+              <div className="h-28 flex items-center justify-center text-xs text-muted text-center px-2">
                 Aún no hay pedidos suficientes para mostrar el tráfico
               </div>
             ) : (
@@ -408,16 +408,16 @@ function ScheduledPanel() {
       </div>
 
       {loading ? (
-        <div className="text-center py-10 text-gray-500 font-medium">Cargando pedidos...</div>
+        <div className="text-center py-10 text-muted font-medium">Cargando pedidos...</div>
       ) : scheduledOrders.length === 0 ? (
-        <div className="text-center py-10 font-display font-bold text-gray-400 text-xs uppercase tracking-wider">
+        <div className="text-center py-10 font-display font-bold text-muted text-xs uppercase tracking-wider">
           No hay pedidos programados
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {scheduledOrders.map((pedido) => (
             <div key={pedido._id}>
-              <div className="mb-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-display font-semibold bg-purple-100 text-purple-700 border border-purple-200">
+              <div className="mb-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-display font-semibold bg-infosoft text-info border border-info">
                 <FAIcon icon="calendar-clock" size="xs" />
                 Programado: {new Date(pedido.scheduledFor).toLocaleString('es-SV', { dateStyle: 'medium', timeStyle: 'short' })}
               </div>
@@ -489,15 +489,15 @@ function InvoicesPanel() {
   return (
     <>
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        <span className="text-xs font-display font-bold text-gray-500 uppercase tracking-wider mr-1">Tipo:</span>
+        <span className="text-xs font-display font-bold text-muted uppercase tracking-wider mr-1">Tipo:</span>
         {ORDER_TYPE_FILTERS.map((f) => (
           <button
             key={f.id}
             onClick={() => setOrderTypeFilter(f.id)}
-            className={`px-3 py-1.5 text-xs font-display font-semibold rounded-xl transition-all ${
+            className={`px-3 py-1.5 text-xs font-display font-semibold rounded-none transition-all ${
               orderTypeFilter === f.id
-                ? 'bg-gray-800 text-white'
-                : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
+                ? 'bg-ink text-white'
+                : 'bg-surface text-muted border border-line hover:bg-surfalt'
             }`}
           >
             {f.label}
@@ -529,9 +529,9 @@ function InvoicesPanel() {
         />
       </div>
 
-      <div className="bg-white rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.08),inset_1px_1px_3px_rgba(255,255,255,0.7)] border border-white/80 overflow-hidden">
-        <div className="p-4 sm:p-5 flex flex-wrap justify-between items-center gap-3 border-b border-gray-100">
-          <h2 className="text-lg font-display font-bold text-gray-900">Historial de Facturación</h2>
+      <div className="bg-surface rounded-none border border-line overflow-hidden">
+        <div className="p-4 sm:p-5 flex flex-wrap justify-between items-center gap-3 border-b border-line">
+          <h2 className="text-lg font-display font-bold text-ink">Historial de Facturación</h2>
 
           <ReportButton
             title="Facturacion"
@@ -568,7 +568,7 @@ function OrdersContent() {
   const [section, setSection] = useState('orders')
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f3f0eb]">
+    <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -580,8 +580,8 @@ function OrdersContent() {
         <main className="flex-1 overflow-y-auto">
           <div className="p-4 sm:p-6 lg:p-8">
             <div className="mb-6">
-              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-1">Pedidos y Órdenes</h1>
-              <p className="text-sm sm:text-base text-gray-600">
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1">Pedidos y Órdenes</h1>
+              <p className="text-sm sm:text-base text-inkalt">
                 Monitorea el flujo de pedidos en cocina y consulta el historial de facturación.
               </p>
             </div>

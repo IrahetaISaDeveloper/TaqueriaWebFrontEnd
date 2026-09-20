@@ -1,14 +1,21 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import AuthPanel from '../components/auth/AuthPanel';
+import AuthError from '../components/auth/AuthError';
 import DigitInput from '../components/auth/DigitInput';
-import PrimaryButton from '../components/commons/PrimaryButton';
-import AuthCard from '../components/commons/AuthCard';
 import ConfirmModal from '../components/commons/ConfirmModal';
-import Logo from '../components/commons/Logo';
+import FAIcon from '../components/commons/FAIcon';
 import useRecoveryPassword from '../hooks/auth/useRecoveryPassword';
+
+const formatTime = (seconds) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+};
 
 export default function VerifyCode() {
   const {
+    email,
     digits,
     inputError,
     apiError,
@@ -21,7 +28,7 @@ export default function VerifyCode() {
     openConfirmModal,
     closeConfirmModal,
     handleConfirmLeave,
-    validateVerifyStep, 
+    validateVerifyStep,
     handleDigitChange,
     handleKeyDown,
     handleVerifyCode,
@@ -30,41 +37,32 @@ export default function VerifyCode() {
 
   const inputRefs = useRef([]);
 
-  // Validar al cargar la pantalla
+  // Si se llega aquí sin haber pedido el código, el hook devuelve al paso 1.
   useEffect(() => {
     validateVerifyStep();
+    // El hook se recrea en cada render; incluirlo dispararía la validación en bucle.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
-
   return (
-    <div className="min-h-screen bg-[#f3f0eb] flex items-center justify-center relative overflow-hidden p-4">
-      <div className="absolute -left-32 -top-32 w-96 h-96 rounded-full bg-red-100/40 blur-3xl" />
-      <div className="absolute -right-32 -bottom-32 w-96 h-96 rounded-full bg-green-100/20 blur-3xl" />
-
-      <AuthCard>
-        <div className="flex flex-col items-center text-center">
-          <div className="mb-6">
-            <Logo variant="auth" height={110} className="mx-auto" />
-          </div>
-          <h1 className="text-2xl font-display font-bold text-gray-800 mb-1">Admin Portal</h1>
-          <p className="text-sm text-gray-500 mb-6">Recuperación de contraseña</p>
-        </div>
-
+    <>
+      <AuthPanel
+        step="Paso 2 de 3"
+        title={success ? 'Código verificado' : 'Revisa tu correo'}
+        description={
+          success
+            ? 'Tu identidad quedó confirmada. Ya puedes definir una contraseña nueva.'
+            : undefined
+        }
+      >
         {!success ? (
-          <form onSubmit={handleVerifyCode} className="space-y-6">
-            <div className="space-y-4">
-              <h2 className="text-lg font-display font-bold text-gray-800 text-center">Ingresa el código</h2>
-              <p className="text-sm text-gray-600 text-center">
-                Por favor, escribe el código de 6 dígitos que hemos enviado a tu correo.
-              </p>
-            </div>
+          <form onSubmit={handleVerifyCode} className="flex flex-col gap-5">
+            <p className="text-[13px] leading-relaxed text-inkalt -mt-2">
+              Enviamos un código a {email ? <strong className="text-ink">{email}</strong> : 'tu correo'}.
+              Expira en 15 minutos.
+            </p>
 
-            <div className="flex justify-center gap-2 sm:gap-3">
+            <div className="flex justify-between gap-2">
               {digits.map((digit, index) => (
                 <DigitInput
                   key={index}
@@ -77,69 +75,66 @@ export default function VerifyCode() {
               ))}
             </div>
 
+            {inputError && <p className="text-xs text-ac">{inputError}</p>}
+
             {resendSuccess && (
-              <div className="p-3 bg-green-50 rounded-2xl border border-green-200 text-center shadow-sm">
-                <p className="text-xs font-semibold text-green-700">{resendSuccess}</p>
+              <div className="flex items-center gap-2.5 border border-ok bg-oksoft px-3 py-2.5">
+                <FAIcon icon="check-circle" size="sm" className="text-ok shrink-0" />
+                <p className="text-[12.5px] text-ink">{resendSuccess}</p>
               </div>
             )}
 
-            {inputError && (
-              <p className="text-sm text-red-500 text-center font-medium">{inputError}</p>
-            )}
+            <AuthError error={apiError} />
 
-            {apiError && (
-              <div className="bg-red-50 p-3 rounded-2xl border border-red-200 text-center shadow-sm flex flex-col gap-0.5">
-                <p className="text-sm font-bold text-red-600">{apiError.title}</p>
-                {apiError.message && <p className="text-xs text-red-500">{apiError.message}</p>}
-              </div>
-            )}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full text-center text-[13px] font-medium py-2.5 px-4 border border-ac bg-acsoft
+                text-ac hover:bg-ac hover:text-white transition-colors disabled:opacity-60"
+            >
+              {isLoading ? 'Verificando…' : 'Verificar código'}
+            </button>
 
-            <PrimaryButton type="submit" disabled={isLoading}>
-              {isLoading ? 'Verificando...' : 'Verificar'}
-            </PrimaryButton>
-
-            <div className="flex flex-col items-center gap-3 text-center">
-              <p className="text-xs text-gray-600">
-                ¿No recibiste el código?{' '}
-                <button
-                  type="button"
-                  onClick={handleResendCode}
-                  disabled={timer > 0 || isLoadingResend}
-                  className="text-red-500 hover:text-red-600 font-semibold transition-colors disabled:text-gray-400 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {isLoadingResend
-                    ? 'Reenviando...'
-                    : timer > 0
-                    ? `Reenviar en (${formatTime(timer)})`
-                    : 'Reenviar'}
-                </button>
-              </p>
-
+            <p className="text-center text-xs text-muted">
+              ¿No llegó?{' '}
               <button
                 type="button"
-                onClick={openConfirmModal}
-                className="text-xs text-gray-500 hover:text-red-500 font-medium transition-colors cursor-pointer underline underline-offset-2"
+                onClick={handleResendCode}
+                disabled={timer > 0 || isLoadingResend}
+                className="text-ac hover:text-ink font-medium transition-colors disabled:text-muted disabled:cursor-not-allowed cursor-pointer"
               >
-                Volver al inicio de sesión
+                {isLoadingResend
+                  ? 'Reenviando…'
+                  : timer > 0
+                  ? `Reenviar en ${formatTime(timer)}`
+                  : 'Reenviar'}
               </button>
-            </div>
+            </p>
+
+            <button
+              type="button"
+              onClick={openConfirmModal}
+              className="text-center text-xs text-muted hover:text-ac transition-colors cursor-pointer"
+            >
+              Volver a iniciar sesión
+            </button>
           </form>
         ) : (
-          <div className="space-y-4 text-center">
-            <div className="p-4 bg-green-50 rounded-2xl border border-green-200 shadow-sm">
-              <p className="text-sm text-green-700 font-medium">Código verificado correctamente</p>
-              <p className="text-xs text-green-600 mt-1">Tu identidad ha sido confirmada</p>
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center gap-2.5 border border-ok bg-oksoft px-3.5 py-3">
+              <FAIcon icon="check-circle" size="sm" className="text-ok shrink-0" />
+              <p className="text-[12.5px] text-ink">Código verificado correctamente</p>
             </div>
-            <Link className="block text-sm text-red-500 hover:text-red-600 font-medium transition-colors" to="/reset-password">
-              Continuar a restablecer contraseña
+            <Link
+              to="/reset-password"
+              className="w-full text-center text-[13px] font-medium py-2.5 px-4 border border-ac bg-acsoft
+                text-ac hover:bg-ac hover:text-white transition-colors"
+            >
+              Definir nueva contraseña
             </Link>
           </div>
         )}
-
-        <p className="mt-6 text-xs text-gray-400 text-center">
-          © Taquería El Corral Admin Portal. Acceso restringido a personal autorizado.
-        </p>
-      </AuthCard>
+      </AuthPanel>
 
       <ConfirmModal
         isOpen={showConfirmModal}
@@ -150,6 +145,6 @@ export default function VerifyCode() {
         confirmText="Sí, salir"
         cancelText="Continuar aquí"
       />
-    </div>
+    </>
   );
 }

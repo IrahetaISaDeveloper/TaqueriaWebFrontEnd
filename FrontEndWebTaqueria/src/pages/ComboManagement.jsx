@@ -107,7 +107,7 @@ function ComboManagementContent() {
           <DetailRow label="Estado" value={combo.status} />
           <DetailRow label="Modo" value={combo.selective ? `Selectivo (elige ${combo.selectiveMaxPicks})` : 'Platillos fijos'} />
           {combo.description && (
-            <p className="text-sm text-gray-700 mt-3 whitespace-pre-wrap">{combo.description}</p>
+            <p className="text-sm text-inkalt mt-3 whitespace-pre-wrap">{combo.description}</p>
           )}
         </div>
       ),
@@ -117,12 +117,12 @@ function ComboManagementContent() {
       content: (
         <div className="space-y-2">
           {(combo.selective ? combo.selectiveOptions : combo.saucers || []).length === 0 && (
-            <p className="text-xs text-gray-400 text-center py-2">Sin platillos asignados</p>
+            <p className="text-xs text-muted text-center py-2">Sin platillos asignados</p>
           )}
           {(combo.selective ? combo.selectiveOptions : combo.saucers || []).map((s, idx) => (
-            <div key={idx} className="flex items-center justify-between bg-white rounded-xl px-3 py-2 border border-white/80">
-              <span className="text-sm text-gray-800">{s.saucerId?.name || 'Platillo eliminado'}</span>
-              {s.saucerId?.category && <span className="text-xs text-gray-500">{s.saucerId.category}</span>}
+            <div key={idx} className="flex items-center justify-between bg-surface rounded-none px-3 py-2 border border-line">
+              <span className="text-sm text-ink">{s.saucerId?.name || 'Platillo eliminado'}</span>
+              {s.saucerId?.category && <span className="text-xs text-muted">{s.saucerId.category}</span>}
             </div>
           ))}
         </div>
@@ -133,17 +133,17 @@ function ComboManagementContent() {
       content: (
         <div className="space-y-2">
           {(combo.drinkPolicy?.drinkSetIds || []).length === 0 && (combo.drinkPolicy?.thirdPartyDrinkIds || []).length === 0 && (
-            <p className="text-xs text-gray-400 text-center py-2">Combo sin bebida</p>
+            <p className="text-xs text-muted text-center py-2">Combo sin bebida</p>
           )}
           {(combo.drinkPolicy?.drinkSetIds || []).map((set, idx) => (
-            <div key={`set-${idx}`} className="bg-white rounded-xl px-3 py-2 border border-white/80">
-              <span className="text-sm text-gray-800 font-semibold">{set.name}</span>
-              <p className="text-xs text-gray-500 mt-0.5">{(set.drinkIds || []).map((d) => d.name).join(', ')}</p>
+            <div key={`set-${idx}`} className="bg-surface rounded-none px-3 py-2 border border-line">
+              <span className="text-sm text-ink font-semibold">{set.name}</span>
+              <p className="text-xs text-muted mt-0.5">{(set.drinkIds || []).map((d) => d.name).join(', ')}</p>
             </div>
           ))}
           {(combo.drinkPolicy?.thirdPartyDrinkIds || []).map((d, idx) => (
-            <div key={`drink-${idx}`} className="flex items-center justify-between bg-white rounded-xl px-3 py-2 border border-white/80">
-              <span className="text-sm text-gray-800">{d.name}</span>
+            <div key={`drink-${idx}`} className="flex items-center justify-between bg-surface rounded-none px-3 py-2 border border-line">
+              <span className="text-sm text-ink">{d.name}</span>
             </div>
           ))}
         </div>
@@ -162,7 +162,7 @@ function ComboManagementContent() {
   });
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f3f0eb]">
+    <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
       {/* Overlay móvil */}
       {sidebarOpen && (
         <div
@@ -185,10 +185,10 @@ function ComboManagementContent() {
             {/* Encabezado */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-1 sm:mb-2">
+                <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1 sm:mb-2">
                   Gestión de combos
                 </h1>
-                <p className="text-sm sm:text-base text-gray-600">
+                <p className="text-sm sm:text-base text-inkalt">
                   Administra el menú de la taquería fusionando platillos y bebidas.
                 </p>
               </div>
@@ -209,9 +209,8 @@ function ComboManagementContent() {
 
                 <button
                   onClick={handleOpenAddModal}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl font-display font-semibold text-sm
-                    shadow-[0_6px_16px_rgba(220,38,38,0.35),inset_1px_1px_2px_rgba(255,255,255,0.3)]
-                    hover:bg-red-600 hover:shadow-[0_8px_20px_rgba(220,38,38,0.4)]
+                  className="flex items-center gap-2 px-4 py-2.5 bg-ac text-white rounded-none font-display font-semibold text-sm
+                    hover:bg-ac hover:
                     transition-all disabled:opacity-60"
                   disabled={loading}
                 >
@@ -223,7 +222,7 @@ function ComboManagementContent() {
 
             {/* Error banner */}
             {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-2xl mb-4 text-sm shadow-sm">
+              <div className="bg-acsoft border border-acline text-ac px-4 py-3 rounded-none mb-4 text-sm">
                 <span>{error}</span>
               </div>
             )}
@@ -267,7 +266,7 @@ function ComboManagementContent() {
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setCategoryFilter(f.id); }}
                         className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
-                          categoryFilter === f.id ? 'bg-red-500 text-white' : 'bg-white/60 text-gray-600 hover:bg-white'
+                          categoryFilter === f.id ? 'bg-ac text-white' : 'bg-surface text-inkalt hover:bg-surface'
                         }`}
                       >
                         {f.label}
@@ -296,8 +295,8 @@ function ComboManagementContent() {
             {/* Loader */}
             {loading && (
               <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
-                <span className="ml-3 text-gray-600 font-medium">Cargando combos...</span>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ac"></div>
+                <span className="ml-3 text-inkalt font-medium">Cargando combos...</span>
               </div>
             )}
 
@@ -322,11 +321,11 @@ function ComboManagementContent() {
             {/* Estado vacío */}
             {!loading && filteredCombos.length === 0 && !error && (
               <div className="text-center py-12">
-                <FAIcon icon="inbox" size="3x" className="text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-500 text-base sm:text-lg font-display font-semibold">
+                <FAIcon icon="inbox" size="3x" className="text-muted mx-auto mb-3" />
+                <p className="text-muted text-base sm:text-lg font-display font-semibold">
                   No hay combos {categoryFilter !== 'all' ? 'en esta categoría' : 'agregados'}
                 </p>
-                <p className="text-gray-400 text-xs sm:text-sm mb-4">
+                <p className="text-muted text-xs sm:text-sm mb-4">
                   Haz click en "Nuevo combo" para crear uno
                 </p>
               </div>

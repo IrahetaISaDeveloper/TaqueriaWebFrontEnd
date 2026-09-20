@@ -55,28 +55,28 @@ function InventoryContent() {
   const getStatusBadge = (item) => {
     if (isAssetTab) {
       const condition = item.condition || 'Bueno';
-      if (condition === 'De baja') return { text: 'DE BAJA', className: 'bg-red-100 text-red-700 border border-red-200' };
-      if (condition === 'Dañado') return { text: 'DAÑADO', className: 'bg-yellow-100 text-yellow-700 border border-yellow-200' };
-      if (condition === 'Regular') return { text: 'REGULAR', className: 'bg-blue-100 text-blue-700 border border-blue-200' };
-      return { text: condition.toUpperCase(), className: 'bg-green-100 text-green-700 border border-green-200' };
+      if (condition === 'De baja') return { text: 'DE BAJA', className: 'bg-acsoft text-ac border border-acline' };
+      if (condition === 'Dañado') return { text: 'DAÑADO', className: 'bg-warnsoft text-warn border border-warn' };
+      if (condition === 'Regular') return { text: 'REGULAR', className: 'bg-infosoft text-info border border-info' };
+      return { text: condition.toUpperCase(), className: 'bg-oksoft text-ok border border-ok' };
     }
 
     const cant = Number(item.quantity || 0);
     const currentStatus = String(item.status || '').toLowerCase();
 
     if (item.pending) {
-      return { text: 'PENDIENTE', className: 'bg-orange-100 text-orange-700 border border-orange-200' };
+      return { text: 'PENDIENTE', className: 'bg-warnsoft text-warn border border-warn' };
     }
     if (currentStatus === 'agotado' || cant === 0) {
-      return { text: 'AGOTADO', className: 'bg-red-100 text-red-700 border border-red-200' };
+      return { text: 'AGOTADO', className: 'bg-acsoft text-ac border border-acline' };
     }
     if (currentStatus === 'en pedido') {
-      return { text: 'EN PEDIDO', className: 'bg-blue-100 text-blue-700 border border-blue-200' };
+      return { text: 'EN PEDIDO', className: 'bg-infosoft text-info border border-info' };
     }
     if (isLowStock(item)) {
-      return { text: 'LOW STOCK', className: 'bg-yellow-100 text-yellow-700 border border-yellow-200' };
+      return { text: 'LOW STOCK', className: 'bg-warnsoft text-warn border border-warn' };
     }
-    return { text: 'DISPONIBLE', className: 'bg-green-100 text-green-700 border border-green-200' };
+    return { text: 'DISPONIBLE', className: 'bg-oksoft text-ok border border-ok' };
   };
 
   const handleEdit = (insumo) => {
@@ -111,7 +111,7 @@ function InventoryContent() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f3f0eb]">
+    <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -129,10 +129,10 @@ function InventoryContent() {
             {/* Encabezado */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-1">
+                <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1">
                   Control de Inventario
                 </h1>
-                <p className="text-sm sm:text-base text-gray-600">
+                <p className="text-sm sm:text-base text-inkalt">
                   Gestión centralizada de productos y activos fijos.
                 </p>
               </div>
@@ -161,9 +161,8 @@ function InventoryContent() {
 
                 <button
                   onClick={handleCreate}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl font-display font-semibold text-sm
-                    shadow-[0_6px_16px_rgba(220,38,38,0.35),inset_1px_1px_2px_rgba(255,255,255,0.3)]
-                    hover:bg-red-600 hover:shadow-[0_8px_20px_rgba(220,38,38,0.4)]
+                  className="flex items-center gap-2 px-4 py-2.5 bg-ac text-white rounded-none font-display font-semibold text-sm
+                    hover:bg-ac hover:
                     transition-all disabled:opacity-60"
                   disabled={loading}
                 >
@@ -180,10 +179,10 @@ function InventoryContent() {
                   key={tab.id}
                   type="button"
                   onClick={() => setItemType(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-display font-semibold text-sm transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-none font-display font-semibold text-sm transition-all ${
                     itemType === tab.id
-                      ? 'bg-red-500 text-white shadow-[0_6px_16px_rgba(220,38,38,0.3)]'
-                      : 'bg-white text-gray-600 border border-white/80 hover:bg-gray-50'
+                      ? 'bg-ac text-white'
+                      : 'bg-surface text-inkalt border border-line hover:bg-surfalt'
                   }`}
                 >
                   <FAIcon icon={tab.icon} size="sm" />
@@ -194,7 +193,7 @@ function InventoryContent() {
 
             {/* Error */}
             {error && (
-              <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-2xl text-sm shadow-sm flex items-center gap-2">
+              <div className="mb-4 bg-acsoft border border-acline text-ac px-4 py-3 rounded-none text-sm flex items-center gap-2">
                 <FAIcon icon="exclamation-circle" />
                 {error}
               </div>
@@ -238,27 +237,27 @@ function InventoryContent() {
             </div>
 
             {/* Tabla de Inventario con estilo clay */}
-            <div className="bg-white rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.08),inset_1px_1px_3px_rgba(255,255,255,0.7)] border border-white/80 overflow-hidden">
-              <div className="p-4 sm:p-5 flex justify-between items-center border-b border-gray-100">
-                <h2 className="text-lg font-display font-bold text-gray-900">
+            <div className="bg-surface rounded-none border border-line overflow-hidden">
+              <div className="p-4 sm:p-5 flex justify-between items-center border-b border-line">
+                <h2 className="text-lg font-display font-bold text-ink">
                   {isAssetTab ? 'Listado de Activos Fijos' : 'Listado de Materia Prima'}
                 </h2>
               </div>
 
               {loading && insumos.length === 0 ? (
-                <div className="p-8 text-center text-gray-500 text-sm flex items-center justify-center gap-2">
-                  <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></span>
+                <div className="p-8 text-center text-muted text-sm flex items-center justify-center gap-2">
+                  <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-ac"></span>
                   Cargando...
                 </div>
               ) : insumos.length === 0 ? (
-                <div className="p-8 text-center text-gray-500 text-sm">
+                <div className="p-8 text-center text-muted text-sm">
                   {isAssetTab ? 'No hay activos fijos registrados. ¡Agrega uno nuevo!' : 'No hay insumos en el inventario. ¡Agrega uno nuevo!'}
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse min-w-[700px]">
                     <thead>
-                      <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-display font-semibold text-gray-500 uppercase tracking-wider">
+                      <tr className="bg-surfalt/80 border-b border-line text-xs font-display font-semibold text-muted uppercase tracking-wider">
                         <th className="p-3 sm:p-4 pl-4 sm:pl-6">{isAssetTab ? 'Bien' : 'Insumo'}</th>
                         <th className="p-3 sm:p-4">Categoría</th>
                         <th className="p-3 sm:p-4">Ubicación</th>
@@ -268,34 +267,34 @@ function InventoryContent() {
                         <th className="p-3 sm:p-4 pr-4 sm:pr-6 text-right">Acciones</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+                    <tbody className="divide-y divide-line text-sm text-inkalt">
                       {paginatedItems.map((item) => {
                         const badge = getStatusBadge(item);
                         return (
-                          <tr key={item._id || item.id} className="hover:bg-gray-50/80 transition-colors">
+                          <tr key={item._id || item.id} className="hover:bg-surfalt/80 transition-colors">
                             <td className="p-3 sm:p-4 pl-4 sm:pl-6">
                               <div className="flex items-center gap-3">
                                 {item.image ? (
-                                  <img src={item.image} alt={item.name} className="w-8 h-8 rounded-xl object-cover border border-gray-200 shadow-sm" />
+                                  <img src={item.image} alt={item.name} className="w-8 h-8 rounded-none object-cover border border-line" />
                                 ) : (
-                                  <div className="w-8 h-8 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 shadow-sm">
+                                  <div className="w-8 h-8 rounded-none bg-surfalt border border-line flex items-center justify-center text-muted">
                                     <FAIcon icon="image" size="sm" />
                                   </div>
                                 )}
-                                <span className="font-display font-semibold text-gray-900">{item.name}</span>
+                                <span className="font-display font-semibold text-ink">{item.name}</span>
                                 {item.pending && (
-                                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold uppercase">
+                                  <span className="px-2 py-0.5 rounded-full bg-warnsoft text-warn text-[10px] font-semibold uppercase">
                                     Pendiente
                                   </span>
                                 )}
                               </div>
                             </td>
-                            <td className="p-3 sm:p-4 text-gray-600 font-medium">{item.type || 'Sin categoría'}</td>
-                            <td className="p-3 sm:p-4 text-gray-500 text-xs">{item.ubication || 'No asignada'}</td>
-                            <td className="p-3 sm:p-4 font-display font-semibold text-gray-800">
+                            <td className="p-3 sm:p-4 text-inkalt font-medium">{item.type || 'Sin categoría'}</td>
+                            <td className="p-3 sm:p-4 text-muted text-xs">{item.ubication || 'No asignada'}</td>
+                            <td className="p-3 sm:p-4 font-display font-semibold text-ink">
                               {item.quantity} {!isAssetTab && (item.unit || '')}
                             </td>
-                            <td className="p-3 sm:p-4 font-medium text-gray-600">
+                            <td className="p-3 sm:p-4 font-medium text-inkalt">
                               ${Number(item.price || 0).toFixed(2)}
                             </td>
                             <td className="p-3 sm:p-4">
@@ -307,13 +306,13 @@ function InventoryContent() {
                             <td className="p-3 sm:p-4 pr-4 sm:pr-6 text-right">
                               <button
                                 onClick={() => handleEdit(item)}
-                                className="text-gray-500 hover:text-gray-700 p-1.5 rounded-xl hover:bg-gray-100 transition-colors"
+                                className="text-muted hover:text-inkalt p-1.5 rounded-none hover:bg-surfalt transition-colors"
                               >
                                 <FAIcon icon="edit" />
                               </button>
                               <button
                                 onClick={() => handleRequestDelete(item._id || item.id)}
-                                className="text-red-500 hover:text-red-700 p-1.5 rounded-xl hover:bg-red-50 transition-colors ml-1"
+                                className="text-ac hover:text-ac p-1.5 rounded-none hover:bg-acsoft transition-colors ml-1"
                               >
                                 <FAIcon icon="trash" />
                               </button>

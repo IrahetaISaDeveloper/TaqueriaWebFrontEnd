@@ -52,11 +52,11 @@ const Toggle = ({ checked, onChange, disabled }) => (
     disabled={disabled}
     onClick={() => onChange(!checked)}
     className={`relative w-12 h-6 rounded-full transition-colors shrink-0 disabled:opacity-50 ${
-      checked ? 'bg-red-500' : 'bg-gray-300'
+      checked ? 'bg-ac' : 'bg-linealt'
     }`}
   >
     <span
-      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${
+      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-surface rounded-full transition-transform ${
         checked ? 'translate-x-6' : 'translate-x-0'
       }`}
     />
@@ -184,20 +184,20 @@ function SettingsContent() {
   };
 
   const inputClass =
-    'w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-2xl text-gray-800 placeholder:text-gray-400 shadow-[inset_1px_1px_3px_rgba(0,0,0,0.05)] focus:outline-none focus:ring-2 focus:ring-red-200 transition-all disabled:bg-gray-50 disabled:text-gray-500';
-  const labelClass = 'block text-sm font-display font-semibold text-gray-700 mb-1.5';
+    'w-full px-4 py-2.5 text-sm bg-surface border border-line rounded-none text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-red-200 transition-all disabled:bg-surfalt disabled:text-muted';
+  const labelClass = 'block text-sm font-display font-semibold text-inkalt mb-1.5';
   const buttonClass =
-    'flex items-center gap-2 px-5 py-2.5 bg-red-500 text-white rounded-2xl font-display font-semibold text-sm transition-all shadow-[0_6px_16px_rgba(220,38,38,0.35),inset_1px_1px_2px_rgba(255,255,255,0.3)] hover:bg-red-600 disabled:opacity-60 disabled:cursor-not-allowed';
+    'flex items-center gap-2 px-5 py-2.5 bg-ac text-white rounded-none font-display font-semibold text-sm transition-all hover:bg-ac disabled:opacity-60 disabled:cursor-not-allowed';
 
   return (
     <>
     <div className="p-6 sm:p-8">
       {/* Encabezado */}
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-1 sm:mb-2">
+        <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1 sm:mb-2">
           Ajustes
         </h1>
-        <p className="text-sm sm:text-base text-gray-600">
+        <p className="text-sm sm:text-base text-inkalt">
           Configura tu cuenta y el funcionamiento del sistema
         </p>
       </div>
@@ -210,10 +210,10 @@ function SettingsContent() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-display font-medium transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-none text-sm font-display font-medium transition-all ${
                 isActive
-                  ? 'bg-red-500 text-white shadow-[0_4px_12px_rgba(220,38,38,0.3),inset_1px_1px_2px_rgba(255,255,255,0.3)]'
-                  : 'bg-white/70 text-gray-600 hover:bg-white hover:text-gray-900 border border-white/80'
+                  ? 'bg-ac text-white'
+                  : 'bg-surface text-inkalt hover:bg-surface hover:text-ink border border-line'
               }`}
             >
               <FAIcon icon={tab.icon} size="sm" />
@@ -227,8 +227,8 @@ function SettingsContent() {
       {activeTab === 'profile' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="p-4 sm:p-6">
-            <h2 className="text-lg font-display font-bold text-gray-900 mb-1">Mi perfil</h2>
-            <p className="text-sm text-gray-600 mb-5">
+            <h2 className="text-lg font-display font-bold text-ink mb-1">Mi perfil</h2>
+            <p className="text-sm text-inkalt mb-5">
               Así te ve el resto del equipo dentro del sistema
             </p>
 
@@ -238,12 +238,12 @@ function SettingsContent() {
                   <img
                     src={imagePreview || user.image}
                     alt={user?.name || 'Perfil'}
-                    className={`w-16 h-16 rounded-full object-cover shadow-sm ${
+                    className={`w-16 h-16 rounded-full object-cover ${
                       imagePreview ? 'ring-2 ring-red-400' : 'ring-2 ring-white'
                     }`}
                   />
                 ) : (
-                  <div className="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center text-white font-display font-bold text-lg ring-2 ring-white shadow-sm">
+                  <div className="w-16 h-16 bg-ink rounded-full flex items-center justify-center text-white font-display font-bold text-lg ring-2 ring-white">
                     {`${user?.name?.[0] || ''}${user?.lastname?.[0] || ''}`.toUpperCase() || '?'}
                   </div>
                 )}
@@ -260,22 +260,22 @@ function SettingsContent() {
                       if (selected) setRawImageFile(selected);
                       e.target.value = '';
                     }}
-                    className="block w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-display file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 file:cursor-pointer"
+                    className="block w-full text-xs text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-none file:border-0 file:text-xs file:font-display file:font-semibold file:bg-surfalt file:text-inkalt hover:file:bg-line file:cursor-pointer"
                   />
                   {imageFile && (
                     <div className="flex items-center gap-3 mt-1">
-                      <p className="text-xs text-green-600">Foto lista para guardar</p>
+                      <p className="text-xs text-ok">Foto lista para guardar</p>
                       <button
                         type="button"
                         onClick={() => setRawImageFile(imageFile)}
-                        className="text-xs text-gray-500 hover:text-red-500 shrink-0"
+                        className="text-xs text-muted hover:text-ac shrink-0"
                       >
                         Ajustar
                       </button>
                       <button
                         type="button"
                         onClick={() => setImageFile(null)}
-                        className="text-xs text-gray-400 hover:text-red-500 shrink-0"
+                        className="text-xs text-muted hover:text-ac shrink-0"
                       >
                         Cancelar
                       </button>
@@ -311,7 +311,7 @@ function SettingsContent() {
               <div>
                 <label className={labelClass}>Rol</label>
                 <input type="text" value={user?.role || ''} className={inputClass} disabled />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted mt-1">
                   El rol solo lo puede cambiar un administrador
                 </p>
               </div>
@@ -324,8 +324,8 @@ function SettingsContent() {
           </Card>
 
           <Card className="p-4 sm:p-6">
-            <h2 className="text-lg font-display font-bold text-gray-900 mb-1">Contraseña</h2>
-            <p className="text-sm text-gray-600 mb-5">
+            <h2 className="text-lg font-display font-bold text-ink mb-1">Contraseña</h2>
+            <p className="text-sm text-inkalt mb-5">
               Debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un símbolo
             </p>
 
@@ -382,8 +382,8 @@ function SettingsContent() {
       {/* --- Apariencia --- */}
       {activeTab === 'appearance' && (
         <Card className="p-4 sm:p-6 max-w-2xl">
-          <h2 className="text-lg font-display font-bold text-gray-900 mb-1">Apariencia</h2>
-          <p className="text-sm text-gray-600 mb-5">
+          <h2 className="text-lg font-display font-bold text-ink mb-1">Apariencia</h2>
+          <p className="text-sm text-inkalt mb-5">
             Elige cómo se ve el sistema en este navegador. Es una preferencia personal: no afecta a los demás usuarios.
           </p>
 
@@ -391,35 +391,38 @@ function SettingsContent() {
             <button
               type="button"
               onClick={() => setTheme('light')}
-              className={`text-left p-4 rounded-2xl border-2 transition-all ${
-                theme === 'light' ? 'border-red-400 shadow-[0_6px_16px_rgba(220,38,38,0.15)]' : 'border-gray-200 hover:border-gray-300'
+              className={`text-left p-4 rounded-none border-2 transition-all ${
+                theme === 'light' ? 'border-acline' : 'border-line hover:border-linealt'
               }`}
             >
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#f3f0eb] border border-white flex items-center justify-center shadow-sm">
-                  <FAIcon icon="sun" className="text-amber-500" />
+                <div className="w-10 h-10 rounded-none bg-surfalt border border-line flex items-center justify-center">
+                  <FAIcon icon="sun" className="text-warn" />
                 </div>
-                {theme === 'light' && <FAIcon icon="circle-check" className="text-red-500" />}
+                {theme === 'light' && <FAIcon icon="circle-check" className="text-ac" />}
               </div>
-              <p className="font-display font-semibold text-gray-900 text-sm">Claro</p>
-              <p className="text-xs text-gray-500 mt-0.5">El estilo por defecto del sistema</p>
+              <p className="font-display font-semibold text-ink text-sm">Claro</p>
+              <p className="text-xs text-muted mt-0.5">El estilo por defecto del sistema</p>
             </button>
 
             <button
               type="button"
               onClick={() => setTheme('dark')}
-              className={`text-left p-4 rounded-2xl border-2 transition-all ${
-                theme === 'dark' ? 'border-red-400 shadow-[0_6px_16px_rgba(220,38,38,0.15)]' : 'border-gray-200 hover:border-gray-300'
+              className={`text-left p-4 rounded-none border-2 transition-all ${
+                theme === 'dark' ? 'border-acline' : 'border-line hover:border-linealt'
               }`}
             >
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#1a1a1e] border border-[#202024] flex items-center justify-center shadow-sm">
-                  <FAIcon icon="moon" className="text-[#d0d3ce]" />
+                {/* Muestra literal de la paleta oscura (ver index.css): estos
+                    colores van en duro a propósito, para que se vean igual
+                    aunque el sistema esté en modo claro. */}
+                <div className="w-10 h-10 rounded-none bg-[#161826] border border-[#3f424d] flex items-center justify-center">
+                  <FAIcon icon="moon" className="text-[#e08472]" />
                 </div>
-                {theme === 'dark' && <FAIcon icon="circle-check" className="text-red-500" />}
+                {theme === 'dark' && <FAIcon icon="circle-check" className="text-ac" />}
               </div>
-              <p className="font-display font-semibold text-gray-900 text-sm">Oscuro</p>
-              <p className="text-xs text-gray-500 mt-0.5">Fondos oscuros en todo el sistema</p>
+              <p className="font-display font-semibold text-ink text-sm">Oscuro</p>
+              <p className="text-xs text-muted mt-0.5">Fondos oscuros en todo el sistema</p>
             </button>
           </div>
         </Card>
@@ -428,15 +431,15 @@ function SettingsContent() {
       {/* --- Operación --- */}
       {activeTab === 'operation' && canSeeSystemSettings && (
         <Card className="p-4 sm:p-6 max-w-2xl">
-          <h2 className="text-lg font-display font-bold text-gray-900 mb-1">
+          <h2 className="text-lg font-display font-bold text-ink mb-1">
             Operación e inventario
           </h2>
-          <p className="text-sm text-gray-600 mb-5">
+          <p className="text-sm text-inkalt mb-5">
             Estos valores afectan a todo el equipo, no solo a tu cuenta
           </p>
 
           {!isAdmin && (
-            <div className="mb-5 bg-yellow-100/80 border border-yellow-200 text-yellow-800 text-xs sm:text-sm rounded-2xl p-3">
+            <div className="mb-5 bg-warnsoft/80 border border-warn text-warn text-xs sm:text-sm rounded-none p-3">
               Solo un administrador puede modificar estos ajustes. Puedes verlos pero no cambiarlos.
             </div>
           )}
@@ -444,7 +447,7 @@ function SettingsContent() {
           <form onSubmit={handleOperationSubmit} className="space-y-5">
             <div>
               <label className={labelClass}>Umbral de "agotado" por sección</label>
-              <p className="text-xs text-gray-500 mb-3">
+              <p className="text-xs text-muted mb-3">
                 Cuando una sección baje de su propio umbral, el sistema genera una alerta
                 automática y la marca como crítica en el panel. Cada área puede tener un
                 número distinto.
@@ -452,7 +455,7 @@ function SettingsContent() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {LOW_STOCK_SECTIONS.map((section) => (
                   <div key={section.id}>
-                    <label className="block text-xs font-display font-medium text-gray-600 mb-1" htmlFor={`low-stock-${section.id}`}>
+                    <label className="block text-xs font-display font-medium text-inkalt mb-1" htmlFor={`low-stock-${section.id}`}>
                       {section.label}
                     </label>
                     <input
@@ -477,12 +480,12 @@ function SettingsContent() {
               </div>
             </div>
 
-            <div className="flex items-start justify-between gap-4 py-3 border-t border-gray-100">
+            <div className="flex items-start justify-between gap-4 py-3 border-t border-line">
               <div>
-                <p className="font-display font-semibold text-gray-800 text-sm">
+                <p className="font-display font-semibold text-ink text-sm">
                   Refrescar el panel automáticamente
                 </p>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-muted mt-0.5">
                   Recarga los datos del panel sin que tengas que actualizar la página
                 </p>
               </div>
@@ -510,7 +513,7 @@ function SettingsContent() {
                 className={inputClass}
                 disabled={!isAdmin || loading || !operationForm.autoRefreshDashboard}
               />
-              <p className="text-xs text-gray-500 mt-1">Mínimo 10 segundos</p>
+              <p className="text-xs text-muted mt-1">Mínimo 10 segundos</p>
             </div>
 
             {isAdmin && (
@@ -526,31 +529,31 @@ function SettingsContent() {
       {/* --- Notificaciones --- */}
       {activeTab === 'notifications' && canSeeSystemSettings && (
         <Card className="p-4 sm:p-6 max-w-2xl">
-          <h2 className="text-lg font-display font-bold text-gray-900 mb-1">
+          <h2 className="text-lg font-display font-bold text-ink mb-1">
             Preferencias de notificaciones
           </h2>
-          <p className="text-sm text-gray-600 mb-5">
+          <p className="text-sm text-inkalt mb-5">
             Elige qué movimientos del sistema quedan registrados en la campana
           </p>
 
           {!isAdmin && (
-            <div className="mb-5 bg-yellow-100/80 border border-yellow-200 text-yellow-800 text-xs sm:text-sm rounded-2xl p-3">
+            <div className="mb-5 bg-warnsoft/80 border border-warn text-warn text-xs sm:text-sm rounded-none p-3">
               Solo un administrador puede modificar estas preferencias.
             </div>
           )}
 
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-line">
             {NOTIFICATION_CATEGORIES.map((category) => (
               <div key={category.id} className="flex items-center justify-between gap-4 py-4">
                 <div className="flex items-start gap-3 min-w-0">
-                  <span className="shrink-0 w-9 h-9 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center">
+                  <span className="shrink-0 w-9 h-9 rounded-full bg-surfalt text-muted flex items-center justify-center">
                     <FAIcon icon={category.icon} size="sm" />
                   </span>
                   <div className="min-w-0">
-                    <p className="font-display font-semibold text-gray-800 text-sm">
+                    <p className="font-display font-semibold text-ink text-sm">
                       {category.label}
                     </p>
-                    <p className="text-xs text-gray-500 mt-0.5">{category.description}</p>
+                    <p className="text-xs text-muted mt-0.5">{category.description}</p>
                   </div>
                 </div>
 
@@ -563,7 +566,7 @@ function SettingsContent() {
             ))}
           </div>
 
-          <p className="text-xs text-gray-500 mt-4">
+          <p className="text-xs text-muted mt-4">
             Desactivar una categoría no borra las notificaciones existentes: solo deja de
             registrar las nuevas.
           </p>
@@ -588,7 +591,7 @@ export default function Settings() {
 
   return (
     <ToastProvider>
-      <div className="flex h-screen overflow-hidden bg-[#f3f0eb]">
+      <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
         <Sidebar activeMenu="settings" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="flex-1 flex flex-col min-w-0">
           <TopBar onMenuClick={() => setSidebarOpen(true)} />

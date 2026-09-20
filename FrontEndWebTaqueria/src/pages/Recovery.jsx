@@ -1,9 +1,8 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import TextInput from '../components/commons/TextInput';
-import PrimaryButton from '../components/commons/PrimaryButton';
-import AuthCard from '../components/commons/AuthCard';
-import Logo from '../components/commons/Logo';
+import AuthPanel from '../components/auth/AuthPanel';
+import AuthField from '../components/auth/AuthField';
+import AuthError from '../components/auth/AuthError';
+import FAIcon from '../components/commons/FAIcon';
 import useRecoveryPassword from '../hooks/auth/useRecoveryPassword';
 
 export default function Recovery() {
@@ -18,67 +17,65 @@ export default function Recovery() {
   } = useRecoveryPassword();
 
   return (
-    <div className="min-h-screen bg-[#f3f0eb] flex items-center justify-center relative overflow-hidden p-4">
-      <div className="absolute -left-32 -top-32 w-96 h-96 rounded-full bg-red-100/40 blur-3xl" />
-      <div className="absolute -right-32 -bottom-32 w-96 h-96 rounded-full bg-green-100/20 blur-3xl" />
+    <AuthPanel
+      step="Paso 1 de 3"
+      title={success ? 'Revisa tu correo' : 'Recuperar contraseña'}
+      description={
+        success
+          ? 'Si ese correo está registrado, recibirás un código de 6 caracteres. Revisa también la carpeta de spam.'
+          : 'Escribe el correo de tu cuenta. Te enviaremos un código de 6 caracteres para continuar.'
+      }
+    >
+      {!success ? (
+        <form onSubmit={handleRequestCode} className="flex flex-col gap-4">
+          <AuthField
+            id="recovery-email"
+            label="Correo electrónico"
+            icon="envelope"
+            type="email"
+            placeholder="admin@corral.com"
+            value={email}
+            disabled={isLoading}
+            onChange={handleEmailChange}
+            error={inputError}
+          />
 
-      <AuthCard>
-        <div className="flex flex-col items-center text-center">
-          <div className="mb-6">
-            <Logo variant="auth" height={110} className="mx-auto" />
+          <AuthError error={apiError} />
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full text-center text-[13px] font-medium py-2.5 px-4 border border-ac bg-acsoft
+              text-ac hover:bg-ac hover:text-white transition-colors disabled:opacity-60"
+          >
+            {isLoading ? 'Enviando…' : 'Enviar código'}
+          </button>
+
+          <Link
+            to="/"
+            className="text-center text-xs text-muted hover:text-ac transition-colors"
+          >
+            Volver a iniciar sesión
+          </Link>
+        </form>
+      ) : (
+        <div className="flex flex-col gap-5">
+          <div className="flex items-center gap-2.5 border border-ok bg-oksoft px-3.5 py-3">
+            <FAIcon icon="check-circle" size="sm" className="text-ok shrink-0" />
+            <p className="text-[12.5px] text-ink">Correo enviado correctamente</p>
           </div>
-          <h1 className="text-2xl font-display font-bold text-gray-800 mb-1">Recuperar contraseña</h1>
-          <p className="text-sm text-gray-500 mb-6">Ingresa tu correo para recibir un código de recuperación</p>
+          <Link
+            to="/verify-code"
+            className="w-full text-center text-[13px] font-medium py-2.5 px-4 border border-ac bg-acsoft
+              text-ac hover:bg-ac hover:text-white transition-colors"
+          >
+            Ya tengo el código
+          </Link>
+          <Link to="/" className="text-center text-xs text-muted hover:text-ac transition-colors">
+            Volver a iniciar sesión
+          </Link>
         </div>
-
-        {!success ? (
-          <form onSubmit={handleRequestCode} className="space-y-4">
-            <TextInput
-              key="recovery-email"
-              id="recovery-email"
-              label="Correo electrónico"
-              type="email"
-              placeholder="admin@corral.com"
-              value={email}
-              disabled={isLoading}
-              onChange={handleEmailChange}
-              error={inputError}
-            />
-
-            {/* Renderizado de errores estructurados provenientes de la API */}
-            {apiError && (
-              <div className="bg-red-50 p-3 rounded-2xl border border-red-200 text-center shadow-sm flex flex-col gap-0.5">
-                <p className="text-sm font-bold text-red-600">{apiError.title}</p>
-                {apiError.message && <p className="text-xs text-red-500">{apiError.message}</p>}
-              </div>
-            )}
-
-            <PrimaryButton type="submit" disabled={isLoading}>
-              {isLoading ? 'Enviando...' : 'Enviar código'}
-            </PrimaryButton>
-
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => window.location.href = '/'}
-                className="text-xs text-gray-500 hover:text-red-500 font-medium transition-colors cursor-pointer underline underline-offset-2"
-              >
-                Volver al inicio de sesión
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div className="space-y-4 text-center">
-            <div className="p-4 bg-green-50 rounded-2xl border border-green-200 shadow-sm">
-              <p className="text-sm text-green-700 font-medium">Correo enviado correctamente</p>
-              <p className="text-xs text-green-600 mt-1">Revisa tu bandeja de entrada para el código de recuperación</p>
-            </div>
-            <Link className="block text-sm text-red-500 hover:text-red-600 font-medium transition-colors" to="/">
-              Volver al login
-            </Link>
-          </div>
-        )}
-      </AuthCard>
-    </div>
+      )}
+    </AuthPanel>
   );
 }

@@ -21,16 +21,16 @@ const ChatDynamicForm = ({ formRequest, onSubmit, disabled }) => {
   };
 
   return (
-    <div className="max-w-[90%] bg-white rounded-2xl rounded-bl-sm border border-white/80 shadow-sm p-3">
-      <div className="flex items-center gap-2 mb-2 text-gray-700">
-        <FAIcon icon="list-check" size="xs" className="text-red-500" />
+    <div className="max-w-[90%] bg-surface rounded-none rounded-bl-sm border border-line p-3">
+      <div className="flex items-center gap-2 mb-2 text-inkalt">
+        <FAIcon icon="list-check" size="xs" className="text-ac" />
         <p className="text-xs font-display font-semibold">Completa estos datos</p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-2">
         {formRequest.fields.map((field) => (
           <div key={field.name}>
-            <label className="block text-[11px] font-display font-semibold text-gray-500 mb-0.5">
-              {field.label}{field.required && <span className="text-red-500"> *</span>}
+            <label className="block text-[11px] font-display font-semibold text-muted mb-0.5">
+              {field.label}{field.required && <span className="text-ac"> *</span>}
             </label>
             {field.type === 'select' ? (
               <Select
@@ -52,7 +52,7 @@ const ChatDynamicForm = ({ formRequest, onSubmit, disabled }) => {
                 onChange={(e) => handleChange(field.name, e.target.value)}
                 disabled={disabled || sent}
                 required={field.required}
-                className="w-full px-2.5 py-1.5 bg-[#f3f0eb] border border-white/80 rounded-lg text-xs text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/30"
+                className="w-full px-2.5 py-1.5 bg-surfalt border border-line rounded-none text-xs text-inkalt placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-acline"
               />
             )}
           </div>
@@ -60,7 +60,7 @@ const ChatDynamicForm = ({ formRequest, onSubmit, disabled }) => {
         <button
           type="submit"
           disabled={disabled || sent}
-          className="w-full mt-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-display font-semibold rounded-lg transition-colors disabled:opacity-50"
+          className="w-full mt-1 px-3 py-1.5 bg-ac hover:bg-ac text-white text-xs font-display font-semibold rounded-none transition-colors disabled:opacity-50"
         >
           {sent ? 'Enviado' : 'Enviar'}
         </button>

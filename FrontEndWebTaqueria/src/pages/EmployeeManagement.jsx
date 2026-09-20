@@ -78,9 +78,9 @@ function EmployeeManagementContent() {
 
   const getBadgeClass = (puesto) => {
     const p = String(puesto || '').toUpperCase();
-    if (p === 'GERENTE') return 'bg-gray-100 text-gray-700 border border-gray-200';
-    if (p === 'COCINA' || p === 'CAJERO') return 'bg-blue-50 text-blue-700 border border-blue-200';
-    return 'bg-orange-50 text-orange-700 border border-orange-200';
+    if (p === 'GERENTE') return 'bg-surfalt text-inkalt border border-line';
+    if (p === 'COCINA' || p === 'CAJERO') return 'bg-infosoft text-info border border-info';
+    return 'bg-warnsoft text-warn border border-warn';
   };
 
   const handleEditPermissions = (emp) => {
@@ -142,7 +142,7 @@ function EmployeeManagementContent() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f3f0eb]">
+    <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -156,10 +156,10 @@ function EmployeeManagementContent() {
             {/* Encabezado */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-1">
+                <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1">
                   Gestión de Empleados
                 </h1>
-                <p className="text-sm sm:text-base text-gray-600">
+                <p className="text-sm sm:text-base text-inkalt">
                   Controla los accesos y estados del equipo de Taquería El Corral.
                 </p>
               </div>
@@ -203,16 +203,16 @@ function EmployeeManagementContent() {
             </div>
 
             {/* Tabla de empleados con estilo clay */}
-            <div className="bg-white rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.08),inset_1px_1px_3px_rgba(255,255,255,0.7)] border border-white/80 overflow-hidden">
-              <div className="p-4 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100">
-                <h2 className="text-lg font-display font-bold text-gray-800">Personal en el Sistema</h2>
+            <div className="bg-surface rounded-none border border-line overflow-hidden">
+              <div className="p-4 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-line">
+                <h2 className="text-lg font-display font-bold text-ink">Personal en el Sistema</h2>
                 <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                   <input
                     type="text"
                     placeholder="Buscar empleado..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="px-4 py-2 bg-[#f3f0eb] border border-white/80 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/30 text-sm text-gray-700 placeholder:text-gray-400 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05),inset_-2px_-2px_5px_rgba(255,255,255,0.7)]"
+                    className="px-4 py-2 bg-surfalt border border-line rounded-none focus:outline-none focus:ring-2 focus:ring-acline text-sm text-inkalt placeholder:text-muted"
                   />
                   <Select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)}>
                     <option value="Todos">Todos los Puestos</option>
@@ -226,15 +226,15 @@ function EmployeeManagementContent() {
 
               <div className="overflow-x-auto">
                 {loading ? (
-                  <div className="p-8 text-center text-gray-500 text-sm">Cargando personal...</div>
+                  <div className="p-8 text-center text-muted text-sm">Cargando personal...</div>
                 ) : employees.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500 text-sm">No hay empleados registrados.</div>
+                  <div className="p-8 text-center text-muted text-sm">No hay empleados registrados.</div>
                 ) : filteredEmployees.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500 text-sm">Ningún empleado coincide con los filtros.</div>
+                  <div className="p-8 text-center text-muted text-sm">Ningún empleado coincide con los filtros.</div>
                 ) : (
                   <table className="w-full text-left border-collapse min-w-[880px]">
                     <thead>
-                      <tr className="bg-gray-50/80 text-xs font-display font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                      <tr className="bg-surfalt/80 text-xs font-display font-semibold text-muted uppercase tracking-wider border-b border-line">
                         <th className="p-3 sm:p-4 pl-4 sm:pl-6">Foto</th>
                         <th className="p-3 sm:p-4">Empleado</th>
                         <th className="p-3 sm:p-4">Puesto</th>
@@ -244,7 +244,7 @@ function EmployeeManagementContent() {
                         <th className="p-3 sm:p-4 pr-4 sm:pr-6 text-right">Acciones</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+                    <tbody className="divide-y divide-line text-sm text-inkalt">
                       {paginatedEmployees.map((emp) => {
                         const id = emp._id || emp.id;
                         const firstName = emp.personalInfo?.name || '';
@@ -258,14 +258,14 @@ function EmployeeManagementContent() {
                         return (
                           <tr
                             key={id}
-                            className={`hover:bg-gray-50/80 transition-colors ${!isActive ? 'opacity-60 bg-gray-50/30' : ''} ${isRadialTarget ? 'relative z-[60] bg-white shadow-[0_0_0_2px_rgba(220,38,38,0.4)]' : ''}`}
+                            className={`hover:bg-surfalt/80 transition-colors ${!isActive ? 'opacity-60 bg-surfalt/30' : ''} ${isRadialTarget ? 'relative z-[60] bg-surface' : ''}`}
                           >
                             <td className="p-3 sm:p-4 pl-4 sm:pl-6">
-                              <img src={img} alt={fullName} className="w-10 h-10 rounded-xl object-cover shadow-sm" />
+                              <img src={img} alt={fullName} className="w-10 h-10 rounded-none object-cover" />
                             </td>
                             <td className="p-3 sm:p-4">
-                              <div className="font-display font-bold text-gray-900">{fullName}</div>
-                              <div className="text-xs text-gray-500">{emp.loginInfo?.email}</div>
+                              <div className="font-display font-bold text-ink">{fullName}</div>
+                              <div className="text-xs text-muted">{emp.loginInfo?.email}</div>
                             </td>
                             <td className="p-3 sm:p-4">
                               <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-display font-semibold ${getBadgeClass(puesto)}`}>
@@ -273,28 +273,28 @@ function EmployeeManagementContent() {
                               </span>
                             </td>
                             <td className="p-3 sm:p-4">
-                              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-display font-semibold border ${isActive ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
+                              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-display font-semibold border ${isActive ? 'bg-oksoft text-ok border-ok' : 'bg-acsoft text-ac border-acline'}`}>
                                 {isActive ? 'Activo' : 'Inactivo'}
                               </span>
                             </td>
-                            <td className="p-3 sm:p-4 text-xs text-gray-600 whitespace-nowrap">
+                            <td className="p-3 sm:p-4 text-xs text-inkalt whitespace-nowrap">
                               {formatSchedule(emp)}
                             </td>
-                            <td className="p-3 sm:p-4 text-gray-700 font-medium">
+                            <td className="p-3 sm:p-4 text-inkalt font-medium">
                               {emp.workInfo?.salary != null ? `$${Number(emp.workInfo.salary).toFixed(2)}` : '—'}
                             </td>
                             <td className="p-3 sm:p-4 pr-4 sm:pr-6 text-right space-x-2 whitespace-nowrap">
                               <button
                                 onClick={() => handleEditPermissions(emp)}
                                 disabled={!isActive}
-                                className="inline-flex items-center gap-1 px-3 py-2 text-xs font-display font-semibold rounded-xl border border-red-500 text-red-500 hover:bg-red-50 transition-colors shadow-sm disabled:border-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed"
+                                className="inline-flex items-center gap-1 px-3 py-2 text-xs font-display font-semibold rounded-none border border-ac text-ac hover:bg-acsoft transition-colors disabled:border-linealt disabled:text-muted disabled:cursor-not-allowed"
                               >
                                 <FAIcon icon="lock" /> Permisos
                               </button>
                               <button
                                 onClick={(e) => openRadial(emp, e)}
                                 aria-label="Más acciones"
-                                className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors shadow-sm"
+                                className="inline-flex items-center justify-center w-9 h-9 rounded-none border border-line text-muted hover:bg-surfalt hover:text-ink transition-colors"
                               >
                                 <FAIcon icon="ellipsis-vertical" />
                               </button>

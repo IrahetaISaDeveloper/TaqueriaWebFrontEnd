@@ -12,7 +12,7 @@ const PaginationControls = ({ page, totalPages, onPrev, onNext, onGoTo }) => {
       <button
         onClick={onPrev}
         disabled={page === 1}
-        className="w-9 h-9 flex items-center justify-center rounded-xl bg-white text-gray-600 shadow-sm border border-white/80 disabled:opacity-40 hover:bg-gray-50 transition-colors"
+        className="w-9 h-9 flex items-center justify-center rounded-none bg-surface text-inkalt border border-line disabled:opacity-40 hover:bg-surfalt transition-colors"
         aria-label="Página anterior"
       >
         <FAIcon icon="chevron-left" size="sm" />
@@ -22,10 +22,10 @@ const PaginationControls = ({ page, totalPages, onPrev, onNext, onGoTo }) => {
         <button
           key={n}
           onClick={() => onGoTo(n)}
-          className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-display font-semibold transition-colors ${
+          className={`w-9 h-9 flex items-center justify-center rounded-none text-sm font-display font-semibold transition-colors ${
             n === page
-              ? 'bg-red-500 text-white shadow-[0_4px_12px_rgba(220,38,38,0.3)]'
-              : 'bg-white text-gray-600 border border-white/80 hover:bg-gray-50'
+              ? 'bg-ac text-white'
+              : 'bg-surface text-inkalt border border-line hover:bg-surfalt'
           }`}
         >
           {n}
@@ -35,7 +35,7 @@ const PaginationControls = ({ page, totalPages, onPrev, onNext, onGoTo }) => {
       <button
         onClick={onNext}
         disabled={page === totalPages}
-        className="w-9 h-9 flex items-center justify-center rounded-xl bg-white text-gray-600 shadow-sm border border-white/80 disabled:opacity-40 hover:bg-gray-50 transition-colors"
+        className="w-9 h-9 flex items-center justify-center rounded-none bg-surface text-inkalt border border-line disabled:opacity-40 hover:bg-surfalt transition-colors"
         aria-label="Página siguiente"
       >
         <FAIcon icon="chevron-right" size="sm" />

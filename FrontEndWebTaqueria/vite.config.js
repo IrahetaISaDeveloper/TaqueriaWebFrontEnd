@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 
 // A qué backend habla el frontend en desarrollo cuando VITE_API_URL no está
 // definida (el .env de este proyecto suele venir vacío). Se deja como una
@@ -27,7 +28,7 @@ export default defineConfig(({ mode }) => {
     : DEFAULT_BACKEND_URL;
 
   return {
-    plugins: [react()],
+    plugins: [react(), tailwindcss()],
     server: {
       port: 5173,
       proxy: {

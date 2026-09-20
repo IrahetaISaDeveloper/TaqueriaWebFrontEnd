@@ -104,7 +104,7 @@ export default function useDashboard() {
           monto: `$${(Number(order.total) || 0).toFixed(2)}`,
           estado: ORDER_STATUS_LABELS[order.status] || (order.status || 'pendiente').toUpperCase(),
           hora: order.createdAt
-            ? new Date(order.createdAt).toLocaleTimeString('es-SV', { hour: '2-digit', minute: '2-digit' })
+            ? new Date(order.createdAt).toLocaleTimeString('es-SV', { hour: '2-digit', minute: '2-digit', hour12: false })
             : '--:--',
           raw: order,
         };

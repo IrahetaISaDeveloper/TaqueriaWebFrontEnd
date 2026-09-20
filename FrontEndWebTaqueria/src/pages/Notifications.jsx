@@ -108,22 +108,21 @@ function NotificationsContent() {
       {/* Encabezado */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-1 sm:mb-2">
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1 sm:mb-2">
             Notificaciones
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className="text-sm sm:text-base text-inkalt">
             {unreadCount > 0
               ? `Tienes ${unreadCount} ${unreadCount === 1 ? 'aviso sin leer' : 'avisos sin leer'}`
               : 'Historial de movimientos del sistema'}
-            <span className="text-gray-400"> · se muestran los últimos 3 días</span>
+            <span className="text-muted"> · se muestran los últimos 3 días</span>
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={handleRefresh}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white text-gray-700 rounded-2xl font-display font-semibold text-sm border border-white/80 transition-all
-              shadow-[0_4px_12px_rgba(0,0,0,0.08),inset_1px_1px_2px_rgba(255,255,255,0.6)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)]"
+            className="flex items-center gap-2 px-4 py-2.5 bg-surface text-inkalt rounded-none font-display font-semibold text-sm border border-line transition-all hover:"
           >
             <FAIcon icon="rotate-right" size="sm" />
             <span className="hidden sm:inline">Actualizar</span>
@@ -132,8 +131,7 @@ function NotificationsContent() {
           {unreadCount > 0 && (
             <button
               onClick={handleMarkAll}
-              className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-2xl font-display font-semibold text-sm transition-all
-                shadow-[0_6px_16px_rgba(220,38,38,0.35),inset_1px_1px_2px_rgba(255,255,255,0.3)] hover:bg-red-600"
+              className="flex items-center gap-2 px-4 py-2.5 bg-ac text-white rounded-none font-display font-semibold text-sm transition-all hover:bg-ac"
             >
               <FAIcon icon="check-double" size="sm" />
               <span className="hidden sm:inline">Marcar todas</span>
@@ -143,7 +141,7 @@ function NotificationsContent() {
       </div>
 
       {error && (
-        <div className="mb-4 sm:mb-6 bg-yellow-100/80 backdrop-blur-sm border border-yellow-200 text-yellow-800 text-xs sm:text-sm rounded-2xl p-3">
+        <div className="mb-4 sm:mb-6 bg-warnsoft/80 backdrop-blur-sm border border-warn text-warn text-xs sm:text-sm rounded-none p-3">
           {error}
         </div>
       )}
@@ -156,10 +154,10 @@ function NotificationsContent() {
             <button
               key={filter.id}
               onClick={() => handleFilterChange(filter.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-display font-medium transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-none text-sm font-display font-medium transition-all ${
                 isActive
-                  ? 'bg-red-500 text-white shadow-[0_4px_12px_rgba(220,38,38,0.3),inset_1px_1px_2px_rgba(255,255,255,0.3)]'
-                  : 'bg-white/70 text-gray-600 hover:bg-white hover:text-gray-900 border border-white/80'
+                  ? 'bg-ac text-white'
+                  : 'bg-surface text-inkalt hover:bg-surface hover:text-ink border border-line'
               }`}
             >
               <FAIcon icon={filter.icon} size="sm" />
@@ -168,27 +166,27 @@ function NotificationsContent() {
           );
         })}
 
-        <label className="flex items-center gap-2 ml-auto px-4 py-2 bg-white/70 border border-white/80 rounded-2xl cursor-pointer">
+        <label className="flex items-center gap-2 ml-auto px-4 py-2 bg-surface border border-line rounded-none cursor-pointer">
           <input
             type="checkbox"
             checked={onlyUnread}
             onChange={(e) => setOnlyUnread(e.target.checked)}
             className="w-4 h-4 accent-red-500"
           />
-          <span className="text-sm font-display font-medium text-gray-700">Solo sin leer</span>
+          <span className="text-sm font-display font-medium text-inkalt">Solo sin leer</span>
         </label>
       </div>
 
       {/* Listado */}
       <Card className="overflow-hidden">
         {isLoading && pageData.notifications.length === 0 ? (
-          <p className="px-4 sm:px-6 py-10 text-center text-sm text-gray-500">
+          <p className="px-4 sm:px-6 py-10 text-center text-sm text-muted">
             Cargando notificaciones...
           </p>
         ) : visibleNotifications.length === 0 ? (
           <div className="px-4 sm:px-6 py-16 text-center">
-            <FAIcon icon="bell-slash" size="3xl" className="text-gray-300 mb-3" />
-            <p className="text-sm text-gray-500">
+            <FAIcon icon="bell-slash" size="3xl" className="text-muted mb-3" />
+            <p className="text-sm text-muted">
               {pageData.total === 0
                 ? 'No hay movimientos registrados en los últimos 3 días'
                 : 'No hay notificaciones que coincidan con este filtro'}
@@ -201,8 +199,8 @@ function NotificationsContent() {
             return (
               <div
                 key={notification._id}
-                className={`flex gap-4 px-4 sm:px-6 py-4 border-b border-gray-50 last:border-b-0 transition-colors ${
-                  isRead ? 'opacity-60' : 'bg-red-50/30'
+                className={`flex gap-4 px-4 sm:px-6 py-4 border-b border-line last:border-b-0 transition-colors ${
+                  isRead ? 'opacity-60' : 'bg-acsoft/30'
                 }`}
               >
                 <span
@@ -215,17 +213,17 @@ function NotificationsContent() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <h3 className="font-display font-semibold text-gray-900 text-sm">
+                    <h3 className="font-display font-semibold text-ink text-sm">
                       {notification.title}
                     </h3>
-                    <span className="text-[10px] font-display font-semibold uppercase tracking-wide text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
+                    <span className="text-[10px] font-display font-semibold uppercase tracking-wide text-muted bg-surfalt rounded-full px-2 py-0.5">
                       {CATEGORY_LABELS[notification.category] || notification.category}
                     </span>
                   </div>
 
-                  <p className="text-sm text-gray-600 break-words">{notification.message}</p>
+                  <p className="text-sm text-inkalt break-words">{notification.message}</p>
 
-                  <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-400">
+                  <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-muted">
                     <span className="flex items-center gap-1.5">
                       <FAIcon icon="user" size="xs" />
                       {notification.actor?.name || 'Sistema'}
@@ -239,7 +237,7 @@ function NotificationsContent() {
                     onClick={() => handleMarkRead(notification._id)}
                     aria-label="Marcar como leída"
                     title="Marcar como leída"
-                    className="shrink-0 self-start p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                    className="shrink-0 self-start p-2 text-muted hover:text-ac hover:bg-acsoft rounded-none transition-colors"
                   >
                     <FAIcon icon="check" size="sm" />
                   </button>
@@ -253,7 +251,7 @@ function NotificationsContent() {
       {/* Paginado: 10 notificaciones por página */}
       {pageData.total > 0 && (
         <div className="flex items-center justify-between mt-4 sm:mt-6">
-          <p className="text-xs sm:text-sm text-gray-500">
+          <p className="text-xs sm:text-sm text-muted">
             Página {page} de {pageData.totalPages} · {pageData.total} en total
           </p>
 
@@ -261,8 +259,7 @@ function NotificationsContent() {
             <button
               onClick={goToPreviousPage}
               disabled={page <= 1 || isLoading}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white text-gray-700 rounded-xl font-display font-medium text-sm border border-white/80 transition-all
-                shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-[0_2px_8px_rgba(0,0,0,0.05)]"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-surface text-inkalt rounded-none font-display font-medium text-sm border border-line transition-all hover: disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:"
             >
               <FAIcon icon="chevron-left" size="xs" />
               <span className="hidden sm:inline">Anterior</span>
@@ -270,8 +267,7 @@ function NotificationsContent() {
             <button
               onClick={goToNextPage}
               disabled={page >= pageData.totalPages || isLoading}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white text-gray-700 rounded-xl font-display font-medium text-sm border border-white/80 transition-all
-                shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-[0_2px_8px_rgba(0,0,0,0.05)]"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-surface text-inkalt rounded-none font-display font-medium text-sm border border-line transition-all hover: disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:"
             >
               <span className="hidden sm:inline">Siguiente</span>
               <FAIcon icon="chevron-right" size="xs" />
@@ -288,7 +284,7 @@ export default function Notifications() {
 
   return (
     <ToastProvider>
-      <div className="flex h-screen overflow-hidden bg-[#f3f0eb]">
+      <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
         <Sidebar
           activeMenu="notifications"
           isOpen={sidebarOpen}

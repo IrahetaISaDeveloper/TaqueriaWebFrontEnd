@@ -105,7 +105,7 @@ function ReportsContent() {
   const payableAmount = Math.abs(report?.result?.taxPayable ?? 0);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f3f0eb]">
+    <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -119,10 +119,10 @@ function ReportsContent() {
             {/* Encabezado */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-1">
+                <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1">
                   Reportes contables
                 </h1>
-                <p className="text-sm sm:text-base text-gray-600">
+                <p className="text-sm sm:text-base text-inkalt">
                   IVA de ventas contra IVA de compras, listo para el contador.
                 </p>
               </div>
@@ -131,7 +131,7 @@ function ReportsContent() {
                 <button
                   type="button"
                   onClick={() => setUploadOpen(true)}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-700 rounded-2xl text-sm font-display font-semibold border border-white/80 shadow-[0_4px_12px_rgba(0,0,0,0.06),inset_0_1px_2px_rgba(255,255,255,0.8)] hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-surface text-inkalt rounded-none text-sm font-display font-semibold border border-line hover:bg-surfalt transition-colors"
                 >
                   <FAIcon icon="plus" />
                   Subir factura de compra
@@ -157,7 +157,7 @@ function ReportsContent() {
                   type="button"
                   onClick={handleExport}
                   disabled={loading || !report}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-500 text-white rounded-2xl text-sm font-display font-semibold shadow-[0_4px_12px_rgba(220,38,38,0.3),inset_1px_1px_2px_rgba(255,255,255,0.3)] hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-ac text-white rounded-none text-sm font-display font-semibold hover:bg-ac transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FAIcon icon="file-pdf" />
                   Exportar reporte
@@ -195,9 +195,9 @@ function ReportsContent() {
             </div>
 
             {/* Facturas de compra */}
-            <div className="bg-white rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.08),inset_1px_1px_3px_rgba(255,255,255,0.7)] border border-white/80 overflow-hidden">
-              <div className="p-4 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100">
-                <h2 className="text-lg font-display font-bold text-gray-800">
+            <div className="bg-surface rounded-none border border-line overflow-hidden">
+              <div className="p-4 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-line">
+                <h2 className="text-lg font-display font-bold text-ink">
                   Facturas de compra · {formatPeriodLabel(period)}
                 </h2>
 
@@ -218,29 +218,29 @@ function ReportsContent() {
 
               <div className="overflow-x-auto">
                 {loading ? (
-                  <div className="p-8 text-center text-gray-500 text-sm">Cargando reporte...</div>
+                  <div className="p-8 text-center text-muted text-sm">Cargando reporte...</div>
                 ) : error ? (
-                  <div className="p-8 text-center text-red-500 text-sm">{error}</div>
+                  <div className="p-8 text-center text-ac text-sm">{error}</div>
                 ) : invoices.length === 0 ? (
                   <div className="p-10 text-center">
-                    <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                    <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-surfalt flex items-center justify-center text-muted">
                       <FAIcon icon="receipt" size="xl" />
                     </div>
-                    <p className="text-gray-500 text-sm mb-1">
+                    <p className="text-muted text-sm mb-1">
                       No hay facturas de compra registradas en {formatPeriodLabel(period)}.
                     </p>
-                    <p className="text-gray-400 text-xs">
+                    <p className="text-muted text-xs">
                       Súbelas para poder descontar su IVA del total a declarar.
                     </p>
                   </div>
                 ) : filteredInvoices.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500 text-sm">
+                  <div className="p-8 text-center text-muted text-sm">
                     Ninguna factura coincide con el filtro.
                   </div>
                 ) : (
                   <table className="w-full text-left border-collapse min-w-[900px]">
                     <thead>
-                      <tr className="bg-gray-50/80 text-xs font-display font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                      <tr className="bg-surfalt/80 text-xs font-display font-semibold text-muted uppercase tracking-wider border-b border-line">
                         <th className="p-3 sm:p-4 pl-4 sm:pl-6">Fecha</th>
                         <th className="p-3 sm:p-4">Proveedor</th>
                         <th className="p-3 sm:p-4">N.º factura</th>
@@ -253,23 +253,23 @@ function ReportsContent() {
                       </tr>
                     </thead>
 
-                    <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+                    <tbody className="divide-y divide-line text-sm text-inkalt">
                       {paginatedItems.map((inv) => (
-                        <tr key={inv._id} className="hover:bg-gray-50/80 transition-colors">
-                          <td className="p-3 sm:p-4 pl-4 sm:pl-6 whitespace-nowrap text-gray-600">
+                        <tr key={inv._id} className="hover:bg-surfalt/80 transition-colors">
+                          <td className="p-3 sm:p-4 pl-4 sm:pl-6 whitespace-nowrap text-inkalt">
                             {shortDate(inv.issuedAt)}
                           </td>
 
                           <td className="p-3 sm:p-4">
-                            <div className="font-display font-bold text-gray-900">{inv.supplierName}</div>
+                            <div className="font-display font-bold text-ink">{inv.supplierName}</div>
                             {inv.supplierTaxId && (
-                              <div className="text-xs text-gray-500">{inv.supplierTaxId}</div>
+                              <div className="text-xs text-muted">{inv.supplierTaxId}</div>
                             )}
                           </td>
 
                           <td className="p-3 sm:p-4">
                             <div className="flex items-center gap-2">
-                              <span className="text-gray-700">{inv.invoiceNumber}</span>
+                              <span className="text-inkalt">{inv.invoiceNumber}</span>
                               {/* El comprobante se abre en pestaña nueva, no se
                                   descarga: normalmente solo se quiere verificar. */}
                               {inv.fileUrl && (
@@ -277,7 +277,7 @@ function ReportsContent() {
                                   href={inv.fileUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-gray-400 hover:text-red-500 transition-colors"
+                                  className="text-muted hover:text-ac transition-colors"
                                   title="Ver comprobante"
                                 >
                                   <FAIcon icon="paperclip" size="sm" />
@@ -287,14 +287,14 @@ function ReportsContent() {
                           </td>
 
                           <td className="p-3 sm:p-4">
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-display font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-display font-semibold bg-surfalt text-inkalt border border-line">
                               {CATEGORY_LABELS[inv.category] || inv.category}
                             </span>
                           </td>
 
                           <td className="p-3 sm:p-4 text-right">{money(inv.subtotal)}</td>
-                          <td className="p-3 sm:p-4 text-right text-gray-500">{money(inv.tax)}</td>
-                          <td className="p-3 sm:p-4 text-right font-display font-bold text-gray-900">
+                          <td className="p-3 sm:p-4 text-right text-muted">{money(inv.tax)}</td>
+                          <td className="p-3 sm:p-4 text-right font-display font-bold text-ink">
                             {money(inv.total)}
                           </td>
 
@@ -309,8 +309,8 @@ function ReportsContent() {
                               }
                               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-display font-semibold border transition-colors cursor-pointer ${
                                 inv.processedForTax
-                                  ? 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200'
-                                  : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                                  ? 'bg-oksoft text-ok border-ok hover:bg-oksoft'
+                                  : 'bg-warnsoft text-warn border-warn hover:bg-warnsoft'
                               }`}
                             >
                               <FAIcon icon={inv.processedForTax ? 'check' : 'clock'} size="xs" />
@@ -322,7 +322,7 @@ function ReportsContent() {
                             <button
                               type="button"
                               onClick={() => setConfirmDelete({ isOpen: true, invoice: inv })}
-                              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                              className="p-2 text-muted hover:text-ac hover:bg-acsoft rounded-none transition-colors"
                               aria-label="Eliminar factura"
                             >
                               <FAIcon icon="trash" size="sm" />
@@ -334,7 +334,7 @@ function ReportsContent() {
 
                     {report && (
                       <tfoot>
-                        <tr className="bg-gray-50/80 border-t-2 border-gray-200 text-sm font-display font-bold text-gray-900">
+                        <tr className="bg-surfalt/80 border-t-2 border-line text-sm font-display font-bold text-ink">
                           <td className="p-3 sm:p-4 pl-4 sm:pl-6" colSpan={4}>
                             TOTALES DEL PERÍODO ({report.purchases.count})
                           </td>
@@ -360,7 +360,7 @@ function ReportsContent() {
               )}
             </div>
 
-            <p className="mt-4 text-xs text-gray-500">
+            <p className="mt-4 text-xs text-muted">
               El IVA de las ventas se desglosa del total facturado, porque los precios del menú ya lo
               incluyen. El de las compras es el que consta en cada factura del proveedor.
             </p>

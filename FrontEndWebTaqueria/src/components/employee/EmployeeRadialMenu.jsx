@@ -50,13 +50,13 @@ const EmployeeRadialMenu = ({ isOpen, anchor, onClose, onSelect, isActive }) => 
             className={`fixed z-50 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 group`}
           >
             <span
-              className={`w-11 h-11 rounded-full flex items-center justify-center text-white shadow-[0_6px_16px_rgba(0,0,0,0.35)] transition-transform group-hover:scale-110 ${
-                opt.id === 'baja' ? 'bg-red-500' : opt.id === 'reactivar' ? 'bg-green-500' : 'bg-gray-800'
+              className={`w-11 h-11 rounded-full flex items-center justify-center text-white transition-transform group-hover:scale-110 ${
+                opt.id === 'baja' ? 'bg-ac' : opt.id === 'reactivar' ? 'bg-ok' : 'bg-ink'
               }`}
             >
               <FAIcon icon={opt.icon} size="sm" />
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-gray-900 text-white text-[10px] font-display font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="px-2 py-0.5 rounded-full bg-ink text-white text-[10px] font-display font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
               {opt.label}
             </span>
           </button>
@@ -68,7 +68,7 @@ const EmployeeRadialMenu = ({ isOpen, anchor, onClose, onSelect, isActive }) => 
         type="button"
         onClick={(e) => { e.stopPropagation(); onClose(); }}
         style={{ left: anchor.x, top: anchor.y }}
-        className="fixed z-50 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white text-gray-500 shadow-[0_4px_12px_rgba(0,0,0,0.25)] flex items-center justify-center"
+        className="fixed z-50 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-surface text-muted flex items-center justify-center"
       >
         <FAIcon icon="times" size="xs" />
       </button>
