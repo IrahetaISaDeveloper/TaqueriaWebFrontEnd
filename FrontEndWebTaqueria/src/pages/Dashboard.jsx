@@ -1,9 +1,8 @@
 // src/pages/Dashboard.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { XAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, YAxis, PieChart, Pie, Cell, Legend } from 'recharts';
+import { XAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, YAxis, PieChart, Pie, Cell } from 'recharts';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopBar from '../components/dashboard/TopBar';
-import Card from '../components/commons/Card';
 import StockRiskPanel from '../components/dashboard/StockRiskPanel';
 import OrderDetailModal from '../components/dashboard/OrderDetailModal';
 import EmployeeDetailModal from '../components/dashboard/EmployeeDetailModal';
@@ -170,38 +169,6 @@ function DashboardContent() {
 
   return (
     <div className="p-6 sm:p-8">
-      {/* Encabezado */}
-      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1 sm:mb-2">Actividad y Análisis</h1>
-          <p className="text-sm sm:text-base text-inkalt">
-            {activeTab === 'actividad' ? 'Seguimiento de pedidos en tiempo real' : 'Reportes y tendencias de todo el sistema'}
-          </p>
-        </div>
-
-        {/* Selector de apartado: píldoras con borde, como el resto de los
-            filtros del sistema. */}
-        <div className="flex gap-1.5 w-fit">
-          {[
-            { id: 'actividad', label: 'Actividad', icon: 'bolt' },
-            { id: 'analisis', label: 'Análisis', icon: 'chart-pie' },
-          ].map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-full border transition-colors ${
-                activeTab === t.id
-                  ? 'border-ac text-ac font-medium'
-                  : 'border-line text-inkalt hover:border-linealt'
-              }`}
-            >
-              <FAIcon icon={t.icon} size="xs" />
-              {t.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {errors.length > 0 && (
         <div className="mb-4 sm:mb-6 bg-warnsoft/80 backdrop-blur-sm border border-warn text-warn text-xs sm:text-sm rounded-none p-3">
@@ -211,11 +178,37 @@ function DashboardContent() {
 
       {activeTab === 'actividad' ? (
         <>
-          {/* --- La cifra que manda: ventas netas del día ---
-              El rediseño es editorial: una sola cifra domina la pantalla y el
-              resto de indicadores la acompañan en columnas separadas por una
-              regla fina, sin tarjetas. */}
-          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-8 lg:gap-10 items-end pb-6 border-b border-line">
+          {/* --- La cifra que manda: ventas netas del día --- */}
+          <div className="bg-surface border border-line mb-5">
+          {/* Fila superior: título + selector de tab */}
+          <div className="flex items-start justify-between px-6 pt-5 pb-1 gap-4">
+            <div>
+              <h1 className="text-2xl font-display font-bold text-ink mb-0.5">Actividad y Análisis</h1>
+              <p className="text-sm text-inkalt">Seguimiento de pedidos en tiempo real</p>
+            </div>
+            <div className="flex gap-1.5 shrink-0">
+              {[
+                { id: 'actividad', label: 'Actividad', icon: 'bolt' },
+                { id: 'analisis', label: 'Análisis', icon: 'chart-pie' },
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setActiveTab(t.id)}
+                  className={`flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-full border transition-colors ${
+                    activeTab === t.id
+                      ? 'border-ac text-ac font-medium'
+                      : 'border-line text-inkalt hover:border-linealt'
+                  }`}
+                >
+                  <FAIcon icon={t.icon} size="xs" />
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="p-6 pt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-8 lg:gap-10 items-end">
             <div>
               <p className="kick text-ac mb-3">Ventas netas · facturas de hoy</p>
               <div className="flex items-baseline gap-2.5 mb-3">
@@ -294,10 +287,13 @@ function DashboardContent() {
               </div>
             </div>
           </div>
+          </div>
+          </div>
 
           {/* --- Cuerpo: pedidos a la izquierda, equipo a la derecha --- */}
+          <div className="bg-surface border border-line mb-5">
           <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(360px,26%)] xl:grid-cols-[minmax(0,1fr)_minmax(400px,24%)]">
-            <div className="py-6 lg:pr-8 lg:border-r border-line">
+            <div className="p-6 lg:border-r border-line">
               <div className="max-w-[880px]">
               <div className="flex flex-wrap items-baseline justify-between gap-4 mb-4">
                 <div>
@@ -375,7 +371,7 @@ function DashboardContent() {
 
               {/* Indicadores operativos */}
               <div className="mt-6 pt-5 border-t border-line">
-                <h3 className="text-[15px] font-display text-ink mb-3.5">Indicadores operativos</h3>
+                <h3 className="text-[15px] font-display font-medium text-ink mb-3.5">Indicadores operativos</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <button
                     type="button"
@@ -425,7 +421,7 @@ function DashboardContent() {
             </div>
 
             {/* --- Estado del equipo --- */}
-            <div className="py-6 lg:pl-8">
+            <div className="p-6">
               <h3 className="text-[17px] font-display text-ink mb-4">Estado del equipo</h3>
               <div className="flex gap-2 mb-3.5">
                 {/* Disponibilidad: independiente del puesto, según si su
@@ -533,106 +529,209 @@ function DashboardContent() {
               )}
             </div>
           </div>
+          </div>
         </>
       ) : (
         <>
-          {/* KPIs de negocio */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
-            <Card accent className="p-4 sm:p-6">
-              <FAIcon icon="sack-dollar" size="2xl" className="text-ac mb-3" />
-              <p className="text-inkalt text-sm mb-2">Ventas del Mes</p>
-              <h3 className="text-2xl sm:text-3xl font-display font-bold text-ink">
-                {isLoading ? '—' : `$${stats.monthTotal.toFixed(2)}`}
-              </h3>
-            </Card>
-            <Card accent className="p-4 sm:p-6">
-              <FAIcon icon="receipt" size="2xl" className="text-warn mb-3" />
-              <p className="text-inkalt text-sm mb-2">Ticket Promedio</p>
-              <h3 className="text-2xl sm:text-3xl font-display font-bold text-ink">
-                {isLoading ? '—' : `$${stats.avgTicket.toFixed(2)}`}
-              </h3>
-            </Card>
-            <Card accent className="p-4 sm:p-6">
-              <FAIcon icon="globe" size="2xl" className="text-info mb-3" />
-              <p className="text-inkalt text-sm mb-2">Ventas en línea</p>
-              <h3 className="text-2xl sm:text-3xl font-display font-bold text-ink">
-                {isLoading ? '—' : `$${(analytics?.byOrderType?.online?.total || 0).toFixed(2)}`}
-              </h3>
-              <p className="text-xs text-muted mt-2">Últimos 14 días</p>
-            </Card>
-            <Card accent className="p-4 sm:p-6">
-              <FAIcon icon="store" size="2xl" className="text-info mb-3" />
-              <p className="text-inkalt text-sm mb-2">Ventas en local</p>
-              <h3 className="text-2xl sm:text-3xl font-display font-bold text-ink">
-                {isLoading ? '—' : `$${(analytics?.byOrderType?.local?.total || 0).toFixed(2)}`}
-              </h3>
-              <p className="text-xs text-muted mt-2">Últimos 14 días</p>
-            </Card>
+          {/* --- Panel editorial de KPIs del mes --- */}
+          <div className="bg-surface border border-line mb-5">
+          {/* Fila superior: título + selector de tab */}
+          <div className="flex items-start justify-between px-6 pt-5 pb-1 gap-4">
+            <div>
+              <h1 className="text-2xl font-display font-bold text-ink mb-0.5">Actividad y Análisis</h1>
+              <p className="text-sm text-inkalt">Reportes y tendencias de todo el sistema</p>
+            </div>
+            <div className="flex gap-1.5 shrink-0">
+              {[
+                { id: 'actividad', label: 'Actividad', icon: 'bolt' },
+                { id: 'analisis', label: 'Análisis', icon: 'chart-pie' },
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setActiveTab(t.id)}
+                  className={`flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-full border transition-colors ${
+                    activeTab === t.id
+                      ? 'border-ac text-ac font-medium'
+                      : 'border-line text-inkalt hover:border-linealt'
+                  }`}
+                >
+                  <FAIcon icon={t.icon} size="xs" />
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="p-6 pt-4">
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-8 lg:gap-10 items-end">
+              <div>
+                <p className="kick text-ac mb-3">
+                  Ventas del mes
+                  {analytics?.monthLabel ? ` · ${analytics.monthLabel}` : ''}
+                </p>
+                <div className="flex items-baseline gap-2.5 mb-3">
+                  <span className="num text-5xl sm:text-6xl leading-[0.9] tracking-tight text-ink">
+                    {isLoading ? '—' : `$${Math.trunc(stats.monthTotal).toLocaleString('en-US')}`}
+                  </span>
+                  {!isLoading && (
+                    <span className="num text-xl text-muted">
+                      .{stats.monthTotal.toFixed(2).split('.')[1]}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[13px] leading-relaxed text-inkalt max-w-[420px]">
+                  {isLoading ? 'Cargando análisis del mes…' : (
+                    <>
+                      Acumulado de facturas emitidas este mes. El ticket promedio del periodo es de{' '}
+                      <span className="num">${stats.avgTicket.toFixed(2)}</span>.
+                    </>
+                  )}
+                </p>
+              </div>
+
+              {/* Tres métricas secundarias */}
+              <div className="grid grid-cols-2 gap-6 sm:gap-x-8 pb-1">
+                <div className="border-t border-linealt pt-2.5">
+                  <p className="kick text-muted mb-2">Ticket promedio</p>
+                  <span className="num text-2xl text-ink">
+                    {isLoading ? '—' : `$${stats.avgTicket.toFixed(2)}`}
+                  </span>
+                </div>
+
+                <div className="border-t border-linealt pt-2.5">
+                  <p className="kick text-muted mb-2">Ventas en línea</p>
+                  <span className="num text-2xl text-ink">
+                    {isLoading ? '—' : `$${(analytics?.byOrderType?.online?.total || 0).toFixed(2)}`}
+                  </span>
+                  <p className="text-[11.5px] text-muted mt-1.5">Últimos 14 días</p>
+                </div>
+
+                <div className="border-t border-linealt pt-2.5 col-span-2 sm:col-span-1">
+                  <p className="kick text-muted mb-2">Ventas en local</p>
+                  <span className="num text-2xl text-ink">
+                    {isLoading ? '—' : `$${(analytics?.byOrderType?.local?.total || 0).toFixed(2)}`}
+                  </span>
+                  <p className="text-[11.5px] text-muted mt-1.5">Últimos 14 días</p>
+                </div>
+              </div>
+            </div>
+          </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-6 sm:mb-8">
-            <Card className="lg:col-span-2 p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-display font-bold text-ink mb-1">Ventas de los últimos 14 días</h3>
-              <p className="text-xs sm:text-sm text-inkalt mb-4">Basado en pedidos ya facturados</p>
-              <div className="h-64 sm:h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={salesTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(v) => `$${Number(v).toFixed(2)}`} />
-                    <Line type="monotone" dataKey="total" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
+          {/* --- Panel de gráficas: línea izquierda, pie + stock derecha --- */}
+          <div className="bg-surface border border-line mb-5">
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_360px]">
+              {/* Gráfica de línea */}
+              <div className="p-6 lg:border-r border-line">
+                <h3 className="text-[17px] font-display text-ink mb-1">Ventas de los últimos 14 días</h3>
+                <p className="text-xs text-muted mb-4">Basado en pedidos ya facturados</p>
+                <div className="h-64 sm:h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={salesTrendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--color-line)" />
+                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--color-muted)' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 11, fill: 'var(--color-muted)' }} axisLine={false} tickLine={false} />
+                      <Tooltip
+                        formatter={(v) => [`$${Number(v).toFixed(2)}`, 'Ventas']}
+                        contentStyle={{ border: '1px solid var(--color-line)', borderRadius: 0, fontSize: 12 }}
+                      />
+                      <Line type="monotone" dataKey="total" stroke="var(--color-ac)" strokeWidth={2} dot={{ r: 3, fill: 'var(--color-ac)' }} activeDot={{ r: 5 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
 
-            <Card className="p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-display font-bold text-ink mb-1">Ventas por tipo</h3>
-              <p className="text-xs sm:text-sm text-inkalt mb-4">Últimos 14 días</p>
-              <div className="h-48 sm:h-56">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={orderTypePieData} dataKey="value" nameKey="name" innerRadius={45} outerRadius={70} paddingAngle={4}>
-                      {orderTypePieData.map((entry, idx) => (
-                        <Cell key={entry.name} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(v) => `$${Number(v).toFixed(2)}`} />
-                    <Legend wrapperStyle={{ fontSize: 12 }} />
-                  </PieChart>
-                </ResponsiveContainer>
+                {/* Productos más vendidos — debajo de la gráfica, en la columna izquierda */}
+                <div className="mt-6 pt-5 border-t border-line">
+                  <h3 className="text-[17px] font-display text-ink mb-1">Productos más vendidos</h3>
+                  <p className="text-xs text-muted mb-4">Últimos 14 días, por cantidad</p>
+                  <div className="space-y-3">
+                    {(analytics?.topItems || []).length === 0 ? (
+                      <p className="text-sm text-muted">Todavía no hay suficientes ventas para mostrar un top</p>
+                    ) : (
+                      analytics.topItems.map((item, idx) => {
+                        const max = analytics.topItems[0]?.quantity || 1;
+                        return (
+                          <div key={item.name}>
+                            <div className="flex items-center justify-between text-xs mb-1.5">
+                              <span className="font-display text-ink">{idx + 1}. {item.name}</span>
+                              <span className="num text-muted">{item.quantity} vendidos · ${item.total.toFixed(2)}</span>
+                            </div>
+                            <div className="h-[5px] w-full bg-page overflow-hidden">
+                              <div
+                                className="h-full bg-ac"
+                                style={{ width: `${(item.quantity / max) * 100}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
               </div>
-            </Card>
-          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8 sm:mb-12">
-            <Card className="p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-display font-bold text-ink mb-1">Productos más vendidos</h3>
-              <p className="text-xs sm:text-sm text-inkalt mb-4">Últimos 14 días, por cantidad</p>
-              <div className="space-y-3">
-                {(analytics?.topItems || []).length === 0 ? (
-                  <p className="text-sm text-muted">Todavía no hay suficientes ventas para mostrar un top</p>
-                ) : (
-                  analytics.topItems.map((item, idx) => {
-                    const max = analytics.topItems[0]?.quantity || 1;
-                    return (
-                      <div key={item.name}>
-                        <div className="flex items-center justify-between text-xs sm:text-sm mb-1">
-                          <span className="font-display font-semibold text-ink">{idx + 1}. {item.name}</span>
-                          <span className="text-muted">{item.quantity} vendidos · ${item.total.toFixed(2)}</span>
-                        </div>
-                        <div className="h-2 w-full bg-surfalt rounded-full overflow-hidden">
-                          <div className="h-full bg-ac rounded-full" style={{ width: `${(item.quantity / max) * 100}%` }} />
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
+              {/* Columna derecha: pie + stock en riesgo */}
+              <div className="p-6 flex flex-col gap-6">
+                {/* Ventas por tipo */}
+                <div>
+                  <h3 className="text-[17px] font-display text-ink mb-1">Ventas por tipo</h3>
+                  <p className="text-xs text-muted mb-3">Últimos 14 días</p>
+                  <div className="flex items-center gap-4">
+                    <div className="shrink-0" style={{ width: 120, height: 120 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={orderTypePieData}
+                            dataKey="value"
+                            nameKey="name"
+                            innerRadius={36}
+                            outerRadius={54}
+                            paddingAngle={3}
+                            startAngle={90}
+                            endAngle={-270}
+                          >
+                            {orderTypePieData.map((entry, idx) => (
+                              <Cell key={entry.name} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(v) => `$${Number(v).toFixed(2)}`} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    {/* Leyenda con valores en dólares y porcentajes */}
+                    <div className="flex flex-col gap-3 min-w-0">
+                      {(() => {
+                        const localVal = analytics?.byOrderType?.local?.total || 0;
+                        const onlineVal = analytics?.byOrderType?.online?.total || 0;
+                        const total = localVal + onlineVal || 1;
+                        return [
+                          { label: 'En local', value: localVal, color: CHART_COLORS[0] },
+                          { label: 'En línea', value: onlineVal, color: CHART_COLORS[1] },
+                        ].map((entry) => (
+                          <div key={entry.label} className="min-w-0">
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <span className="w-3 h-3 shrink-0 rounded-sm" style={{ background: entry.color }} />
+                              <span className="text-[11.5px] text-muted">{entry.label}</span>
+                            </div>
+                            <p className="num text-[15px] text-ink leading-tight">
+                              ${entry.value.toFixed(2)}
+                            </p>
+                            <p className="kick text-muted">
+                              {Math.round((entry.value / total) * 100)}%
+                            </p>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stock en riesgo — incrustado directamente sin Card wrapper */}
+                <div className="border-t border-line pt-5 flex-1">
+                  <StockRiskPanel naked />
+                </div>
               </div>
-            </Card>
-
-            <StockRiskPanel />
+            </div>
           </div>
         </>
       )}
@@ -696,7 +795,7 @@ export default function Dashboard() {
     <ToastProvider>
       <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
         <Sidebar activeMenu="activity" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
           <TopBar onMenuClick={() => setSidebarOpen(true)} />
           <main className="flex-1 overflow-y-auto">
             <DashboardContent />
