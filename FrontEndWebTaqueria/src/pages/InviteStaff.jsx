@@ -1,4 +1,6 @@
+// src/pages/InviteStaff.jsx
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import Sidebar from '../components/dashboard/Sidebar'
 import TopBar from '../components/dashboard/TopBar'
 import FAIcon from '../components/commons/FAIcon'
@@ -25,70 +27,75 @@ const DAYS = [
   { value: 'domingo', label: 'Dom' },
 ]
 
+const PERSONAL_TABS = [
+  { id: 'employees', label: 'EMPLEADOS', path: '/employees' },
+  { id: 'invitations', label: 'INVITACIONES', path: '/InviteStaff' },
+  { id: 'payroll_general', label: 'PLANILLA GENERAL', path: '/payroll' },
+  { id: 'payroll_bonuses', label: 'PLANILLA DE BONOS', path: '/payroll?tab=bonuses' },
+]
+
 const ROLE_CONFIG = {
   admin: {
     label: 'Administrador',
-    icon: 'shield-alt',
-    description: 'Acceso completo a la gestión del sistema',
+    icon: 'shield-halved',
+    description: 'Acceso completo a la configuración, reportes y gestión global del sistema.',
     steps: [
       {
         title: 'Información básica',
-        subtitle: 'Datos de contacto del nuevo administrador',
+        subtitle: 'Datos de contacto y credenciales del nuevo administrador',
         fields: ['email', 'name', 'lastname'],
       },
     ],
   },
   employee: {
-    label: 'Empleado',
+    label: 'Empleado operativo',
     icon: 'briefcase',
-    description: 'Acceso operativo con permisos específicos',
-    // Aviso en el botón de selección: quien va a invitar a alguien necesita
-    // tener el documento a la mano ANTES de empezar, no a mitad del proceso.
-    requirement: 'Debes tener el DUI del empleado a invitar a mano',
+    description: 'Acceso operativo con permisos asignables, horario y expediente de nómina.',
+    requirement: 'Debes tener el DUI físico del colaborador a la mano para su escaneo',
     steps: [
       {
         title: 'Información básica',
-        subtitle: 'Datos de contacto del nuevo empleado',
+        subtitle: 'Correo y datos de identificación inicial del empleado',
         fields: ['email', 'name', 'lastname'],
       },
       {
         title: 'Escanear el DUI',
-        subtitle: 'Toma las fotos del documento y el sistema llenará los datos por ti',
+        subtitle: 'Captura el frente y reverso del documento para auto-completar los datos',
         fields: ['duiScan'],
       },
       {
         title: 'Datos del documento',
-        subtitle: 'Revisa lo que se leyó del DUI y corrige lo que haga falta',
+        subtitle: 'Verifica la información leída del documento de identidad',
         fields: ['duiNit', 'birthDate', 'gender', 'maritalStatus', 'address'],
       },
       {
-        title: 'Datos personales',
-        subtitle: 'Contacto y puesto de trabajo',
+        title: 'Contacto y puesto',
+        subtitle: 'Número telefónico y asignación de puesto en taquería',
         fields: ['phone', 'type'],
       },
       {
         title: 'Información laboral',
-        subtitle: 'Salario base. AFP, ISSS y renta se calculan automáticamente',
+        subtitle: 'Salario base mensual y retenciones de ley calculadas',
         fields: ['salary', 'additionalPay', 'workInsurance'],
       },
       {
         title: 'Identificadores y banco',
-        subtitle: 'Se pueden dejar vacíos: el expediente quedará marcado como incompleto',
+        subtitle: 'Afiliaciones de seguridad social y cuenta de planilla (opcional)',
         fields: ['isssNumber', 'afpInstitution', 'afpNumber', 'bankName', 'bankAccount'],
       },
       {
         title: 'Documentos del expediente',
-        subtitle: 'Comprobante de domicilio y antecedentes penales (opcionales)',
+        subtitle: 'Comprobante de domicilio y solvencia de antecedentes (opcional)',
         fields: ['extraDocuments'],
       },
       {
         title: 'Horario de trabajo',
-        subtitle: 'Días y horas en que atiende este empleado (opcional, se puede definir después)',
+        subtitle: 'Días laborables y turnos asignados al empleado',
         fields: ['workDays', 'scheduleStart', 'scheduleEnd'],
       },
       {
         title: 'Permisos del sistema',
-        subtitle: 'A qué pantallas y funciones podrá acceder (opcional, se puede definir después)',
+        subtitle: 'Módulos y funciones operativas a las que tendrá acceso',
         fields: ['permissions'],
       },
     ],
@@ -111,12 +118,9 @@ const INITIAL_FORM_DATA = {
   scheduleStart: '',
   scheduleEnd: '',
   permissions: [],
-  // Datos que salen del DUI escaneado (el admin los revisa y corrige)
   birthDate: '',
   gender: '',
   maritalStatus: '',
-  // Identificadores de ley: pueden quedar vacíos, el expediente queda
-  // marcado como incompleto hasta que alguien los complete
   isssNumber: '',
   afpInstitution: '',
   afpNumber: '',
@@ -124,8 +128,6 @@ const INITIAL_FORM_DATA = {
   bankAccount: '',
 }
 
-// Cuánto dura un pago adicional. Un bono se pacta por un tiempo definido,
-// no para siempre.
 const ADDITIONAL_PAY_DURATIONS = [
   { value: '15d', label: '15 días' },
   { value: '1m', label: '1 mes' },
@@ -153,13 +155,9 @@ const MARITAL_STATUS_OPTIONS = [
   { value: 'acompanado', label: 'Acompañado/a' },
 ]
 
-// Estilo base para los inputs clay
 const inputClasses =
-  'w-full px-4 py-2.5 bg-surfalt border border-line rounded-none focus:outline-none focus:ring-2 focus:ring-acline focus:border-acline transition-all text-inkalt placeholder:text-muted text-sm'
+  'w-full px-3 py-1.5 bg-surfalt/40 border border-line rounded-none focus:outline-none focus:border-ac transition-colors text-ink placeholder:text-muted text-xs'
 
-// Sube el comprobante de domicilio y los antecedentes al mismo lugar donde
-// quedaron las fotos del DUI, y devuelve sus URLs para adjuntarlas a la
-// invitación.
 const uploadExtraDocuments = async ({ proofOfAddress, criminalRecord }) => {
   try {
     const body = new FormData()
@@ -182,28 +180,26 @@ const uploadExtraDocuments = async ({ proofOfAddress, criminalRecord }) => {
   }
 }
 
-// Selector de un documento del expediente. A diferencia del DUI, aquí se
-// acepta también PDF: los recibos y las solvencias suelen descargarse así.
 const DocumentSlot = ({ label, hint, file, onPick, onClear }) => (
-  <div className="flex items-center gap-3 p-3 bg-surface rounded-none border border-line">
-    <div className="w-10 h-10 rounded-full bg-acsoft flex items-center justify-center shrink-0">
-      <FAIcon icon={file ? 'file-circle-check' : 'file-arrow-up'} className="text-ac" />
+  <div className="flex items-center gap-3 p-3 bg-surfalt/30 rounded-none border border-line">
+    <div className="w-8 h-8 bg-surfalt border border-line flex items-center justify-center shrink-0">
+      <FAIcon icon={file ? 'file-circle-check' : 'file-arrow-up'} className={file ? 'text-ok' : 'text-muted'} size="sm" />
     </div>
     <div className="min-w-0 flex-1">
-      <p className="text-sm font-display font-bold text-ink">{label}</p>
+      <p className="text-xs font-bold text-ink">{label}</p>
       <p className="text-[11px] text-muted truncate">{file ? file.name : hint}</p>
     </div>
     {file ? (
       <button
         type="button"
         onClick={onClear}
-        className="text-xs text-ac font-display font-semibold shrink-0"
+        className="text-xs text-ac font-medium hover:underline shrink-0"
       >
         Quitar
       </button>
     ) : (
-      <label className="px-3 py-1.5 rounded-none bg-surfalt text-xs font-display font-semibold text-inkalt cursor-pointer hover:bg-surfalt transition-colors shrink-0">
-        Elegir
+      <label className="px-2.5 py-1 bg-surface border border-line text-xs font-medium text-ink cursor-pointer hover:border-ac hover:text-ac transition-colors shrink-0">
+        Elegir archivo
         <input
           type="file"
           accept="image/*,application/pdf"
@@ -217,21 +213,17 @@ const DocumentSlot = ({ label, hint, file, onPick, onClear }) => (
 
 function InviteStaffContent() {
   const [step, setStep] = useState(1) // 1: elegir rol, 2: formulario, 3: éxito
-  const [subStep, setSubStep] = useState(0) // índice del paso actual
+  const [subStep, setSubStep] = useState(0)
   const [role, setRole] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const { loading, error, sendInvitation, reset } = useInvitation()
   const { addToast } = useToast()
-  // Cuando el DUI se lee con éxito, sus datos pasan al formulario y la
-  // pantalla avanza sola al paso de revisión: el admin no tiene que volver
-  // a pulsar nada para ver lo que se extrajo.
+
   const duiScan = useDuiScan({
     onExtracted: (d) => {
       setFormData((prev) => ({
         ...prev,
-        // Solo se pisa lo que el documento sí trajo: si un campo no se pudo
-        // leer, se conserva lo que el admin ya hubiera escrito.
         ...(d.duiNumber ? { duiNit: d.duiNumber } : {}),
         ...(d.names ? { name: d.names } : {}),
         ...(d.lastNames ? { lastname: d.lastNames } : {}),
@@ -241,13 +233,10 @@ function InviteStaffContent() {
         ...(d.address ? { address: d.address } : {}),
       }))
 
-      // Avanza del paso de escaneo al de revisión de los datos leídos.
       setSubStep((prev) => (ROLE_CONFIG.employee.steps[prev]?.fields?.includes('duiScan') ? prev + 1 : prev))
     },
   })
 
-  // Comprobante de domicilio y antecedentes penales: se suben junto con la
-  // invitación, no antes, porque son opcionales.
   const [extraDocs, setExtraDocs] = useState({ proofOfAddress: null, criminalRecord: null })
   const [uploadingDocs, setUploadingDocs] = useState(false)
 
@@ -275,7 +264,6 @@ function InviteStaffContent() {
     }))
   }
 
-  // Validación específica para los campos del sub‑paso actual
   const validateFields = (fields) => {
     const errors = {}
     if (fields.includes('email')) {
@@ -294,8 +282,6 @@ function InviteStaffContent() {
     }
     if (fields.includes('additionalPay') && formData.additionalPay) {
       if (isNaN(formData.additionalPay)) errors.additionalPay = 'El pago adicional debe ser un número'
-      // Un bono sin plazo no se puede liquidar después: si se puso monto,
-      // hay que decir hasta cuándo.
       else if (Number(formData.additionalPay) > 0 && !formData.additionalPayDuration) {
         errors.additionalPayDuration = 'Indica por cuánto tiempo se dará el pago adicional'
       }
@@ -317,15 +303,12 @@ function InviteStaffContent() {
       return
     }
 
-    // Armar payload y enviar invitación
     const data = {
       email: formData.email.trim(),
       name: formData.name.trim(),
       lastname: formData.lastname.trim(),
     }
 
-    // Los documentos del expediente se guardan primero (la invitación viaja
-    // como JSON, así que solo puede llevar URLs, no archivos).
     let uploadedDocs = {}
     if (role === 'employee' && (extraDocs.proofOfAddress || extraDocs.criminalRecord)) {
       setUploadingDocs(true)
@@ -347,24 +330,20 @@ function InviteStaffContent() {
         type: formData.type,
         salary: Number(formData.salary),
         additionalPay: formData.additionalPay ? Number(formData.additionalPay) : 0,
-        // La duración solo tiene sentido si de verdad hay un bono
         additionalPayDuration: formData.additionalPay ? (formData.additionalPayDuration || null) : null,
         workInsurance: formData.workInsurance,
         workDays: formData.workDays,
         scheduleStart: formData.scheduleStart || null,
         scheduleEnd: formData.scheduleEnd || null,
         permissions: formData.permissions,
-        // Datos que salieron del DUI (ya revisados por el admin)
         birthDate: formData.birthDate || null,
         gender: formData.gender || null,
         maritalStatus: formData.maritalStatus || null,
-        // Identificadores de ley: pueden ir vacíos a propósito
         isssNumber: formData.isssNumber.trim() || null,
         afpInstitution: formData.afpInstitution || null,
         afpNumber: formData.afpNumber.trim() || null,
         bankName: formData.bankName.trim() || null,
         bankAccount: formData.bankAccount.trim() || null,
-        // Fotos del DUI (del escaneo) + documentos del expediente
         documents: { ...(duiScan.documents || {}), ...uploadedDocs },
       })
     }
@@ -406,78 +385,151 @@ function InviteStaffContent() {
     setSubStep(0)
     setStep(1)
     reset()
-    // El siguiente empleado tiene su propio DUI y sus propios documentos
     duiScan.reset()
     setExtraDocs({ proofOfAddress: null, criminalRecord: null })
   }
 
-  // El admin confirmó que quiere descartar el registro en curso: se limpia
-  // todo y se vuelve a la selección de rol, igual que "Invitar a otra persona"
   const handleCancelConfirmed = () => {
     setConfirmCancelOpen(false)
     handleInviteAnother()
   }
 
-  // Renderizado de la selección de rol
+  // Selección de rol con diseño acorde al resto del sistema
   const renderRoleSelection = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {Object.entries(ROLE_CONFIG).map(([key, config]) => (
-        <button
-          key={key}
-          type="button"
-          onClick={() => handleSelectRole(key)}
-          className="flex items-center gap-4 p-5 bg-surface rounded-none border border-line
-            hover:scale-[1.01] transition-all text-left"
-        >
-          <div className="w-12 h-12 bg-acsoft rounded-full flex items-center justify-center flex-shrink-0"
+    <div>
+      <div className="mb-8">
+        <p className="kick text-[10.5px] font-bold text-ac tracking-wider mb-2">
+          NUEVA INCORPORACIÓN · INVITAR AL SISTEMA
+        </p>
+        <h2 className="text-xl sm:text-2xl font-light text-ink tracking-tight mb-2">
+          Selecciona el tipo de usuario a invitar
+        </h2>
+        <p className="text-xs text-muted max-w-xl leading-relaxed">
+          Elige el perfil correspondiente para iniciar el alta guiada. Para colaboradores operativos, se completará el expediente laboral con escaneo de DUI y turnos de trabajo.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
+        {Object.entries(ROLE_CONFIG).map(([key, config]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => handleSelectRole(key)}
+            className="flex flex-col justify-between p-6 bg-surface border border-line hover:border-ac hover:bg-surfalt/30 transition-all text-left group"
           >
-            <FAIcon icon={config.icon} className="text-ac text-xl" />
-          </div>
-          <div>
-            <p className="font-display font-bold text-ink">{config.label}</p>
-            <p className="text-xs text-muted">{config.description}</p>
-            {/* Aviso de lo que hay que tener listo antes de empezar */}
-            {config.requirement && (
-              <p className="text-[11px] text-warn font-display font-semibold mt-1.5 inline-flex items-start gap-1">
-                <FAIcon icon="id-card" size="xs" className="mt-0.5 shrink-0" />
-                {config.requirement}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 bg-surfalt border border-line flex items-center justify-center text-ink group-hover:border-ac group-hover:bg-acsoft group-hover:text-ac transition-colors">
+                  <FAIcon icon={config.icon} className="text-lg" />
+                </div>
+                <span className="text-[10px] font-mono tracking-wider font-semibold uppercase px-2 py-0.5 border border-line text-muted">
+                  {key === 'admin' ? 'Acceso Total' : 'Operativo'}
+                </span>
+              </div>
+
+              <h3 className="text-base font-bold text-ink group-hover:text-ac transition-colors mb-1.5">
+                {config.label}
+              </h3>
+              <p className="text-xs text-muted leading-relaxed">
+                {config.description}
               </p>
-            )}
-          </div>
-        </button>
-      ))}
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-line/60">
+              {config.requirement ? (
+                <div className="flex items-center gap-2 text-[11px] text-warn font-medium mb-3">
+                  <FAIcon icon="id-card" size="xs" />
+                  <span>{config.requirement}</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-[11px] text-muted mb-3">
+                  <FAIcon icon="circle-info" size="xs" />
+                  <span>Requiere únicamente correo institucional y nombres completos</span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-1.5 text-xs font-bold text-ink group-hover:text-ac transition-colors">
+                <span>Continuar registro</span>
+                <FAIcon icon="arrow-right" size="xs" className="group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Tarjetas informativas de buenas prácticas */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 border-t border-line">
+        <div className="border-t border-line pt-2.5">
+          <p className="kick text-[10px] font-bold text-muted tracking-wider mb-1.5">
+            ESCANEO INTELIGENTE
+          </p>
+          <p className="text-xs text-ink font-bold">Validación de DUI OCR</p>
+          <p className="text-[11px] text-muted mt-1 leading-relaxed">
+            Extracción automática de datos del documento para reducir errores de digitación en planilla.
+          </p>
+        </div>
+
+        <div className="border-t border-line pt-2.5">
+          <p className="kick text-[10px] font-bold text-muted tracking-wider mb-1.5">
+            EXPEDIENTE LABORAL
+          </p>
+          <p className="text-xs text-ink font-bold">Cálculos automáticos de ley</p>
+          <p className="text-[11px] text-muted mt-1 leading-relaxed">
+            Deducciones de ISSS, AFP y retención de Renta calculadas en tiempo real según el salario base.
+          </p>
+        </div>
+
+        <div className="border-t border-line pt-2.5">
+          <p className="kick text-[10px] font-bold text-muted tracking-wider mb-1.5">
+            ACCESO SEGURO
+          </p>
+          <p className="text-xs text-ink font-bold">Credenciales por correo</p>
+          <p className="text-[11px] text-muted mt-1 leading-relaxed">
+            Se envía un enlace seguro al correo registrado para que el usuario active su cuenta y contraseña.
+          </p>
+        </div>
+      </div>
     </div>
   )
 
   const renderProgressDots = () => {
     if (currentStepsConfig.length <= 1) return null
     return (
-      <div className="flex items-center justify-center gap-2 mb-5">
-        {currentStepsConfig.map((_, idx) => (
-          <div
-            key={idx}
-            className={`h-1.5 rounded-full transition-all ${
-              idx === subStep ? 'w-8 bg-ac' : idx < subStep ? 'w-4 bg-acsoft' : 'w-4 bg-line'
-            }`}
-          />
-        ))}
+      <div className="mb-6 pb-4 border-b border-line">
+        <div className="flex items-center justify-between text-[11px] mb-2">
+          <span className="font-mono tracking-wider font-semibold text-ac uppercase">
+            Paso {subStep + 1} de {currentStepsConfig.length} · {currentStepsConfig[subStep]?.title}
+          </span>
+          <span className="text-muted font-mono font-medium">
+            {Math.round(((subStep + 1) / currentStepsConfig.length) * 100)}%
+          </span>
+        </div>
+        <div className="w-full bg-surfalt h-1 flex gap-1">
+          {currentStepsConfig.map((_, idx) => (
+            <div
+              key={idx}
+              className={`h-full flex-1 transition-all ${
+                idx === subStep ? 'bg-ac' : idx < subStep ? 'bg-ac/40' : 'bg-line'
+              }`}
+            />
+          ))}
+        </div>
       </div>
     )
   }
 
-  // Renderiza un campo según su nombre
   const renderField = (fieldName) => {
     switch (fieldName) {
       case 'email':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
               Correo electrónico <span className="text-ac">*</span>
             </label>
             <input
               type="email"
               name="email"
-              placeholder={`${ROLE_CONFIG[role].label.toLowerCase()}@syscor.com`}
+              placeholder={`${ROLE_CONFIG[role].label.toLowerCase()}@elcorral.com`}
               value={formData.email}
               onChange={handleChange}
               className={inputClasses}
@@ -487,8 +539,8 @@ function InviteStaffContent() {
         )
       case 'name':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
               Nombres <span className="text-ac">*</span>
             </label>
             <input
@@ -504,8 +556,8 @@ function InviteStaffContent() {
         )
       case 'lastname':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
               Apellidos <span className="text-ac">*</span>
             </label>
             <input
@@ -521,14 +573,14 @@ function InviteStaffContent() {
         )
       case 'phone':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
               Teléfono <span className="text-ac">*</span>
             </label>
             <input
               type="tel"
               name="phone"
-              placeholder="Ej. 1234-5678"
+              placeholder="Ej. 7123-4567"
               value={formData.phone}
               onChange={handleChange}
               className={inputClasses}
@@ -538,14 +590,14 @@ function InviteStaffContent() {
         )
       case 'duiNit':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
-              DUI/NIT <span className="text-ac">*</span>
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
+              DUI / NIT <span className="text-ac">*</span>
             </label>
             <input
               type="text"
               name="duiNit"
-              placeholder="Ej. 12345678-9"
+              placeholder="Ej. 01234567-8"
               value={formData.duiNit}
               onChange={handleChange}
               className={inputClasses}
@@ -555,14 +607,14 @@ function InviteStaffContent() {
         )
       case 'address':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
-              Dirección <span className="text-ac">*</span>
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
+              Dirección de residencia <span className="text-ac">*</span>
             </label>
             <input
               type="text"
               name="address"
-              placeholder="Ej. Calle Principal #123"
+              placeholder="Ej. Av. Roosevelt #123, San Salvador"
               value={formData.address}
               onChange={handleChange}
               className={inputClasses}
@@ -572,9 +624,9 @@ function InviteStaffContent() {
         )
       case 'type':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
-              Puesto <span className="text-ac">*</span>
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
+              Puesto en el restaurante <span className="text-ac">*</span>
             </label>
             <Select
               name="type"
@@ -592,14 +644,14 @@ function InviteStaffContent() {
       case 'salary': {
         const breakdown = calculatePayrollDeductions(formData.salary)
         return (
-          <div key={fieldName} className="mb-3 sm:col-span-2">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
-              Salario Base <span className="text-ac">*</span>
+          <div key={fieldName} className="mb-4 sm:col-span-2">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
+              Salario Base Mensual <span className="text-ac">*</span>
             </label>
             <input
               type="number"
               name="salary"
-              placeholder="Ej. 1500.00"
+              placeholder="Ej. 450.00"
               value={formData.salary}
               onChange={handleChange}
               className={`${inputClasses} sm:max-w-xs`}
@@ -607,18 +659,30 @@ function InviteStaffContent() {
             {validationErrors.salary && <p className="text-ac text-xs mt-1 font-medium">{validationErrors.salary}</p>}
 
             {breakdown.grossSalary > 0 && (
-              <div className="mt-3 bg-surface rounded-none border border-line p-3 sm:max-w-sm">
-                <p className="text-[11px] font-display font-bold text-muted uppercase tracking-wider mb-2">
-                  Descuentos de ley (calculados automáticamente)
+              <div className="mt-3 bg-surfalt/40 border border-line p-4 sm:max-w-md">
+                <p className="text-[10px] kick font-bold text-muted tracking-wider uppercase mb-2">
+                  Retenciones de ley calculadas automáticamente
                 </p>
-                <div className="space-y-1 text-xs text-inkalt">
-                  <div className="flex justify-between"><span>Salario bruto</span><span className="font-medium text-ink">${breakdown.grossSalary.toFixed(2)}</span></div>
-                  <div className="flex justify-between"><span>AFP (7.25%)</span><span className="text-ac">-${breakdown.afp.toFixed(2)}</span></div>
-                  <div className="flex justify-between"><span>ISSS (3%, tope $30)</span><span className="text-ac">-${breakdown.isss.toFixed(2)}</span></div>
-                  <div className="flex justify-between"><span>Renta (ISR)</span><span className="text-ac">-${breakdown.isr.toFixed(2)}</span></div>
-                  <div className="flex justify-between pt-1.5 mt-1.5 border-t border-line">
-                    <span className="font-display font-bold text-ink">Salario neto</span>
-                    <span className="font-display font-bold text-ok">${breakdown.netSalary.toFixed(2)}</span>
+                <div className="space-y-1.5 text-xs text-inkalt">
+                  <div className="flex justify-between">
+                    <span>Salario bruto:</span>
+                    <span className="font-medium text-ink">${breakdown.grossSalary.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>AFP (7.25%):</span>
+                    <span className="text-ac num">-${breakdown.afp.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>ISSS (3%, tope $30):</span>
+                    <span className="text-ac num">-${breakdown.isss.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Renta de ley (ISR):</span>
+                    <span className="text-ac num">-${breakdown.isr.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between pt-2 mt-1.5 border-t border-line">
+                    <span className="font-bold text-ink">Neto estimado a pagar:</span>
+                    <span className="font-bold text-ok num text-sm">${breakdown.netSalary.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -628,36 +692,34 @@ function InviteStaffContent() {
       }
       case 'additionalPay':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
-              Pago Adicional <span className="text-muted normal-case tracking-normal font-medium">(opcional)</span>
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
+              Bono o pago adicional <span className="text-muted normal-case font-normal">(opcional)</span>
             </label>
             <input
               type="number"
               name="additionalPay"
-              placeholder="Ej. 100.00"
+              placeholder="Ej. 50.00"
               value={formData.additionalPay}
               onChange={handleChange}
               className={inputClasses}
             />
             <p className="text-[11px] text-muted mt-1">
-              Es un bono aparte del salario: no se le descuenta AFP, ISSS ni renta.
+              Gratificación independiente del salario: exenta de descuentos de ley.
             </p>
             {validationErrors.additionalPay && <p className="text-ac text-xs mt-1 font-medium">{validationErrors.additionalPay}</p>}
 
-            {/* Un bono se pacta por un tiempo definido, así que solo se
-                pregunta la duración cuando de verdad hay un monto. */}
             {formData.additionalPay && Number(formData.additionalPay) > 0 && (
               <div className="mt-3">
-                <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
-                  ¿Por cuánto tiempo? <span className="text-ac">*</span>
+                <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
+                  Vigencia del bono <span className="text-ac">*</span>
                 </label>
                 <Select
                   name="additionalPayDuration"
                   value={formData.additionalPayDuration}
                   onChange={handleChange}
                 >
-                  <option value="">Selecciona la duración</option>
+                  <option value="">Selecciona el plazo</option>
                   {ADDITIONAL_PAY_DURATIONS.map((d) => (
                     <option key={d.value} value={d.value}>{d.label}</option>
                   ))}
@@ -673,34 +735,34 @@ function InviteStaffContent() {
         return (
           <label
             key={fieldName}
-            className="flex items-center gap-2 mb-3 p-3 bg-surface rounded-none border border-line cursor-pointer transition-shadow"
+            className="flex items-center gap-2.5 mb-4 p-3 bg-surfalt/30 border border-line cursor-pointer"
           >
             <input
               type="checkbox"
               name="workInsurance"
               checked={formData.workInsurance}
               onChange={handleChange}
-              className="w-4 h-4 accent-red-500 rounded"
+              className="w-4 h-4 accent-red-600 rounded-none cursor-pointer"
             />
-            <span className="text-sm text-inkalt font-medium">Cuenta con seguro de trabajo</span>
+            <span className="text-xs text-ink font-medium">Cuenta con seguro de vida o accidentes laborales</span>
           </label>
         )
       case 'workDays':
         return (
-          <div key={fieldName} className="mb-3 sm:col-span-2">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
-              Días que trabaja
+          <div key={fieldName} className="mb-4 sm:col-span-2">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
+              Días de trabajo semanales
             </label>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {DAYS.map((d) => (
                 <button
                   key={d.value}
                   type="button"
                   onClick={() => toggleDay(d.value)}
-                  className={`px-3 py-1.5 rounded-none text-xs font-display font-semibold border transition-colors ${
+                  className={`px-3 py-1.5 text-xs font-semibold border transition-colors ${
                     formData.workDays.includes(d.value)
                       ? 'bg-ac text-white border-ac'
-                      : 'bg-surface text-muted border-line hover:border-acline'
+                      : 'bg-surface text-muted border-line hover:border-linealt hover:text-ink'
                   }`}
                 >
                   {d.label}
@@ -711,8 +773,8 @@ function InviteStaffContent() {
         )
       case 'scheduleStart':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
               Hora de entrada
             </label>
             <input type="time" name="scheduleStart" value={formData.scheduleStart} onChange={handleChange} className={inputClasses} />
@@ -720,29 +782,26 @@ function InviteStaffContent() {
         )
       case 'scheduleEnd':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
               Hora de salida
             </label>
             <input type="time" name="scheduleEnd" value={formData.scheduleEnd} onChange={handleChange} className={inputClasses} />
           </div>
         )
-      // --- Escaneo del DUI ---
       case 'duiScan':
         return (
-          <div key={fieldName} className="mb-3 sm:col-span-2">
+          <div key={fieldName} className="mb-4 sm:col-span-2">
             <DuiScanStep
               {...duiScan}
               onSkip={() => setSubStep((prev) => prev + 1)}
             />
           </div>
         )
-
-      // --- Datos que salieron del documento (editables) ---
       case 'birthDate':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
               Fecha de nacimiento
             </label>
             <input
@@ -756,8 +815,8 @@ function InviteStaffContent() {
         )
       case 'gender':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
               Sexo
             </label>
             <Select name="gender" value={formData.gender} onChange={handleChange}>
@@ -770,8 +829,8 @@ function InviteStaffContent() {
         )
       case 'maritalStatus':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
               Estado familiar
             </label>
             <Select name="maritalStatus" value={formData.maritalStatus} onChange={handleChange}>
@@ -782,13 +841,11 @@ function InviteStaffContent() {
             </Select>
           </div>
         )
-
-      // --- Identificadores de ley y banco (pueden quedar vacíos) ---
       case 'isssNumber':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
-              Número de ISSS
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
+              Número de afiliación ISSS
             </label>
             <input
               type="text"
@@ -802,9 +859,9 @@ function InviteStaffContent() {
         )
       case 'afpInstitution':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
-              Institución de AFP
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
+              Institución administradora de pensión (AFP)
             </label>
             <Select name="afpInstitution" value={formData.afpInstitution} onChange={handleChange}>
               <option value="">Sin especificar</option>
@@ -816,9 +873,9 @@ function InviteStaffContent() {
         )
       case 'afpNumber':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
-              Número de AFP
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
+              Número Único Previsional (NUP / AFP)
             </label>
             <input
               type="text"
@@ -832,9 +889,9 @@ function InviteStaffContent() {
         )
       case 'bankName':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
-              Banco
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
+              Banco para pago de planilla
             </label>
             <input
               type="text"
@@ -848,9 +905,9 @@ function InviteStaffContent() {
         )
       case 'bankAccount':
         return (
-          <div key={fieldName} className="mb-3">
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
-              Número de cuenta
+          <div key={fieldName} className="mb-4">
+            <label className="block text-[10.5px] kick font-bold text-muted tracking-wider uppercase mb-1.5">
+              Número de cuenta bancaria
             </label>
             <input
               type="text"
@@ -861,42 +918,38 @@ function InviteStaffContent() {
               className={inputClasses}
             />
             <p className="text-[11px] text-muted mt-1">
-              Es a donde se le depositará la planilla.
+              Cuenta a donde se transferirán los desembolsos de nómina.
             </p>
           </div>
         )
-
-      // --- Documentos sueltos del expediente ---
       case 'extraDocuments':
         return (
-          <div key={fieldName} className="mb-3 sm:col-span-2 space-y-3">
+          <div key={fieldName} className="mb-4 sm:col-span-2 space-y-3">
             <DocumentSlot
               label="Comprobante de domicilio"
-              hint="Recibo de agua o luz a nombre del empleado"
+              hint="Recibo de servicio (agua o luz) reciente"
               file={extraDocs.proofOfAddress}
               onPick={(file) => setExtraDocs((prev) => ({ ...prev, proofOfAddress: file }))}
               onClear={() => setExtraDocs((prev) => ({ ...prev, proofOfAddress: null }))}
             />
             <DocumentSlot
-              label="Antecedentes penales"
-              hint="Solvencia de la Dirección General de Centros Penales"
+              label="Solvencia de antecedentes penales"
+              hint="Documento emitido por Centros Penales"
               file={extraDocs.criminalRecord}
               onPick={(file) => setExtraDocs((prev) => ({ ...prev, criminalRecord: file }))}
               onClear={() => setExtraDocs((prev) => ({ ...prev, criminalRecord: null }))}
             />
             <p className="text-[11px] text-muted">
-              Si faltan, el empleado quedará marcado con &ldquo;Atención&rdquo; hasta que se
-              agreguen desde su ficha.
+              Si faltan, el expediente quedará identificado con &ldquo;Atención requerida&rdquo; para completarse luego.
             </p>
           </div>
         )
-
       case 'permissions':
         return (
           <div key={fieldName} className="sm:col-span-2 space-y-4">
             {Object.entries(PERMISSION_GROUPS).map(([groupName, perms]) => (
               <div key={groupName}>
-                <h4 className="text-xs font-display font-bold text-muted uppercase tracking-wider mb-2">{groupName}</h4>
+                <h4 className="text-[10px] kick font-bold text-muted tracking-wider uppercase mb-2">{groupName}</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {perms.map((p) => {
                     const checked = formData.permissions.includes(p.id)
@@ -906,12 +959,12 @@ function InviteStaffContent() {
                         type="button"
                         onClick={() => togglePermission(p.id)}
                         className={`flex items-center justify-between gap-2 text-left px-3 py-2 rounded-none border transition-colors ${
-                          checked ? 'bg-acsoft border-acline' : 'bg-surface border-line hover:border-line'
+                          checked ? 'bg-acsoft/40 border-ac text-ink' : 'bg-surface border-line hover:border-linealt text-inkalt'
                         }`}
                       >
-                        <span className={`text-xs font-display font-semibold ${checked ? 'text-ac' : 'text-inkalt'}`}>{p.label}</span>
-                        <span className={`w-4 h-4 rounded flex items-center justify-center shrink-0 border ${checked ? 'bg-ac border-ac text-white' : 'border-linealt text-transparent'}`}>
-                          <FAIcon icon="check" size="xs" />
+                        <span className="text-xs font-medium">{p.label}</span>
+                        <span className={`w-3.5 h-3.5 flex items-center justify-center shrink-0 border ${checked ? 'bg-ac border-ac text-white' : 'border-line text-transparent'}`}>
+                          <FAIcon icon="check" size="2xs" />
                         </span>
                       </button>
                     )
@@ -920,8 +973,8 @@ function InviteStaffContent() {
               </div>
             ))}
             {formData.permissions.length > 0 && (
-              <p className="text-xs text-warn bg-warnsoft border border-warn rounded-none px-3 py-2">
-                Este empleado recibirá un código de acceso por correo en cuanto complete su registro, porque tendrá al menos un permiso.
+              <p className="text-xs text-warn bg-warnsoft/50 border border-warn p-3">
+                El usuario recibirá un correo de activación con sus accesos directos al completar el alta.
               </p>
             )}
           </div>
@@ -937,48 +990,59 @@ function InviteStaffContent() {
     const currentStep = config.steps[subStep]
 
     return (
-      <form onSubmit={(e) => { e.preventDefault(); handleNext() }} className="space-y-1">
-        <div className="mb-4">
-          <p className="text-sm font-display font-bold text-ink">{currentStep.title}</p>
-          <p className="text-xs text-muted">{currentStep.subtitle}</p>
-        </div>
-
+      <form onSubmit={(e) => { e.preventDefault(); handleNext() }} className="space-y-4">
         {renderProgressDots()}
 
+        <div className="mb-6">
+          <h2 className="text-lg font-bold text-ink mb-1">
+            {currentStep.title}
+          </h2>
+          <p className="text-xs text-muted">
+            {currentStep.subtitle}
+          </p>
+        </div>
+
         {error && (
-          <div className="mb-4 p-3 bg-acsoft border border-acline rounded-none flex items-start gap-2">
-            <FAIcon icon="times-circle" className="text-ac mt-0.5" />
-            <p className="text-ac text-sm">{error}</p>
+          <div className="mb-4 p-3 bg-acsoft/40 border border-ac text-ac text-xs flex items-center gap-2">
+            <FAIcon icon="circle-exclamation" />
+            <span>{error}</span>
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
           {currentStep.fields.map(renderField)}
         </div>
 
-        <div className="flex gap-2 mt-4 max-w-lg">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 pt-6 mt-6 border-t border-line max-w-xl">
           <button
             type="button"
             onClick={handleBack}
             disabled={loading || uploadingDocs}
-            className="flex-1 flex items-center justify-center gap-1 border border-linealt text-inkalt py-3 rounded-none hover:bg-surfalt transition disabled:opacity-50 font-display font-semibold text-sm"
+            className="px-4 py-2 border border-line text-xs font-semibold text-ink hover:border-linealt hover:bg-surfalt transition disabled:opacity-40"
           >
-            <FAIcon icon="chevron-left" /> Volver
+            <FAIcon icon="arrow-left" className="mr-1.5" /> Volver
           </button>
           <button
             type="button"
             onClick={() => setConfirmCancelOpen(true)}
             disabled={loading || uploadingDocs}
-            className="flex-1 flex items-center justify-center gap-1 border border-acline text-ac py-3 rounded-none hover:bg-acsoft transition disabled:opacity-50 font-display font-semibold text-sm"
+            className="px-4 py-2 border border-line text-xs font-semibold text-muted hover:text-ac hover:border-ac transition disabled:opacity-40"
           >
-            <FAIcon icon="xmark" /> Cancelar
+            Cancelar
           </button>
           <button
             type="submit"
             disabled={loading || uploadingDocs}
-            className="flex-[1.4] bg-ac hover:bg-ac text-white font-display font-semibold py-3 rounded-none transition disabled:opacity-50 flex items-center justify-center text-sm"
+            className="px-6 py-2 bg-ac hover:bg-ac/90 text-white text-xs font-semibold transition disabled:opacity-50 ml-auto flex items-center gap-2"
           >
-            {loading || uploadingDocs ? <LoadingSpinner color="white" size="sm" /> : isLastSubStep ? 'Enviar invitación' : 'Continuar'}
+            {loading || uploadingDocs ? (
+              <LoadingSpinner color="white" size="xs" />
+            ) : (
+              <>
+                <span>{isLastSubStep ? 'Enviar invitación' : 'Continuar'}</span>
+                {!isLastSubStep && <FAIcon icon="arrow-right" size="xs" />}
+              </>
+            )}
           </button>
         </div>
       </form>
@@ -986,25 +1050,32 @@ function InviteStaffContent() {
   }
 
   const renderSuccess = () => (
-    <div className="text-center space-y-4 max-w-md mx-auto">
-      <div className="flex justify-center">
-        <FAIcon icon="check-circle" className="text-ok text-6xl" />
+    <div className="py-8 max-w-md mx-auto text-center">
+      <div className="w-12 h-12 bg-oksoft border border-ok/30 flex items-center justify-center mx-auto text-ok mb-4">
+        <FAIcon icon="check" className="text-xl" />
       </div>
-      <div className="p-3 bg-oksoft border border-ok rounded-none">
-        <p className="text-ok text-sm font-medium">
-          Invitación enviada correctamente a <strong>{formData.email}</strong>
-        </p>
-      </div>
-      <p className="text-muted text-xs">
-        El {ROLE_CONFIG[role].label.toLowerCase()} recibirá un enlace para completar su registro.
+      <h2 className="text-xl font-bold text-ink mb-1">
+        Invitación enviada
+      </h2>
+      <p className="text-xs text-muted mb-6 leading-relaxed">
+        Se ha enviado el enlace de activación a <strong className="text-ink">{formData.email}</strong>. El colaborador podrá completar su registro y definir su contraseña.
       </p>
-      <button
-        type="button"
-        onClick={handleInviteAnother}
-        className="w-full mt-2 bg-ac hover:bg-ac text-white font-display font-semibold py-3 rounded-none transition"
-      >
-        Invitar a otra persona
-      </button>
+
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <button
+          type="button"
+          onClick={handleInviteAnother}
+          className="w-full sm:w-auto px-5 py-2 bg-ac hover:bg-ac/90 text-white text-xs font-semibold transition"
+        >
+          Invitar a otra persona
+        </button>
+        <Link
+          to="/employees"
+          className="w-full sm:w-auto px-5 py-2 border border-line hover:border-linealt text-ink text-xs font-semibold transition text-center"
+        >
+          Ir al listado de empleados
+        </Link>
+      </div>
     </div>
   )
 
@@ -1014,20 +1085,48 @@ function InviteStaffContent() {
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
       <Sidebar activeMenu="invite-staff" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex-1 flex flex-col min-w-0">
-        <TopBar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 sm:p-6 lg:p-8">
-            <div className="mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1">Invitar Staff</h1>
-              <p className="text-sm sm:text-base text-inkalt">
-                {step === 1 && 'Elige a quién quieres invitar al sistema'}
-                {step === 2 && `Datos del nuevo ${ROLE_CONFIG[role]?.label.toLowerCase() || ''}`}
-                {step === 3 && 'Invitación enviada'}
-              </p>
-            </div>
 
-            <div className="bg-surface rounded-none border border-line p-6 sm:p-8">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
+        <TopBar onMenuClick={() => setSidebarOpen(true)} />
+
+        <main className="flex-1 overflow-y-auto min-h-0">
+          <div className="p-4 sm:p-6 lg:p-8">
+            <div className="bg-surface border border-line p-5 sm:p-7 lg:p-8">
+              {/* Encabezado */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1">
+                    Personal
+                  </h1>
+                  <p className="text-sm text-muted">
+                    {step === 1 && 'Envío de invitaciones y alta guiada de colaboradores y administradores.'}
+                    {step === 2 && `Alta de nuevo ${ROLE_CONFIG[role]?.label.toLowerCase() || 'usuario'} · Paso ${subStep + 1} de ${currentStepsConfig.length}`}
+                    {step === 3 && 'Invitación enviada exitosamente.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Pestañas de navegación de Personal */}
+              <div className="flex items-center gap-6 sm:gap-8 border-b border-line mb-8 text-[11px] font-mono tracking-wider font-semibold">
+                {PERSONAL_TABS.map((t) => {
+                  const isActive = t.id === 'invitations';
+                  return (
+                    <Link
+                      key={t.id}
+                      to={t.path}
+                      className={`pb-3 transition-colors ${
+                        isActive
+                          ? 'text-ink border-b-2 border-ac -mb-[1px]'
+                          : 'text-muted hover:text-ink'
+                      }`}
+                    >
+                      {t.label}
+                    </Link>
+                  );
+                })}
+              </div>
+
+              {/* Contenido principal según el paso */}
               {step === 1 && renderRoleSelection()}
               {step === 2 && renderForm()}
               {step === 3 && renderSuccess()}
@@ -1041,7 +1140,7 @@ function InviteStaffContent() {
         onClose={() => setConfirmCancelOpen(false)}
         onConfirm={handleCancelConfirmed}
         title="Cancelar registro"
-        message="¿Estás seguro de que quieres cancelar? Se perderá toda la información que has ingresado."
+        message="¿Estás seguro de que deseas cancelar? Se perderá la información ingresada en este formulario."
         confirmText="Sí, cancelar"
         cancelText="Seguir editando"
         icon="triangle-exclamation"
