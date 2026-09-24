@@ -31,7 +31,10 @@ const CHART_COLORS = ['#a33527', '#3a577d'];
 
 // Rejilla de la tabla de actividad: se declara una vez porque encabezado y
 // filas tienen que compartir exactamente las mismas columnas.
-const ACTIVITY_GRID = 'grid-cols-[72px_84px_minmax(160px,1fr)_96px_132px_60px_36px]';
+const ACTIVITY_GRID = 'activity-grid';
+const ACTIVITY_GRID_STYLE = {
+  gridTemplateColumns: '76px 90px minmax(160px, 1fr) 96px 132px 64px 36px',
+};
 
 // Color de cada estado de pedido. El estado se lee por su color, así que
 // conviene que sean los del sistema y no una escala aparte.
@@ -294,7 +297,6 @@ function DashboardContent() {
           <div className="bg-surface border border-line mb-5">
           <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(360px,26%)] xl:grid-cols-[minmax(0,1fr)_minmax(400px,24%)]">
             <div className="p-6 lg:border-r border-line">
-              <div className="max-w-[880px]">
               <div className="flex flex-wrap items-baseline justify-between gap-4 mb-4">
                 <div>
                   <h3 className="text-[17px] font-display text-ink mb-1">Actividad reciente</h3>
@@ -321,8 +323,8 @@ function DashboardContent() {
               {/* Tabla editorial: encabezados en versalitas y filas separadas
                   por una regla fina, sin contenedor con borde. */}
               <div className="overflow-x-auto">
-                <div className="min-w-[640px]">
-                  <div className={`grid ${ACTIVITY_GRID} gap-3 px-1 pb-2`}>
+                <div className="w-full min-w-[640px]">
+                  <div style={ACTIVITY_GRID_STYLE} className={`${ACTIVITY_GRID} gap-3 px-1 pb-2`}>
                     <span className="kick text-muted">Pedido</span>
                     <span className="kick text-muted">Tipo</span>
                     <span className="kick text-muted">Mesa / cliente</span>
@@ -342,7 +344,8 @@ function DashboardContent() {
                         key={idx}
                         type="button"
                         onClick={() => setSelectedOrder(item.raw)}
-                        className={`row w-full text-left grid ${ACTIVITY_GRID} gap-3 items-center px-1 py-3 border-t border-line transition-colors ${
+                        style={ACTIVITY_GRID_STYLE}
+                        className={`row w-full text-left ${ACTIVITY_GRID} gap-3 items-center px-1 py-3 border-t border-line transition-colors ${
                           idx === filteredActivity.length - 1 ? 'border-b' : ''
                         }`}
                       >
@@ -416,7 +419,6 @@ function DashboardContent() {
                     <p className="text-[11.5px] text-muted mt-2">Registrados hoy</p>
                   </button>
                 </div>
-              </div>
               </div>
             </div>
 

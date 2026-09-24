@@ -112,6 +112,11 @@ h1, h2, h3, h4 {
   background-color: var(--color-surfalt);
 }
 
+.activity-grid {
+  display: grid;
+  grid-template-columns: 76px 90px minmax(160px, 1fr) 96px 132px 64px 36px;
+}
+
 /* Enlace de la barra superior: el destino activo se marca con la línea roja */
 .navlink {
   font-size: 13px;
