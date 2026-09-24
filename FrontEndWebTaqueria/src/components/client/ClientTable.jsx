@@ -1,5 +1,6 @@
 import React from 'react';
 import FAIcon from '../commons/FAIcon';
+import { getPrimaryPhone } from '../../utils/customerPhones';
 import PaginationControls from '../commons/PaginationControls';
 import usePagination from '../../hooks/usePagination';
 
@@ -44,7 +45,7 @@ const ClientTable = ({ clients, onView, isLoading }) => {
               const id = client._id || client.id;
               const fullName = `${client.personalInfo?.name || ''} ${client.personalInfo?.lastname || ''}`.trim() || 'Sin Nombre';
               const email = client.loginInfo?.email || 'Sin correo';
-              const phone = client.personalInfo?.phones?.[0] || 'Sin teléfono';
+              const phone = getPrimaryPhone(client) || 'Sin teléfono';
               const registerDate = client.createdAt ? new Date(client.createdAt).toLocaleDateString() : 'N/A';
               const isVerified = !!client.loginInfo?.isVerified;
               // Los clientes viejos no traen "status" (se agregó después), y

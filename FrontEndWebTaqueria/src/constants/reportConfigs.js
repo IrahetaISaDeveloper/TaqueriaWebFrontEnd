@@ -10,6 +10,7 @@
 // utils/reportExport.js).
 import { UNIT_LABELS } from './units';
 import { EMPLOYEE_TYPE_LABELS } from './employeeTypes';
+import { getPrimaryPhone } from '../utils/customerPhones';
 
 const money = (n) => (n === null || n === undefined || n === '' ? '' : `$${Number(n).toFixed(2)}`);
 const yesNo = (v) => (v ? 'Sí' : 'No');
@@ -188,7 +189,7 @@ export const clientsReportColumns = [
     width: 130,
   },
   { header: 'Correo', value: (c) => c.loginInfo?.email, width: 150 },
-  { header: 'Teléfono', value: (c) => (c.personalInfo?.phones || [])[0] || '' },
+  { header: 'Teléfono', value: (c) => getPrimaryPhone(c) },
   { header: 'Cuenta verificada', value: (c) => yesNo(c.loginInfo?.isVerified) },
   { header: 'Estado', value: (c) => ((c.status || 'active') === 'active' ? 'Activo' : 'Desactivado') },
   { header: 'Direcciones', value: (c) => (c.personalInfo?.addresses || []).map((a) => a.details).join(' | '), width: 160 },
