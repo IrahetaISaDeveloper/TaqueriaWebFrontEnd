@@ -3,6 +3,7 @@
 // contacto rápido (llamar, escribir, WhatsApp).
 import React, { useState, useEffect } from 'react';
 import FAIcon from '../commons/FAIcon';
+import { getClientPhones, PHONE_TYPE_LABELS } from '../../utils/customerPhones';
 
 const money = (n) => `$${Number(n || 0).toFixed(2)}`;
 
@@ -97,12 +98,12 @@ const ClientDetailModal = ({
 
   const fullName = `${client.personalInfo?.name || ''} ${client.personalInfo?.lastname || ''}`.trim() || 'Cliente';
   const addresses = client.personalInfo?.addresses || [];
-  const phones = client.personalInfo?.phones || [];
+  const phones = getClientPhones(client);
   const isVerified = !!client.loginInfo?.isVerified;
   const isActive = (client.status || 'active') === 'active';
 
   const email = client.loginInfo?.email;
-  const primaryPhone = phones[0];
+  const primaryPhone = phones[0]?.number;
   const whatsappNumber = toWhatsAppNumber(primaryPhone);
 
   const handleToggleStatus = async () => {
@@ -181,7 +182,7 @@ const ClientDetailModal = ({
 
           <Section title="Contacto">
             <InfoRow icon="envelope" label="Correo electrónico" value={client.loginInfo?.email} />
-            <InfoRow icon="phone" label="Teléfono" value={phones[0]} />
+            <InfoRow icon="phone" label={phones[0] ? `Teléfono (${PHONE_TYPE_LABELS[phones[0].type]})` : 'Teléfono'} value={primaryPhone} />
             <InfoRow icon="calendar" label="Registrado el" value={client.createdAt ? new Date(client.createdAt).toLocaleDateString('es-SV', { dateStyle: 'long' }) : null} />
           </Section>
 
@@ -196,7 +197,7 @@ const ClientDetailModal = ({
           {phones.length > 1 && (
             <Section title="Otros teléfonos">
               {phones.slice(1).map((p, idx) => (
-                <InfoRow key={idx} icon="phone" label={`Teléfono ${idx + 2}`} value={p} />
+                <InfoRow key={idx} icon="phone" label={PHONE_TYPE_LABELS[p.type] || `Teléfono ${idx + 2}`} value={p.number} />
               ))}
             </Section>
           )}
