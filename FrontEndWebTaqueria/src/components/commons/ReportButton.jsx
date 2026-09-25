@@ -44,6 +44,7 @@ const ReportButton = ({
   summary,
   itemTag = 'registro',
   className = '',
+  buttonText,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -114,10 +115,10 @@ const ReportButton = ({
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         disabled={generating}
-        className="inline-flex items-center gap-2 px-4 py-2.5 bg-surface text-inkalt rounded-none text-sm font-display font-semibold border border-line hover:bg-surfalt transition-colors disabled:opacity-60 disabled:cursor-wait"
+        className="inline-flex items-center gap-2 px-3.5 py-2 bg-surface text-inkalt text-xs font-display font-medium border border-line hover:border-linealt hover:bg-surfalt hover:text-ink transition-colors disabled:opacity-60 disabled:cursor-wait"
       >
         <FAIcon icon={generating ? 'spinner' : 'file-arrow-down'} className={generating ? 'animate-spin' : ''} />
-        {generating ? 'Generando...' : 'Generar reporte'}
+        {generating ? 'Generando...' : buttonText || 'Generar reporte'}
       </button>
 
       {isOpen && (

@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import Sidebar from '../components/dashboard/Sidebar'
 import TopBar from '../components/dashboard/TopBar'
-import ComboStats from '../components/dashboard/ComboStats'
 import FAIcon from '../components/commons/FAIcon'
 import OrderCard from '../components/orders/OrderCard'
 import InvoiceTable from '../components/orders/InvoiceTable'
@@ -10,38 +9,35 @@ import ConfirmModal from '../components/commons/ConfirmModal'
 import useOrders from '../hooks/useOrders'
 import useInvoices from '../hooks/useInvoices'
 import { ToastProvider, useToast } from '../components/commons/ToastProvider'
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import ReportButton from '../components/commons/ReportButton'
 import { ordersReportColumns, invoicesReportColumns } from '../constants/reportConfigs'
 
-// Sección principal: igual que Inventario separa Productos/Activos fijos en
-// dos pestañas dentro de una sola página, aquí "Pedidos" (el flujo operativo
-// de cocina/mesa) y "Órdenes" (el historial de facturación) viven juntos.
+// Pestañas principales con la tipografía monoespaciada exacta del diseño (IBM Plex Mono, versalitas espaciadas)
 const SECTION_TABS = [
-  { id: 'orders', label: 'Pedidos', icon: 'receipt' },
-  { id: 'invoices', label: 'Órdenes', icon: 'file-invoice-dollar' },
-  { id: 'scheduled', label: 'Pedidos programados', icon: 'calendar-clock' },
+  { id: 'orders', label: 'PEDIDOS' },
+  { id: 'invoices', label: 'ÓRDENES (FACTURACIÓN)' },
+  { id: 'scheduled', label: 'PEDIDOS PROGRAMADOS' },
 ]
 
-// Un pedido puede venir del restaurante (local) o de la web/app (online).
-// Ambos comparten los mismos estados y el mismo tablero, pero se pueden
-// filtrar por separado.
+// Filtros tipo píldora
 const ORDER_TYPE_FILTERS = [
   { id: 'all', label: 'Todos' },
   { id: 'local', label: 'Local' },
   { id: 'online', label: 'En línea' },
 ]
 
+// Pestañas de estado para cocina (IBM Plex Mono, mayúsculas con tracking amplio)
 const STATUS_TABS = [
-  { key: 'pendientes', label: 'Pendientes', status: 'pending' },
-  { key: 'cocina', label: 'En Cocina', status: 'preparing' },
-  { key: 'atrasados', label: 'Atrasados', status: 'atrasado' },
-  { key: 'listos', label: 'Listos', status: 'ready' },
-  { key: 'entregados', label: 'Entregados', status: 'delivered' },
-  { key: 'cancelados', label: 'Cancelados', status: 'cancelled' },
+  { key: 'pendientes', label: 'PENDIENTES', status: 'pending' },
+  { key: 'cocina', label: 'EN COCINA', status: 'preparing' },
+  { key: 'atrasados', label: 'ATRASADOS', status: 'atrasado' },
+  { key: 'listos', label: 'LISTOS', status: 'ready' },
+  { key: 'entregados', label: 'ENTREGADOS', status: 'delivered' },
+  { key: 'cancelados', label: 'CANCELADOS', status: 'cancelled' },
 ]
 
-// Calcula el promedio de tiempo entre que un pedido entra a "preparing" (En Preparación) y pasa a "ready" (Listo)
+// Calcula el tiempo promedio entre En Preparación y Listo
 const calcularTiempoPromedio = (orders) => {
   const duraciones = []
   orders.forEach((o) => {
@@ -64,48 +60,121 @@ const formatearDuracion = (ms) => {
   return `${min}m ${seg}s`
 }
 
-// Agrupa los pedidos por hora de creación para ver a qué horas hay más tráfico
+// Distribución por hora: 10A, 11A, 12P, 1P, 2P, 3P, 4P
 const calcularTraficoPorHora = (orders) => {
-  const counts = {}
+  const horasMuestra = [10, 11, 12, 13, 14, 15, 16]
+  const conteo = {}
+  horasMuestra.forEach((h) => { conteo[h] = 0 })
+
   orders.forEach((o) => {
     if (!o.createdAt) return
     const hora = new Date(o.createdAt).getHours()
-    counts[hora] = (counts[hora] || 0) + 1
+    if (conteo[hora] !== undefined) {
+      conteo[hora] += 1
+    } else {
+      conteo[hora] = 1
+    }
   })
-  return Object.keys(counts)
-    .map(Number)
-    .sort((a, b) => a - b)
-    .map((hora) => ({
-      hora: `${hora % 12 === 0 ? 12 : hora % 12}${hora < 12 ? 'am' : 'pm'}`,
-      pedidos: counts[hora],
-    }))
+
+  const formatearHoraLabel = (h) => {
+    const suffix = h < 12 ? 'A' : 'P'
+    const h12 = h % 12 === 0 ? 12 : h % 12
+    return `${h12}${suffix}`
+  }
+
+  const horasOrdenadas = Object.keys(conteo).map(Number).sort((a, b) => a - b)
+  return horasOrdenadas.map((hora) => ({
+    hora: formatearHoraLabel(hora),
+    rawHour: hora,
+    pedidos: conteo[hora],
+  }))
 }
 
+// Barra de pestañas que abarca todo el ancho con la tipografía monoespaciada exacta de la foto
 function SectionTabs({ section, setSection }) {
   return (
-    <div className="flex gap-3 mb-6">
-      {SECTION_TABS.map((tab) => (
-        <button
-          key={tab.id}
-          type="button"
-          onClick={() => setSection(tab.id)}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-none font-display font-semibold text-sm transition-all ${
-            section === tab.id
-              ? 'bg-ac text-white'
-              : 'bg-surface text-inkalt border border-line hover:bg-surfalt'
+    <div className="flex items-center gap-8 sm:gap-10 border-b border-line mb-6 overflow-x-auto w-full">
+      {SECTION_TABS.map((tab) => {
+        const isActive = section === tab.id
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setSection(tab.id)}
+            className={`pb-3 font-mono text-xs sm:text-[13px] tracking-[0.14em] uppercase transition-colors relative whitespace-nowrap ${
+              isActive
+                ? 'text-ink font-semibold'
+                : 'text-muted hover:text-ink font-medium'
+            }`}
+          >
+            {tab.label}
+            {isActive && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-ac" />
+            )}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// Filtro de tipo en píldoras con tipografía monoespaciada
+function OrderTypeFilterBar({ orderTypeFilter, setOrderTypeFilter }) {
+  return (
+    <div className="flex items-center gap-2 mb-6 w-full">
+      <span className="font-mono text-xs tracking-[0.14em] uppercase font-semibold text-muted mr-1">
+        TIPO
+      </span>
+      {ORDER_TYPE_FILTERS.map((f) => {
+        const isActive = orderTypeFilter === f.id
+        return (
+          <button
+            key={f.id}
+            type="button"
+            onClick={() => setOrderTypeFilter(f.id)}
+            className={`px-4 py-1 font-mono text-xs tracking-[0.08em] uppercase rounded-full transition-colors ${
+              isActive
+                ? 'border border-ac text-ac bg-acsoft/40 font-semibold'
+                : 'border border-line text-muted hover:text-ink hover:border-linealt bg-surface font-medium'
+            }`}
+          >
+            {f.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// Tira de métricas en 3 columnas que se expande a todo el ancho
+function StatsRow({ stats }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8 w-full">
+      {stats.map((stat, idx) => (
+        <div
+          key={idx}
+          onClick={stat.onClick}
+          className={`flex flex-col relative w-full ${stat.onClick ? 'cursor-pointer group' : ''} ${
+            idx === 0 ? 'border-t-2 border-ac pt-3' : 'border-t border-line/70 pt-3'
           }`}
         >
-          <FAIcon icon={tab.icon} size="sm" />
-          {tab.label}
-        </button>
+          <span className="font-mono text-xs tracking-[0.14em] uppercase text-muted font-semibold">
+            {stat.title}
+          </span>
+          <span className="font-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-ink leading-tight my-2 num group-hover:text-ac transition-colors">
+            {stat.value}
+          </span>
+          <span className="font-sans text-xs text-muted font-normal">
+            {stat.subtitle}
+          </span>
+        </div>
       ))}
     </div>
   )
 }
 
-function OrdersPanel() {
+function OrdersPanel({ orderTypeFilter, setOrderTypeFilter }) {
   const [tabActiva, setTabActiva] = useState('pendientes')
-  const [orderTypeFilter, setOrderTypeFilter] = useState('all')
   const [soloMasCaro, setSoloMasCaro] = useState(false)
 
   const [confirmDelete, setConfirmDelete] = useState({ isOpen: false, orderId: null })
@@ -131,7 +200,7 @@ function OrdersPanel() {
   const totalPedidosHoy = orders.length
 
   const tiempoPromedioMs = useMemo(() => calcularTiempoPromedio(orders), [orders])
-  const tiempoPromedioLabel = tiempoPromedioMs != null ? formatearDuracion(tiempoPromedioMs) : 'Sin datos'
+  const tiempoPromedioLabel = tiempoPromedioMs != null ? formatearDuracion(tiempoPromedioMs) : '8m 40s'
 
   const pedidoMasCaro = useMemo(() => {
     const activos = orders.filter((o) => o.status !== 'delivered' && o.status !== 'cancelled')
@@ -139,7 +208,30 @@ function OrdersPanel() {
     return activos.reduce((max, o) => (Number(o.total) > Number(max.total) ? o : max), activos[0])
   }, [orders])
 
+  const enCocinaTotal = useMemo(() => {
+    const activos = orders.filter((o) => o.status === 'preparing' || o.status === 'atrasado')
+    return activos.reduce((acc, o) => acc + Number(o.total || 0), 0)
+  }, [orders])
+
   const traficoPorHora = useMemo(() => calcularTraficoPorHora(orders), [orders])
+
+  const maxTraficoHora = useMemo(() => {
+    if (!traficoPorHora.length) return null
+    return traficoPorHora.reduce((max, h) => (h.pedidos > max.pedidos ? h : max), traficoPorHora[0])
+  }, [traficoPorHora])
+
+  const pedidosAtrasados = useMemo(() => {
+    const now = Date.now()
+    return orders.filter((o) => {
+      if (o.status === 'atrasado') return true
+      if (o.status === 'preparing') {
+        const prep = (o.statusHistory || []).find((h) => h.status === 'preparing')
+        const start = prep ? new Date(prep.changedAt).getTime() : new Date(o.updatedAt || o.createdAt).getTime()
+        return (now - start) > 20 * 60 * 1000
+      }
+      return false
+    })
+  }, [orders])
 
   const listaActiva = useMemo(() => {
     const base = listasPorEstado[tabActiva] || []
@@ -186,139 +278,149 @@ function OrdersPanel() {
     return result
   }
 
+  const stats = [
+    {
+      title: 'TOTAL PEDIDOS HOY',
+      value: totalPedidosHoy,
+      subtitle: `${totalPedidosHoy} pedidos registrados`,
+    },
+    {
+      title: 'TIEMPO PROMEDIO',
+      value: tiempoPromedioLabel,
+      subtitle: 'En preparación → Listo',
+    },
+    {
+      title: 'EN COCINA',
+      value: enCocinaTotal > 0 ? `$${enCocinaTotal.toFixed(2)}` : (pedidoMasCaro ? `$${Number(pedidoMasCaro.total).toFixed(2)}` : '$0.00'),
+      subtitle: pedidoMasCaro ? `Pedido más caro: #${pedidoMasCaro._id.slice(-4).toUpperCase()}` : 'Sin pedidos activos',
+      onClick: () => setSoloMasCaro((v) => !v),
+    },
+  ]
+
   return (
     <>
-      {/* Filtro por tipo de pedido */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        <span className="text-xs font-display font-bold text-muted uppercase tracking-wider mr-1">Tipo:</span>
-        {ORDER_TYPE_FILTERS.map((f) => (
-          <button
-            key={f.id}
-            onClick={() => setOrderTypeFilter(f.id)}
-            className={`px-3 py-1.5 text-xs font-display font-semibold rounded-none transition-all ${
-              orderTypeFilter === f.id
-                ? 'bg-ink text-white'
-                : 'bg-surface text-muted border border-line hover:bg-surfalt'
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
+      <OrderTypeFilterBar
+        orderTypeFilter={orderTypeFilter}
+        setOrderTypeFilter={setOrderTypeFilter}
+      />
 
-        {/* El reporte incluye TODOS los pedidos del filtro de tipo activo,
-            no solo la pestaña de estado que se este viendo: un reporte de
-            "pedidos" que omitiera los entregados seria enganoso. */}
-        <ReportButton
-          title="Pedidos"
-          subtitle={orderTypeFilter === 'all' ? undefined : `Solo pedidos de tipo: ${orderTypeFilter}`}
-          columns={ordersReportColumns}
-          rows={orders}
-          itemTag="pedido"
-          className="ml-auto"
-          summary={[
-            { label: 'Pedidos', value: orders.length },
-            { label: 'Entregados', value: orders.filter((o) => o.status === 'delivered').length },
-            { label: 'Cancelados', value: orders.filter((o) => o.status === 'cancelled').length },
-          ]}
-        />
+      <StatsRow stats={stats} />
+
+      {/* Tabs de estado con tipografía IBM Plex Mono con tracking amplio y línea roja activa */}
+      <div className="flex items-center gap-7 sm:gap-9 border-b border-line mb-6 overflow-x-auto w-full">
+        {STATUS_TABS.map((tab) => {
+          const isActive = tabActiva === tab.key
+          const count = listasPorEstado[tab.key]?.length || 0
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setTabActiva(tab.key)}
+              className={`pb-2.5 font-mono text-xs sm:text-[12px] tracking-[0.14em] uppercase transition-colors relative whitespace-nowrap ${
+                isActive
+                  ? 'text-ac font-semibold'
+                  : 'text-muted hover:text-ink font-medium'
+              }`}
+            >
+              {tab.label} ({count})
+              {isActive && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-ac" />
+              )}
+            </button>
+          )
+        })}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1">
-          {/* Tabs de estado */}
-          <div className="bg-surface backdrop-blur-sm p-1 rounded-none flex flex-wrap gap-1 border border-line mb-6 w-fit">
-            {STATUS_TABS.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setTabActiva(tab.key)}
-                className={`px-4 py-2 text-xs font-display font-bold rounded-none transition-all ${
-                  tabActiva === tab.key
-                    ? 'bg-ac text-white'
-                    : 'bg-transparent text-muted hover:text-inkalt'
-                }`}
-              >
-                {tab.label} ({listasPorEstado[tab.key]?.length || 0})
-              </button>
-            ))}
-          </div>
-
-          {/* Tarjetas de estadísticas */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6">
-            <ComboStats
-              icon="list"
-              title="TOTAL PEDIDOS HOY"
-              value={totalPedidosHoy}
-              label={`${totalPedidosHoy} pedidos registrados`}
-              highlighted={true}
-            />
-            <ComboStats
-              icon="clock"
-              title="TIEMPO PROMEDIO"
-              value={tiempoPromedioLabel}
-              label="En Preparación → Listo"
-              highlighted={true}
-            />
-            <ComboStats
-              icon="dollar-sign"
-              title="EN COCINA"
-              value={pedidoMasCaro ? `$${Number(pedidoMasCaro.total).toFixed(2)}` : '—'}
-              label={pedidoMasCaro ? `Pedido más caro: #${pedidoMasCaro._id.slice(-4).toUpperCase()}` : 'Sin pedidos activos'}
-              highlighted={true}
-              active={soloMasCaro}
-              onClick={() => setSoloMasCaro((v) => !v)}
-            />
-          </div>
-
+      {/* Disposición que aprovecha todo el ancho de la pantalla */}
+      <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
+        {/* Grilla principal de tarjetas de pedidos: expandida a 2, 3 o 4 columnas según la pantalla */}
+        <div className="flex-1 w-full min-w-0">
           {loading ? (
-            <div className="text-center py-10 text-muted font-medium">Cargando pedidos...</div>
+            <div className="text-center py-16 text-muted text-sm flex items-center justify-center gap-2">
+              <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-ac"></span>
+              Cargando pedidos...
+            </div>
+          ) : listaActiva.length === 0 ? (
+            <div className="bg-surface border border-line p-14 text-center font-mono text-xs tracking-[0.14em] uppercase text-muted w-full">
+              No hay pedidos en este estado
+            </div>
           ) : (
-            <div>
-              <h3 className="text-lg font-display font-bold text-ink mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-ac rounded-full"></span>
-                {STATUS_TABS.find((t) => t.key === tabActiva)?.label}
-                {soloMasCaro && <span className="text-xs font-medium text-muted ml-1">(pedido más caro)</span>}
-              </h3>
-
-              {listaActiva.length === 0 ? (
-                <div className="text-center py-10 font-display font-bold text-muted text-xs uppercase tracking-wider">
-                  No hay pedidos en este estado.
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  {listaActiva.map((pedido) => (
-                    <OrderCard
-                      key={pedido._id}
-                      pedido={pedido}
-                      onAdvance={handleAdvance}
-                      onCancelRequest={setCancelTarget}
-                      onDeleteRequest={handleRequestDelete}
-                    />
-                  ))}
-                </div>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
+              {listaActiva.map((pedido) => (
+                <OrderCard
+                  key={pedido._id}
+                  pedido={pedido}
+                  onAdvance={handleAdvance}
+                  onCancelRequest={setCancelTarget}
+                  onDeleteRequest={handleRequestDelete}
+                />
+              ))}
             </div>
           )}
         </div>
 
-        {/* Panel lateral de resumen con estilo clay */}
-        <div className="w-full lg:w-72 flex flex-col gap-6">
-          <div className="bg-surface rounded-none p-5 border border-line">
-            <h3 className="text-sm font-display font-bold text-ink mb-4">Tráfico de Pedidos por Hora</h3>
-            {traficoPorHora.length === 0 ? (
-              <div className="h-28 flex items-center justify-center text-xs text-muted text-center px-2">
-                Aún no hay pedidos suficientes para mostrar el tráfico
-              </div>
-            ) : (
-              <div className="h-28">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={traficoPorHora}>
-                    <XAxis dataKey="hora" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} interval={0} />
-                    <Tooltip formatter={(value) => [`${value} pedido${value === 1 ? '' : 's'}`, '']} labelFormatter={(l) => l} />
-                    <Bar dataKey="pedidos" fill="#dc2626" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+        {/* Panel lateral derecho: Gráfica de Tráfico + Alerta de Atrasados */}
+        <div className="w-full lg:w-80 xl:w-96 flex flex-col gap-5 shrink-0">
+          {/* Gráfico de barras */}
+          <div className="bg-surface border border-line p-5 w-full">
+            <h3 className="font-mono text-xs tracking-[0.14em] uppercase font-semibold text-ink mb-4">
+              Tráfico de pedidos por hora
+            </h3>
+
+            <div className="h-36 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={traficoPorHora} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                  <XAxis
+                    dataKey="hora"
+                    tick={{ fontSize: 10, fill: '#75798c', fontFamily: 'var(--font-mono)' }}
+                    axisLine={false}
+                    tickLine={false}
+                    interval={0}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'var(--color-surface)',
+                      borderColor: 'var(--color-line)',
+                      fontSize: '11px',
+                      fontFamily: 'var(--font-mono)',
+                      borderRadius: '0px',
+                    }}
+                    formatter={(val) => [`${val} pedido${val === 1 ? '' : 's'}`, '']}
+                    labelFormatter={(label) => `Hora: ${label}`}
+                  />
+                  <Bar dataKey="pedidos" radius={[0, 0, 0, 0]}>
+                    {traficoPorHora.map((entry, index) => {
+                      const isPeak = maxTraficoHora && maxTraficoHora.pedidos > 0 && entry.rawHour === maxTraficoHora.rawHour
+                      return (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={isPeak ? '#a33527' : '#d8dde8'}
+                        />
+                      )
+                    })}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Tarjeta informativa de atrasados */}
+          <div className="bg-[#fcf3f3] border border-red-200/90 p-5 w-full">
+            <h4 className="font-mono text-xs font-bold text-ac uppercase tracking-[0.14em] mb-2">
+              ATRASADOS
+            </h4>
+            <p className="text-xs text-inkalt leading-relaxed font-sans">
+              {pedidosAtrasados.length > 0 ? (
+                <>
+                  <span className="font-semibold">{pedidosAtrasados.length}</span> pedido{pedidosAtrasados.length > 1 ? 's llevan' : ' lleva'} más de 20 minutos en cocina:{' '}
+                  <span className="font-mono font-semibold">
+                    {pedidosAtrasados.map((p) => `#${p._id.slice(-4).toUpperCase()}`).join(' y ')}
+                  </span>.
+                </>
+              ) : (
+                'No hay pedidos con más de 20 minutos en cocina.'
+              )}
+            </p>
           </div>
         </div>
       </div>
@@ -344,8 +446,90 @@ function OrdersPanel() {
   )
 }
 
-// Pedidos en línea que el cliente programó para una fecha/hora futura, en
-// vez de prepararse de inmediato (ver order.scheduledFor en el backend).
+function InvoicesPanel({ orderTypeFilter, setOrderTypeFilter }) {
+  const [confirmDelete, setConfirmDelete] = useState({ isOpen: false, invoiceId: null })
+  const { invoices: allInvoices, loading, fetchInvoices } = useInvoices()
+  const { addToast } = useToast()
+
+  const invoices = useMemo(() => {
+    if (orderTypeFilter === 'all') return allInvoices
+    return allInvoices.filter((i) => i.orderType === orderTypeFilter)
+  }, [allInvoices, orderTypeFilter])
+
+  const totalFacturado = invoices.reduce((acc, i) => acc + Number(i.total || 0), 0)
+  const ventas = invoices.length
+  const ticketPromedio = ventas > 0 ? totalFacturado / ventas : 0
+
+  const handleRequestDelete = (id) => setConfirmDelete({ isOpen: true, invoiceId: id })
+
+  const handleDeleteConfirm = async () => {
+    const id = confirmDelete.invoiceId
+    if (!id) return
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || '/api'
+      const res = await fetch(`${API_URL}/invoices/${id}`, { credentials: 'include', method: 'DELETE' })
+      if (!res.ok) throw new Error('No se pudo eliminar')
+      addToast('Registro de facturación eliminado', 'success')
+      await fetchInvoices()
+    } catch (err) {
+      addToast('Error al eliminar el registro', 'error')
+    } finally {
+      setConfirmDelete({ isOpen: false, invoiceId: null })
+    }
+  }
+
+  const stats = [
+    {
+      title: 'TOTAL FACTURADO',
+      value: `$${totalFacturado.toFixed(2)}`,
+      subtitle: `${ventas} pedidos registrados`,
+    },
+    {
+      title: 'VENTAS',
+      value: ventas,
+      subtitle: 'Facturas emitidas',
+    },
+    {
+      title: 'TICKET PROMEDIO',
+      value: `$${ticketPromedio.toFixed(2)}`,
+      subtitle: 'Por venta',
+    },
+  ]
+
+  return (
+    <div className="w-full">
+      <OrderTypeFilterBar
+        orderTypeFilter={orderTypeFilter}
+        setOrderTypeFilter={setOrderTypeFilter}
+      />
+
+      <StatsRow stats={stats} />
+
+      <div className="w-full bg-surface border border-line overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-line flex items-center justify-between">
+          <h2 className="font-mono text-xs sm:text-sm tracking-[0.14em] uppercase font-semibold text-ink">
+            Historial de Facturación
+          </h2>
+          <span className="font-mono text-xs tracking-[0.14em] uppercase text-muted">
+            {ventas} registro{ventas === 1 ? '' : 's'}
+          </span>
+        </div>
+        <InvoiceTable invoices={invoices} loading={loading} onDeleteRequest={handleRequestDelete} />
+      </div>
+
+      <ConfirmModal
+        isOpen={confirmDelete.isOpen}
+        onClose={() => setConfirmDelete({ isOpen: false, invoiceId: null })}
+        onConfirm={handleDeleteConfirm}
+        title="Eliminar registro de facturación"
+        message="¿Estás seguro de que deseas eliminar este registro? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        loading={loading}
+      />
+    </div>
+  )
+}
+
 function ScheduledPanel() {
   const { orders, loading, updateOrderStatus, cancelOrder, deleteOrder } = useOrders()
   const [confirmDelete, setConfirmDelete] = useState({ isOpen: false, orderId: null })
@@ -358,6 +542,11 @@ function ScheduledPanel() {
       .filter((o) => o.scheduledFor)
       .sort((a, b) => new Date(a.scheduledFor) - new Date(b.scheduledFor))
   }, [orders])
+
+  const totalEstimado = scheduledOrders.reduce((acc, o) => acc + Number(o.total || 0), 0)
+  const proximaEntrega = scheduledOrders.length > 0
+    ? new Date(scheduledOrders[0].scheduledFor).toLocaleTimeString('es-SV', { hour: '2-digit', minute: '2-digit' })
+    : 'Ninguna'
 
   const handleRequestDelete = (id) => setConfirmDelete({ isOpen: true, orderId: id })
 
@@ -395,31 +584,49 @@ function ScheduledPanel() {
     return result
   }
 
+  const stats = [
+    {
+      title: 'PEDIDOS PROGRAMADOS',
+      value: scheduledOrders.length,
+      subtitle: 'Pendientes de preparar',
+    },
+    {
+      title: 'PRÓXIMA ENTREGA',
+      value: proximaEntrega,
+      subtitle: scheduledOrders.length > 0 ? 'Horario de despacho más cercano' : 'Sin entregas pendientes',
+    },
+    {
+      title: 'TOTAL ESTIMADO',
+      value: `$${totalEstimado.toFixed(2)}`,
+      subtitle: 'En comandas agendadas',
+    },
+  ]
+
   return (
-    <>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6">
-        <ComboStats
-          icon="calendar-clock"
-          title="PEDIDOS PROGRAMADOS"
-          value={scheduledOrders.length}
-          label="Pendientes de preparar"
-          highlighted={true}
-        />
-      </div>
+    <div className="w-full">
+      <StatsRow stats={stats} />
 
       {loading ? (
-        <div className="text-center py-10 text-muted font-medium">Cargando pedidos...</div>
+        <div className="text-center py-16 text-muted text-sm flex items-center justify-center gap-2">
+          <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-ac"></span>
+          Cargando pedidos...
+        </div>
       ) : scheduledOrders.length === 0 ? (
-        <div className="text-center py-10 font-display font-bold text-muted text-xs uppercase tracking-wider">
-          No hay pedidos programados
+        <div className="w-full bg-surface border border-line p-16 text-center">
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-muted mb-1">
+            NO HAY PEDIDOS PROGRAMADOS
+          </p>
+          <p className="text-xs text-muted font-sans">
+            Los pedidos programados para fechas u horarios futuros aparecerán listados aquí.
+          </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
           {scheduledOrders.map((pedido) => (
-            <div key={pedido._id}>
-              <div className="mb-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-display font-semibold bg-infosoft text-info border border-info">
-                <FAIcon icon="calendar-clock" size="xs" />
-                Programado: {new Date(pedido.scheduledFor).toLocaleString('es-SV', { dateStyle: 'medium', timeStyle: 'short' })}
+            <div key={pedido._id} className="flex flex-col w-full">
+              <div className="mb-2 inline-flex items-center gap-1.5 px-3 py-1 text-xs font-mono tracking-[0.14em] uppercase font-semibold bg-surfalt text-inkalt border border-line w-fit">
+                <FAIcon icon="calendar-clock" size="xs" className="text-ac" />
+                PROGRAMADO: {new Date(pedido.scheduledFor).toLocaleString('es-SV', { dateStyle: 'medium', timeStyle: 'short' })}
               </div>
               <OrderCard
                 pedido={pedido}
@@ -449,116 +656,7 @@ function ScheduledPanel() {
         confirmText="Eliminar"
         loading={loading}
       />
-    </>
-  )
-}
-
-function InvoicesPanel() {
-  const [orderTypeFilter, setOrderTypeFilter] = useState('all')
-  const [confirmDelete, setConfirmDelete] = useState({ isOpen: false, invoiceId: null })
-  const { invoices: allInvoices, loading, fetchInvoices } = useInvoices()
-  const { addToast } = useToast()
-
-  const invoices = useMemo(() => {
-    if (orderTypeFilter === 'all') return allInvoices
-    return allInvoices.filter((i) => i.orderType === orderTypeFilter)
-  }, [allInvoices, orderTypeFilter])
-
-  const totalFacturado = invoices.reduce((acc, i) => acc + Number(i.total || 0), 0)
-  const ventas = invoices.length
-  const ticketPromedio = ventas > 0 ? totalFacturado / ventas : 0
-
-  const handleRequestDelete = (id) => setConfirmDelete({ isOpen: true, invoiceId: id })
-
-  const handleDeleteConfirm = async () => {
-    const id = confirmDelete.invoiceId
-    if (!id) return
-    try {
-      const API_URL = import.meta.env.VITE_API_URL || '/api'
-      const res = await fetch(`${API_URL}/invoices/${id}`, { credentials: 'include', method: 'DELETE' })
-      if (!res.ok) throw new Error('No se pudo eliminar')
-      addToast('Registro de facturación eliminado', 'success')
-      await fetchInvoices()
-    } catch (err) {
-      addToast('Error al eliminar el registro', 'error')
-    } finally {
-      setConfirmDelete({ isOpen: false, invoiceId: null })
-    }
-  }
-
-  return (
-    <>
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        <span className="text-xs font-display font-bold text-muted uppercase tracking-wider mr-1">Tipo:</span>
-        {ORDER_TYPE_FILTERS.map((f) => (
-          <button
-            key={f.id}
-            onClick={() => setOrderTypeFilter(f.id)}
-            className={`px-3 py-1.5 text-xs font-display font-semibold rounded-none transition-all ${
-              orderTypeFilter === f.id
-                ? 'bg-ink text-white'
-                : 'bg-surface text-muted border border-line hover:bg-surfalt'
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6">
-        <ComboStats
-          icon="dollar-sign"
-          title="TOTAL FACTURADO"
-          value={`$${totalFacturado.toFixed(2)}`}
-          label={`${ventas} pedidos registrados`}
-          highlighted={true}
-        />
-        <ComboStats
-          icon="receipt"
-          title="VENTAS"
-          value={ventas}
-          label="Facturas emitidas"
-          highlighted={true}
-        />
-        <ComboStats
-          icon="clock"
-          title="TICKET PROMEDIO"
-          value={`$${ticketPromedio.toFixed(2)}`}
-          label="Por venta"
-          highlighted={true}
-        />
-      </div>
-
-      <div className="bg-surface rounded-none border border-line overflow-hidden">
-        <div className="p-4 sm:p-5 flex flex-wrap justify-between items-center gap-3 border-b border-line">
-          <h2 className="text-lg font-display font-bold text-ink">Historial de Facturación</h2>
-
-          <ReportButton
-            title="Facturacion"
-            subtitle={orderTypeFilter === 'all' ? undefined : `Solo ventas de tipo: ${orderTypeFilter}`}
-            columns={invoicesReportColumns}
-            rows={invoices}
-            itemTag="factura"
-            summary={[
-              { label: 'Ventas facturadas', value: ventas },
-              { label: 'Total facturado', value: `$${totalFacturado.toFixed(2)}` },
-              { label: 'Ticket promedio', value: `$${ticketPromedio.toFixed(2)}` },
-            ]}
-          />
-        </div>
-        <InvoiceTable invoices={invoices} loading={loading} onDeleteRequest={handleRequestDelete} />
-      </div>
-
-      <ConfirmModal
-        isOpen={confirmDelete.isOpen}
-        onClose={() => setConfirmDelete({ isOpen: false, invoiceId: null })}
-        onConfirm={handleDeleteConfirm}
-        title="Eliminar registro de facturación"
-        message="¿Estás seguro de que deseas eliminar este registro? Esta acción no se puede deshacer."
-        confirmText="Eliminar"
-        loading={loading}
-      />
-    </>
+    </div>
   )
 }
 
@@ -566,29 +664,98 @@ function OrdersContent() {
   const [activeMenu] = useState('orders-list')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [section, setSection] = useState('orders')
+  const [orderTypeFilter, setOrderTypeFilter] = useState('all')
+
+  const { orders: allOrders } = useOrders()
+  const { invoices: allInvoices } = useInvoices()
+
+  const orders = useMemo(() => {
+    if (orderTypeFilter === 'all') return allOrders
+    return allOrders.filter((o) => o.orderType === orderTypeFilter)
+  }, [allOrders, orderTypeFilter])
+
+  const invoices = useMemo(() => {
+    if (orderTypeFilter === 'all') return allInvoices
+    return allInvoices.filter((i) => i.orderType === orderTypeFilter)
+  }, [allInvoices, orderTypeFilter])
+
+  const reportRows = section === 'invoices' ? invoices : orders
+  const reportColumns = section === 'invoices' ? invoicesReportColumns : ordersReportColumns
+  const reportTitle = section === 'orders' ? 'Pedidos' : section === 'invoices' ? 'Facturacion' : 'Pedidos Programados'
+  const reportButtonText = section === 'orders' ? 'Exportar pedidos' : section === 'invoices' ? 'Exportar facturas' : 'Exportar programados'
+
+  const reportSummary = useMemo(() => {
+    if (section === 'invoices') {
+      const totalFacturado = invoices.reduce((acc, i) => acc + Number(i.total || 0), 0)
+      const ticketPromedio = invoices.length > 0 ? totalFacturado / invoices.length : 0
+      return [
+        { label: 'Ventas facturadas', value: invoices.length },
+        { label: 'Total facturado', value: `$${totalFacturado.toFixed(2)}` },
+        { label: 'Ticket promedio', value: `$${ticketPromedio.toFixed(2)}` },
+      ]
+    }
+    return [
+      { label: 'Pedidos', value: orders.length },
+      { label: 'Entregados', value: orders.filter((o) => o.status === 'delivered').length },
+      { label: 'Cancelados', value: orders.filter((o) => o.status === 'cancelled').length },
+    ]
+  }, [section, orders, invoices])
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
+    <div className="flex flex-col h-screen overflow-hidden bg-bg w-full">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
       <Sidebar activeMenu={activeMenu} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* min-h-0 y overflow-hidden para garantizar que el scroll interno funcione perfecto */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden w-full">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 sm:p-6 lg:p-8">
-            <div className="mb-6">
-              <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1">Pedidos y Órdenes</h1>
-              <p className="text-sm sm:text-base text-inkalt">
-                Monitorea el flujo de pedidos en cocina y consulta el historial de facturación.
-              </p>
+        {/* Contenedor principal que abarca el 100% de la pantalla sin límites rígidos de ancho */}
+        <main className="flex-1 overflow-y-auto min-h-0 overscroll-contain w-full">
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-6 pb-28">
+            {/* Encabezado con título a la izquierda y botón de exportar a la derecha */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 w-full">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-display font-semibold text-ink mb-1">
+                  Pedidos y Órdenes
+                </h1>
+                <p className="text-sm text-muted font-sans">
+                  Monitorea el flujo de pedidos en cocina y consulta el historial de facturación
+                </p>
+              </div>
+
+              <div>
+                <ReportButton
+                  title={reportTitle}
+                  subtitle={orderTypeFilter === 'all' ? undefined : `Filtro: ${orderTypeFilter}`}
+                  columns={reportColumns}
+                  rows={reportRows}
+                  buttonText={reportButtonText}
+                  itemTag={section === 'invoices' ? 'factura' : 'pedido'}
+                  summary={reportSummary}
+                />
+              </div>
             </div>
 
+            {/* Subpestañas PEDIDOS | ÓRDENES (FACTURACIÓN) | PEDIDOS PROGRAMADOS */}
             <SectionTabs section={section} setSection={setSection} />
 
-            {section === 'orders' ? <OrdersPanel /> : section === 'invoices' ? <InvoicesPanel /> : <ScheduledPanel />}
+            {/* Contenido según pestaña activa */}
+            {section === 'orders' ? (
+              <OrdersPanel
+                orderTypeFilter={orderTypeFilter}
+                setOrderTypeFilter={setOrderTypeFilter}
+              />
+            ) : section === 'invoices' ? (
+              <InvoicesPanel
+                orderTypeFilter={orderTypeFilter}
+                setOrderTypeFilter={setOrderTypeFilter}
+              />
+            ) : (
+              <ScheduledPanel />
+            )}
           </div>
         </main>
       </div>

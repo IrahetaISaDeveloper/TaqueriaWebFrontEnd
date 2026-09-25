@@ -1,162 +1,112 @@
 import React from 'react'
 import FAIcon from '../commons/FAIcon'
-import { useTheme } from '../../context/themeContext'
 
-// Colores/etiquetas de cada estado de un pedido (debe coincidir con el enum
-// del backend en orderModel.js). Aplican igual para pedidos locales y online:
-// "ready" = listo para salir de cocina (a la mesa o para despacho/recoger),
-// "delivered" = ya llegó a su destino final (servido en mesa, entregado a
-// domicilio, o recogido por el cliente).
-const STATUS_META = {
-  pending: { label: 'Pendiente', accent: 'bg-muted', badge: 'bg-surfalt text-inkalt border border-line' },
-  preparing: { label: 'En Cocina', accent: 'bg-warn', badge: 'bg-warnsoft text-warn border border-warn' },
-  atrasado: { label: 'Atrasado', accent: 'bg-ac', badge: 'bg-acsoft text-ac border border-acline animate-pulse' },
-  ready: { label: 'Listo', accent: 'bg-ok', badge: 'bg-oksoft text-ok border border-ok' },
-  delivered: { label: 'Entregado', accent: 'bg-ink', badge: 'bg-line text-inkalt border border-linealt' },
-  cancelled: { label: 'Cancelado', accent: 'bg-ac', badge: 'bg-acsoft text-ac border border-acline' },
-}
-
-// Cómo se ve/llama cada tipo de pedido
-const ORDER_TYPE_META = {
-  local: { label: 'Local', icon: 'utensils', badge: 'bg-infosoft text-info border border-info' },
-  online: { label: 'En línea', icon: 'globe', badge: 'bg-infosoft text-info border border-info' },
-}
-
-// El texto/ícono del botón de acción cambia no solo por estado, sino también
-// por tipo de pedido: pasar de "ready" a "delivered" significa cosas
-// distintas según sea local (servir en mesa), a domicilio o para recoger.
+// Etiquetas del botón en formato exacto a la imagen de referencia: "Pasar a cocina"
 const getAction = (pedido) => {
-  if (pedido.status === 'pending') return { label: 'Mandar a Cocina', icon: 'utensils' }
-  if (pedido.status === 'preparing' || pedido.status === 'atrasado') return { label: 'Marcar como Listo', icon: 'check-circle' }
+  if (pedido.status === 'pending') return { label: 'Pasar a cocina' }
+  if (pedido.status === 'preparing' || pedido.status === 'atrasado') return { label: 'Marcar como listo' }
   if (pedido.status === 'ready') {
-    if (pedido.orderType === 'local') return { label: 'Servir en Mesa', icon: 'hand-holding' }
-    if (pedido.isDelivery) return { label: 'Marcar Entregado a Domicilio', icon: 'truck' }
-    return { label: 'Marcar Recogido por Cliente', icon: 'shopping-bag' }
+    if (pedido.orderType === 'local') return { label: 'Servir en mesa' }
+    if (pedido.isDelivery) return { label: 'Marcar entregado' }
+    return { label: 'Marcar recogido' }
   }
-  return { label: 'Avanzar', icon: 'arrow-right' }
+  return { label: 'Avanzar' }
 }
 
-// Tarjeta con estilo "recibo de cocina": franja de color por estado, división
-// punteada tipo perforación y borde inferior dentado, en vez de un simple
-// rectángulo plano.
 export default function OrderCard({ pedido, onAdvance, onCancelRequest, onDeleteRequest }) {
-  const { theme } = useTheme()
-  const cutColor = theme === 'dark' ? '#202024' : 'white'
-  const cutShade = theme === 'dark' ? '#1a1a1e' : '#f3f0eb'
-  const meta = STATUS_META[pedido.status] || STATUS_META.pending
-  const typeMeta = ORDER_TYPE_META[pedido.orderType] || ORDER_TYPE_META.local
   const esFinal = pedido.status === 'delivered' || pedido.status === 'cancelled'
   const codigo = `#${(pedido._id || '').slice(-4).toUpperCase()}`
   const action = getAction(pedido)
 
   const customerName = pedido.customer?.personalInfo
     ? `${pedido.customer.personalInfo.name || ''} ${pedido.customer.personalInfo.lastname || ''}`.trim()
-    : 'Cliente'
+    : (pedido.customerName || 'Cliente')
+
+  // Detalle derecho: "LOCAL · MESA 2" o "EN LÍNEA · SOFÍA MENA"
+  const headerDetail = pedido.orderType === 'local'
+    ? `LOCAL · MESA ${pedido.table?.number || (pedido.tableNumber ? pedido.tableNumber : '—')}`
+    : `EN LÍNEA · ${customerName.toUpperCase()}`
+
+  // Resumen de productos separados por punto medio: "3 quesadillas · 1 horchata"
+  const itemsSummary = (pedido.items || []).length > 0
+    ? pedido.items.map((item) => {
+        const qty = item.quantity ? `${item.quantity} ` : ''
+        const name = item.name || item.product?.name || 'Producto'
+        return `${qty}${name}`.trim()
+      }).join(' · ')
+    : 'Sin productos'
 
   return (
-    <div className="relative rounded-t-3xl overflow-hidden bg-surface border border-line hover:scale-[1.01] transition-transform flex flex-col">
-      <div className={`h-1.5 w-full ${meta.accent}`} />
-
-      <div className="p-4 sm:p-5 pb-3 flex-1">
-        <div className="flex justify-between items-start mb-2 gap-2">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-display font-bold text-sm text-ink">{codigo}</span>
-              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-display font-bold uppercase tracking-wide ${typeMeta.badge}`}>
-                <FAIcon icon={typeMeta.icon} size="xs" /> {typeMeta.label}
-              </span>
-            </div>
-
-            {pedido.orderType === 'local' ? (
-              <div className="text-xs text-muted font-medium mt-1">
-                <FAIcon icon="chair" size="xs" /> {pedido.table?.number ? `Mesa ${pedido.table.number}` : 'Mesa —'}
-                {pedido.waiter?.name && (
-                  <span className="ml-2"><FAIcon icon="user" size="xs" /> {pedido.waiter.name}</span>
-                )}
-              </div>
-            ) : (
-              <div className="text-xs text-muted font-medium mt-1">
-                <FAIcon icon="user" size="xs" /> {customerName}
-                <span className="ml-2">
-                  <FAIcon icon={pedido.isDelivery ? 'truck' : 'shopping-bag'} size="xs" /> {pedido.isDelivery ? 'A domicilio' : 'Para recoger'}
-                </span>
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <span className="font-display font-bold text-sm text-ink">${Number(pedido.total).toFixed(2)}</span>
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-display font-bold uppercase tracking-wide ${meta.badge}`}>
-              {meta.label}
-            </span>
-          </div>
+    <div className="bg-surface border border-line rounded-none p-5 sm:p-6 flex flex-col justify-between transition-colors hover:border-linealt group w-full">
+      <div>
+        {/* Cabecera: Código a la izquierda (#D7E1), Detalle a la derecha (LOCAL · MESA 2) */}
+        <div className="flex items-center justify-between gap-3">
+          <span className="font-mono text-sm sm:text-base font-normal text-ink">
+            {codigo}
+          </span>
+          <span className="font-mono text-xs font-normal text-muted tracking-[0.14em] uppercase">
+            {headerDetail}
+          </span>
         </div>
 
-        {pedido.orderType === 'online' && pedido.isDelivery && pedido.deliveryAddress && (
-          <div className="text-[11px] text-muted italic mb-1 truncate">
-            <FAIcon icon="map-marker-alt" size="xs" /> {pedido.deliveryAddress}
-          </div>
-        )}
+        {/* Listado de productos: "3 quesadillas · 1 horchata" */}
+        <div className="mt-3.5 mb-6">
+          <p className="text-sm font-sans text-inkalt leading-relaxed">
+            {itemsSummary}
+          </p>
 
-        {/* Perforación tipo recibo */}
-        <div className="border-t-2 border-dashed border-line my-2" />
-
-        <div className="flex flex-col gap-1 font-mono text-xs text-inkalt">
-          {(pedido.items || []).length === 0 ? (
-            <span className="text-muted italic">Sin productos</span>
-          ) : (
-            pedido.items.map((item, idx) => (
-              <div key={idx} className="flex justify-between py-0.5">
-                <span className="truncate pr-2">{item.quantity}x {item.name}</span>
-                {item.notes && <span className="text-muted italic truncate">{item.notes}</span>}
-              </div>
-            ))
+          {pedido.orderType === 'online' && pedido.isDelivery && pedido.deliveryAddress && (
+            <p className="text-xs text-muted italic mt-1.5 truncate">
+              <FAIcon icon="map-marker-alt" size="xs" className="mr-1" />
+              {pedido.deliveryAddress}
+            </p>
           )}
         </div>
       </div>
 
-      {!esFinal && (
-        <div className="px-4 sm:px-5 pb-4 flex gap-2">
-          <button
-            onClick={() => onAdvance(pedido._id, pedido.status)}
-            className="flex-1 py-2.5 bg-ac hover:bg-ac text-white text-xs font-display font-semibold rounded-none flex items-center justify-center gap-2 transition-all
-              active:
-            "
-          >
-            <FAIcon icon={action.icon} />
-            {action.label}
-          </button>
-          <button
-            onClick={() => onCancelRequest(pedido)}
-            className="px-3 py-2.5 text-muted hover:text-ac hover:bg-acsoft rounded-none transition-colors border border-line"
-            title="Cancelar pedido"
-          >
-            <FAIcon icon="ban" size="sm" />
-          </button>
-        </div>
-      )}
+      {/* Línea inferior: separador horizontal, precio ($11.25) y botón [Pasar a cocina] */}
+      <div className="pt-4 border-t border-line flex items-center justify-between">
+        <span className="text-base sm:text-lg font-normal text-ink">
+          ${Number(pedido.total || 0).toFixed(2)}
+        </span>
 
-      {esFinal && (
-        <div className="px-4 sm:px-5 pb-4">
-          <button
-            onClick={() => onDeleteRequest(pedido._id)}
-            className="w-full py-2 text-xs font-display font-semibold text-muted hover:text-ac hover:bg-acsoft rounded-none transition-colors border border-line"
-          >
-            <FAIcon icon="trash-alt" size="sm" className="mr-1" /> Eliminar registro
-          </button>
-        </div>
-      )}
+        <div className="flex items-center gap-2">
+          {!esFinal && (
+            <>
+              {/* Botón sutil de cancelar visible al hacer hover */}
+              {onCancelRequest && (
+                <button
+                  type="button"
+                  onClick={() => onCancelRequest(pedido)}
+                  className="opacity-0 group-hover:opacity-100 p-1.5 text-muted hover:text-ac transition-opacity"
+                  title="Cancelar pedido"
+                >
+                  <FAIcon icon="times" size="xs" />
+                </button>
+              )}
 
-      {/* Borde inferior dentado, efecto de recibo cortado */}
-      <div
-        className="h-3 w-full"
-        style={{
-          backgroundColor: cutColor,
-          backgroundImage:
-            `linear-gradient(135deg, ${cutShade} 25%, transparent 25%), linear-gradient(225deg, ${cutShade} 25%, transparent 25%)`,
-          backgroundSize: '16px 16px',
-          backgroundPosition: 'bottom left',
-        }}
-      />
+              {/* Botón idéntico a la imagen de referencia */}
+              <button
+                type="button"
+                onClick={() => onAdvance(pedido._id, pedido.status)}
+                className="border border-ac text-ac hover:bg-ac hover:text-white px-5 py-2 text-xs sm:text-[13px] font-normal rounded-none transition-colors duration-150 active:scale-[0.98]"
+              >
+                {action.label}
+              </button>
+            </>
+          )}
+
+          {esFinal && (
+            <button
+              type="button"
+              onClick={() => onDeleteRequest(pedido._id)}
+              className="border border-line text-muted hover:border-ac hover:text-ac px-4 py-2 text-xs sm:text-[13px] font-normal rounded-none transition-colors"
+            >
+              Eliminar
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

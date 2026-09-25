@@ -136,9 +136,18 @@ h1, h2, h3, h4 {
   animation: chiliWiggle 2.8s ease-in-out infinite;
 }
 
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 ::-webkit-scrollbar-thumb {
   background-color: var(--color-linealt);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-muted);
 }
 ::-webkit-scrollbar-track {
-  background-color: var(--color-surfalt);
+  background-color: transparent;
 }
+
