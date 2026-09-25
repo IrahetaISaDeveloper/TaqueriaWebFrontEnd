@@ -2,12 +2,9 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopBar from '../components/dashboard/TopBar';
-import ComboStats from '../components/dashboard/ComboStats';
 import FAIcon from '../components/commons/FAIcon';
 import InventoryModal from '../components/inventory/InventoryModal';
 import ConfirmModal from '../components/commons/ConfirmModal';
-import PaginationControls from '../components/commons/PaginationControls';
-import AttentionCenter from '../components/commons/AttentionCenter';
 import { useInventory } from '../hooks/useInventory';
 import { usePagination } from '../hooks/usePagination';
 import { ToastProvider, useToast } from '../components/commons/ToastProvider';
@@ -51,32 +48,35 @@ function InventoryContent() {
     : insumos.filter(isLowStock).length;
   const valorEstimado = insumos.reduce((acc, item) => acc + (Number(item.price || 0) * Number(item.quantity || 0)), 0);
 
+  // Insumos pendientes (incompletos, creados desde recetas)
+  const pendingItems = insumos.filter((i) => i.pending);
+
   // Badge de estado según cantidad y status (Productos) o condición (Activos fijos)
   const getStatusBadge = (item) => {
     if (isAssetTab) {
       const condition = item.condition || 'Bueno';
-      if (condition === 'De baja') return { text: 'DE BAJA', className: 'bg-acsoft text-ac border border-acline' };
-      if (condition === 'Dañado') return { text: 'DAÑADO', className: 'bg-warnsoft text-warn border border-warn' };
-      if (condition === 'Regular') return { text: 'REGULAR', className: 'bg-infosoft text-info border border-info' };
-      return { text: condition.toUpperCase(), className: 'bg-oksoft text-ok border border-ok' };
+      if (condition === 'De baja') return { text: 'DE BAJA', color: 'text-ac' };
+      if (condition === 'Dañado') return { text: 'DAÑADO', color: 'text-warn' };
+      if (condition === 'Regular') return { text: 'REGULAR', color: 'text-info' };
+      return { text: condition.toUpperCase(), color: 'text-ok' };
     }
 
     const cant = Number(item.quantity || 0);
     const currentStatus = String(item.status || '').toLowerCase();
 
     if (item.pending) {
-      return { text: 'PENDIENTE', className: 'bg-warnsoft text-warn border border-warn' };
+      return { text: 'PENDIENTE', color: 'text-warn' };
     }
     if (currentStatus === 'agotado' || cant === 0) {
-      return { text: 'AGOTADO', className: 'bg-acsoft text-ac border border-acline' };
+      return { text: 'AGOTADO', color: 'text-ac' };
     }
     if (currentStatus === 'en pedido') {
-      return { text: 'EN PEDIDO', className: 'bg-infosoft text-info border border-info' };
+      return { text: 'EN PEDIDO', color: 'text-info' };
     }
     if (isLowStock(item)) {
-      return { text: 'LOW STOCK', className: 'bg-warnsoft text-warn border border-warn' };
+      return { text: 'LOW STOCK', color: 'text-warn' };
     }
-    return { text: 'DISPONIBLE', className: 'bg-oksoft text-ok border border-ok' };
+    return { text: 'DISPONIBLE', color: 'text-ok' };
   };
 
   const handleEdit = (insumo) => {
@@ -111,7 +111,7 @@ function InventoryContent() {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
+    <div className="min-h-screen flex flex-col bg-surfalt">
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -124,16 +124,17 @@ function InventoryContent() {
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1">
           <div className="p-4 sm:p-6 lg:p-8">
-            {/* Encabezado */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+
+            {/* ── Encabezado con título y botones ── */}
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1">
-                  Control de Inventario
+                <h1 className="text-xl sm:text-2xl font-display font-bold text-ink mb-0.5">
+                  Control de inventario
                 </h1>
-                <p className="text-sm sm:text-base text-inkalt">
-                  Gestión centralizada de productos y activos fijos.
+                <p className="text-sm text-muted">
+                  Gestión centralizada de productos y activos fijos
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -161,31 +162,29 @@ function InventoryContent() {
 
                 <button
                   onClick={handleCreate}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-ac text-white rounded-none font-display font-semibold text-sm
-                    hover:bg-ac hover:
+                  className="flex items-center gap-2 px-4 py-2.5 text-ac rounded-none font-display font-semibold text-sm
+                    border border-ac hover:bg-acsoft
                     transition-all disabled:opacity-60"
                   disabled={loading}
                 >
-                  <FAIcon icon="plus" />
-                  {isAssetTab ? 'Nuevo Activo Fijo' : 'Nuevo Insumo'}
+                  {isAssetTab ? 'Nuevo Activo Fijo' : 'Nuevo insumo'}
                 </button>
               </div>
             </div>
 
-            {/* Selector de categoría principal */}
-            <div className="flex gap-3 mb-6">
+            {/* ── Pestañas tipo underline ── */}
+            <div className="flex gap-0 border-b border-line mb-6">
               {ITEM_TYPE_TABS.map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
                   onClick={() => setItemType(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-none font-display font-semibold text-sm transition-all ${
+                  className={`kick py-3 px-1 mr-6 transition-all border-b-2 ${
                     itemType === tab.id
-                      ? 'bg-ac text-white'
-                      : 'bg-surface text-inkalt border border-line hover:bg-surfalt'
+                      ? 'border-ac text-ac font-bold'
+                      : 'border-transparent text-muted hover:text-inkalt'
                   }`}
                 >
-                  <FAIcon icon={tab.icon} size="sm" />
                   {tab.label}
                 </button>
               ))}
@@ -199,134 +198,168 @@ function InventoryContent() {
               </div>
             )}
 
-            {/* Insumos pendientes de completar (creados desde el builder de recetas). Solo aplica a Productos */}
-            {!isAssetTab && (
-              <AttentionCenter
-                items={insumos.filter((i) => i.pending)}
-                getKey={(i) => i._id}
-                getTitle={(i) => i.name}
-                getImage={(i) => i.image}
-                getReason={() => 'Datos incompletos (creado desde una receta)'}
-                onEdit={handleEdit}
-              />
-            )}
-
-            {/* Estadísticas (usando ComboStats, mismo diseño que en Combos) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-              <ComboStats
-                icon={isAssetTab ? 'couch' : 'box'}
-                title={isAssetTab ? 'TOTAL ACTIVOS' : 'TOTAL INSUMOS'}
-                value={loading ? '...' : totalItems}
-                label={`${totalItems} items registrados`}
-                highlighted={true}
-              />
-              <ComboStats
-                icon="exclamation-triangle"
-                title={isAssetTab ? 'REQUIEREN ATENCIÓN' : 'ALERTAS DE STOCK'}
-                value={loading ? '...' : alertasStock}
-                label={alertasStock > 0 ? (isAssetTab ? 'Dañados o de baja' : 'Stock crítico') : 'Todo en orden'}
-                highlighted={true}
-              />
-              <ComboStats
-                icon="money-bill-wave"
-                title="VALOR ESTIMADO"
-                value={loading ? '...' : `$${valorEstimado.toFixed(2)}`}
-                label={isAssetTab ? 'Valor total de activos' : 'Valor total del inventario'}
-                highlighted={true}
-              />
-            </div>
-
-            {/* Tabla de Inventario con estilo clay */}
-            <div className="bg-surface rounded-none border border-line overflow-hidden">
-              <div className="p-4 sm:p-5 flex justify-between items-center border-b border-line">
-                <h2 className="text-lg font-display font-bold text-ink">
-                  {isAssetTab ? 'Listado de Activos Fijos' : 'Listado de Materia Prima'}
-                </h2>
+            {/* ── Estadísticas editorial: valor grande a la izquierda, tarjetas a la derecha ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 mb-6">
+              {/* Lado izquierdo: Valor estimado prominente */}
+              <div>
+                <p className="kick text-ac mb-2">
+                  {isAssetTab ? 'Valor estimado de activos' : 'Valor estimado del inventario'}
+                </p>
+                <p className="text-4xl sm:text-5xl font-display font-bold text-ink leading-none mb-2">
+                  ${Math.floor(valorEstimado).toLocaleString('en-US')}
+                  <span className="text-2xl sm:text-3xl text-muted font-medium">.{(valorEstimado % 1).toFixed(2).split('.')[1]}</span>
+                </p>
+                <p className="text-sm text-muted leading-relaxed max-w-md">
+                  {isAssetTab
+                    ? `Sobre ${totalItems} activos fijos registrados.${alertasStock > 0 ? ` ${alertasStock} ${alertasStock === 1 ? 'requiere' : 'requieren'} atención.` : ''}`
+                    : `Sobre ${totalItems} insumos registrados.${alertasStock > 0 ? ` ${alertasStock} ${alertasStock === 1 ? 'está' : 'están'} por debajo de su umbral` : ''}`
+                  }
+                  {!isAssetTab && pendingItems.length > 0 && (
+                    <>
+                      {alertasStock > 0 ? '\n' : ' '}y {pendingItems.length} {pendingItems.length === 1 ? 'quedó incompleto' : 'quedaron incompletos'} al crearse desde una receta.
+                    </>
+                  )}
+                </p>
               </div>
 
-              {loading && insumos.length === 0 ? (
-                <div className="p-8 text-center text-muted text-sm flex items-center justify-center gap-2">
-                  <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-ac"></span>
-                  Cargando...
+              {/* Lado derecho: Dos tarjetas compactas */}
+              <div className="flex gap-4 sm:gap-6">
+                <div className="text-center px-6 py-4 border-l border-line">
+                  <p className="kick text-muted mb-2">
+                    {isAssetTab ? 'Total activos' : 'Total insumos'}
+                  </p>
+                  <p className="text-3xl sm:text-4xl font-display font-bold text-ink">
+                    {loading ? '...' : totalItems}
+                  </p>
+                  <p className="text-xs text-muted mt-1">
+                    {totalItems} items registrados
+                  </p>
                 </div>
-              ) : insumos.length === 0 ? (
-                <div className="p-8 text-center text-muted text-sm">
-                  {isAssetTab ? 'No hay activos fijos registrados. ¡Agrega uno nuevo!' : 'No hay insumos en el inventario. ¡Agrega uno nuevo!'}
+                <div className="text-center px-6 py-4 border-l border-line">
+                  <p className="kick text-muted mb-2">
+                    {isAssetTab ? 'Requieren atención' : 'Alertas de stock'}
+                  </p>
+                  <p className="text-3xl sm:text-4xl font-display font-bold text-ink">
+                    {loading ? '...' : alertasStock}
+                  </p>
+                  <p className="text-xs text-muted mt-1">
+                    {alertasStock > 0
+                      ? (isAssetTab ? 'Dañados o de baja' : 'Stock crítico')
+                      : 'Todo en orden'}
+                  </p>
                 </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse min-w-[700px]">
-                    <thead>
-                      <tr className="bg-surfalt/80 border-b border-line text-xs font-display font-semibold text-muted uppercase tracking-wider">
-                        <th className="p-3 sm:p-4 pl-4 sm:pl-6">{isAssetTab ? 'Bien' : 'Insumo'}</th>
-                        <th className="p-3 sm:p-4">Categoría</th>
-                        <th className="p-3 sm:p-4">Ubicación</th>
-                        <th className="p-3 sm:p-4">Cantidad</th>
-                        <th className="p-3 sm:p-4">{isAssetTab ? 'Valor' : 'Precio Unit.'}</th>
-                        <th className="p-3 sm:p-4">{isAssetTab ? 'Condición' : 'Estado'}</th>
-                        <th className="p-3 sm:p-4 pr-4 sm:pr-6 text-right">Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-line text-sm text-inkalt">
-                      {paginatedItems.map((item) => {
-                        const badge = getStatusBadge(item);
-                        return (
-                          <tr key={item._id || item.id} className="hover:bg-surfalt/80 transition-colors">
-                            <td className="p-3 sm:p-4 pl-4 sm:pl-6">
-                              <div className="flex items-center gap-3">
-                                {item.image ? (
-                                  <img src={item.image} alt={item.name} className="w-8 h-8 rounded-none object-cover border border-line" />
-                                ) : (
-                                  <div className="w-8 h-8 rounded-none bg-surfalt border border-line flex items-center justify-center text-muted">
-                                    <FAIcon icon="image" size="sm" />
-                                  </div>
-                                )}
-                                <span className="font-display font-semibold text-ink">{item.name}</span>
-                                {item.pending && (
-                                  <span className="px-2 py-0.5 rounded-full bg-warnsoft text-warn text-[10px] font-semibold uppercase">
-                                    Pendiente
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="p-3 sm:p-4 text-inkalt font-medium">{item.type || 'Sin categoría'}</td>
-                            <td className="p-3 sm:p-4 text-muted text-xs">{item.ubication || 'No asignada'}</td>
-                            <td className="p-3 sm:p-4 font-display font-semibold text-ink">
-                              {item.quantity} {!isAssetTab && (item.unit || '')}
-                            </td>
-                            <td className="p-3 sm:p-4 font-medium text-inkalt">
-                              ${Number(item.price || 0).toFixed(2)}
-                            </td>
-                            <td className="p-3 sm:p-4">
-                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-display font-semibold ${badge.className}`}>
-                                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70"></span>
-                                {badge.text}
-                              </span>
-                            </td>
-                            <td className="p-3 sm:p-4 pr-4 sm:pr-6 text-right">
-                              <button
-                                onClick={() => handleEdit(item)}
-                                className="text-muted hover:text-inkalt p-1.5 rounded-none hover:bg-surfalt transition-colors"
-                              >
-                                <FAIcon icon="edit" />
-                              </button>
-                              <button
-                                onClick={() => handleRequestDelete(item._id || item.id)}
-                                className="text-ac hover:text-ac p-1.5 rounded-none hover:bg-acsoft transition-colors ml-1"
-                              >
-                                <FAIcon icon="trash" />
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+              </div>
             </div>
 
-            <PaginationControls page={page} totalPages={totalPages} onPrev={prev} onNext={next} onGoTo={goTo} />
+            {/* ── Banner de atención (ítems incompletos) ── */}
+            {!isAssetTab && pendingItems.length > 0 && (
+              <div className="mb-6 flex items-center gap-3 px-4 py-3 bg-warnsoft/50 border border-warn/20 rounded-none text-sm text-warn">
+                <FAIcon icon="triangle-exclamation" className="text-warn shrink-0" />
+                <span>
+                  {pendingItems.length} {pendingItems.length === 1 ? 'insumo' : 'insumos'} con datos incompletos (creados desde una receta):{' '}
+                  <span className="font-semibold">
+                    {pendingItems.map((p) => p.name).join(', ')}.
+                  </span>
+                </span>
+              </div>
+            )}
+
+            {/* ── Título de la tabla ── */}
+            <h2 className="text-base font-display font-bold text-ink mb-4">
+              {isAssetTab ? 'Listado de activos fijos' : 'Listado de materia prima'}
+            </h2>
+
+            {/* ── Tabla ── */}
+            {loading && insumos.length === 0 ? (
+              <div className="p-8 text-center text-muted text-sm flex items-center justify-center gap-2">
+                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-ac"></span>
+                Cargando...
+              </div>
+            ) : insumos.length === 0 ? (
+              <div className="p-8 text-center text-muted text-sm">
+                {isAssetTab ? 'No hay activos fijos registrados. ¡Agrega uno nuevo!' : 'No hay insumos en el inventario. ¡Agrega uno nuevo!'}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[700px]">
+                  <thead>
+                    <tr className="border-b border-line">
+                      <th className="kick text-muted py-3 px-4 font-semibold">{isAssetTab ? 'Bien' : 'Insumo'}</th>
+                      <th className="kick text-muted py-3 px-4 font-semibold">Categoría</th>
+                      <th className="kick text-muted py-3 px-4 font-semibold">Ubicación</th>
+                      <th className="kick text-muted py-3 px-4 font-semibold">Cantidad</th>
+                      <th className="kick text-muted py-3 px-4 font-semibold">{isAssetTab ? 'Valor' : 'Precio Unit.'}</th>
+                      <th className="kick text-muted py-3 px-4 font-semibold">{isAssetTab ? 'Condición' : 'Estado'}</th>
+                      <th className="kick text-muted py-3 px-4 font-semibold text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm text-inkalt">
+                    {paginatedItems.map((item) => {
+                      const badge = getStatusBadge(item);
+                      return (
+                        <tr key={item._id || item.id} className="border-b border-line/60 hover:bg-surfalt/50 transition-colors">
+                          <td className="py-3.5 px-4">
+                            <span className="font-medium text-ink">{item.name}</span>
+                          </td>
+                          <td className="py-3.5 px-4 text-inkalt">{item.type || 'Sin categoría'}</td>
+                          <td className="py-3.5 px-4 text-muted">{item.ubication || 'No asignada'}</td>
+                          <td className="py-3.5 px-4">
+                            <span className="num text-info font-medium">
+                              {item.quantity !== undefined && item.quantity !== null && item.quantity !== ''
+                                ? `${item.quantity} ${!isAssetTab ? (item.unit || '') : ''}`
+                                : '—'}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 num text-inkalt">
+                            ${Number(item.price || 0).toFixed(2)}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className={`kick inline-flex items-center gap-1.5 ${badge.color}`}>
+                              <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                              {badge.text}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <button
+                              onClick={() => handleEdit(item)}
+                              className="text-muted hover:text-inkalt p-1.5 rounded-none hover:bg-surfalt transition-colors"
+                            >
+                              <FAIcon icon="edit" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* ── Paginación compacta tipo < 1/7 > ── */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-3 mt-6">
+                <button
+                  onClick={prev}
+                  disabled={page === 1}
+                  className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink border border-line rounded-none disabled:opacity-30 transition-colors"
+                  aria-label="Página anterior"
+                >
+                  <FAIcon icon="chevron-left" size="sm" />
+                </button>
+                <span className="text-sm text-muted font-display font-medium num">
+                  {page}/{totalPages}
+                </span>
+                <button
+                  onClick={next}
+                  disabled={page === totalPages}
+                  className="w-8 h-8 flex items-center justify-center text-muted hover:text-ink border border-line rounded-none disabled:opacity-30 transition-colors"
+                  aria-label="Página siguiente"
+                >
+                  <FAIcon icon="chevron-right" size="sm" />
+                </button>
+              </div>
+            )}
+
           </div>
         </main>
       </div>
