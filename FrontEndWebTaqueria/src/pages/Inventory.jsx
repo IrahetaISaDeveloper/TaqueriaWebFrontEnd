@@ -1,4 +1,5 @@
 // src/pages/Inventory.jsx
+// Módulo de gestión y visualización de inventario (productos y activos fijos)
 import React, { useState } from 'react';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopBar from '../components/dashboard/TopBar';
