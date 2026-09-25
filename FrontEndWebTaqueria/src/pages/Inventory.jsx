@@ -16,6 +16,7 @@ const ITEM_TYPE_TABS = [
   { id: 'producto', label: 'Productos (Mercancía)', icon: 'box' },
   { id: 'activo_fijo', label: 'Activos fijos (Mobiliario)', icon: 'couch' },
 ];
+//
 
 function InventoryContent() {
   const [activeMenu] = useState('inventory');
