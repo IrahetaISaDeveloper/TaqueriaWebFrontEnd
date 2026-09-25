@@ -35,7 +35,8 @@ const PHOSPHOR_BY_FA_NAME = {
   'circle-exclamation': 'warning-circle', 'exclamation-circle': 'warning-circle',
   'circle-info': 'info', 'bell': 'bell', 'bell-slash': 'bell-slash',
   'bolt': 'lightning', 'star': 'star', 'trophy': 'trophy', 'face-smile': 'smiley',
-  'shield-alt': 'shield-check', 'clock': 'clock', 'calendar': 'calendar-blank',
+  'shield-alt': 'shield-check', 'shield-halved': 'shield-check', 'shield': 'shield',
+  'clock': 'clock', 'calendar': 'calendar-blank',
   'calendar-clock': 'calendar-check', 'inbox': 'tray',
 
   // Personas

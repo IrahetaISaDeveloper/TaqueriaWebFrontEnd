@@ -37,7 +37,7 @@ const PERSONAL_TABS = [
 const ROLE_CONFIG = {
   admin: {
     label: 'Administrador',
-    icon: 'shield-halved',
+    icon: 'shield-check',
     description: 'Acceso completo a la configuración, reportes y gestión global del sistema.',
     steps: [
       {
@@ -444,7 +444,7 @@ function InviteStaffContent() {
               ) : (
                 <div className="flex items-center gap-2 text-[11px] text-muted mb-3">
                   <FAIcon icon="circle-info" size="xs" />
-                  <span>Requiere únicamente correo institucional y nombres completos</span>
+                  <span>Requiere únicamente correo electrónico y nombres completos</span>
                 </div>
               )}
 
