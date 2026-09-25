@@ -149,14 +149,14 @@ const ImageCropModal = ({ file, onCancel, onConfirm }) => {
   const drawSize = getDrawSize();
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-sm bg-surface rounded-none border border-line overflow-hidden">
-        <div className="px-5 py-4 border-b border-line">
+        <div className="px-4 sm:px-5 py-4 border-b border-line">
           <h3 className="font-display font-bold text-ink text-base">Ajustar foto de perfil</h3>
           <p className="text-xs text-muted mt-0.5">Arrastra la imagen y usa el control para acercarla</p>
         </div>
 
-        <div className="p-5 flex flex-col items-center gap-4">
+        <div className="p-4 sm:p-5 flex flex-col items-center gap-4">
           <div
             className="relative rounded-full overflow-hidden bg-surfalt border-2 border-acline shadow-inner touch-none select-none"
             style={{ width: FRAME_SIZE, height: FRAME_SIZE, cursor: isDragging ? 'grabbing' : 'grab' }}
@@ -197,7 +197,7 @@ const ImageCropModal = ({ file, onCancel, onConfirm }) => {
           </div>
         </div>
 
-        <div className="flex gap-2 px-5 py-4 border-t border-line">
+        <div className="flex gap-2 px-4 sm:px-5 py-4 border-t border-line">
           <button
             type="button"
             onClick={onCancel}

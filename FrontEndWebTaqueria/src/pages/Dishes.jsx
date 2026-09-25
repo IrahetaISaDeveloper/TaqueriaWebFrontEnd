@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopBar from '../components/dashboard/TopBar';
-import ComboStats from '../components/dashboard/ComboStats';
+import StatLine from '../components/dashboard/StatLine';
 import DishCard from '../components/dishes/DishCard';
 import AddDishModal from '../components/dishes/AddDishModal';
 import ConfirmModal from '../components/commons/ConfirmModal';
@@ -153,10 +153,13 @@ function DishesContent() {
 
       <Sidebar activeMenu={activeMenu} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto">
+        {/* Sin min-h-0, un hijo flex nunca se encoge más que su contenido:
+            en vez de scrollear, todo se desbordaba y el overflow-hidden del
+            contenedor de más afuera lo recortaba en seco. */}
+        <main className="flex-1 min-h-0 overflow-y-auto">
           <div className="p-4 sm:p-6 lg:p-8">
             {/* Encabezado */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
@@ -234,21 +237,21 @@ function DishesContent() {
               ]}
             />
 
-            {/* Estadísticas (mismo diseño que Combos y Bebidas) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-              <ComboStats
-                icon="utensils"
-                title="TOTAL PLATILLOS"
+            {/* Estadísticas: mismo lenguaje editorial del Dashboard (regla fina
+                arriba, sin tarjetas con icono) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-8">
+              <StatLine
+                title="Total platillos"
                 value={loading ? '...' : totalDishes}
                 label={
-                  <span className="flex gap-1.5 flex-wrap mt-1">
+                  <span className="flex gap-1.5 flex-wrap">
                     {CATEGORY_FILTERS.map((f) => (
                       <button
                         key={f.id}
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setCategoryFilter(f.id); }}
                         className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
-                          categoryFilter === f.id ? 'bg-ac text-white' : 'bg-surface text-inkalt hover:bg-surface'
+                          categoryFilter === f.id ? 'bg-ac text-white' : 'bg-surfalt text-inkalt hover:bg-line'
                         }`}
                       >
                         {f.label}
@@ -256,21 +259,17 @@ function DishesContent() {
                     ))}
                   </span>
                 }
-                highlighted={true}
               />
-              <ComboStats
-                icon="star"
-                title="PLATILLO ESTRELLA"
+              <StatLine
+                title="Platillo estrella"
                 value={platoEstrella}
                 label="Más vendido"
-                highlighted={true}
               />
-              <ComboStats
-                icon="exclamation-triangle"
-                title="PLATILLOS AGOTADOS"
+              <StatLine
+                title="Platillos agotados"
                 value={loading ? '...' : outOfStockDishes}
                 label={outOfStockDishes > 0 ? 'Fuera de stock' : 'Todos disponibles'}
-                highlighted={true}
+                highlighted={outOfStockDishes > 0}
               />
             </div>
 

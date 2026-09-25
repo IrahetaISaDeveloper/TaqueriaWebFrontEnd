@@ -8,7 +8,7 @@ const PaginationControls = ({ page, totalPages, onPrev, onNext, onGoTo }) => {
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
-    <div className="flex items-center justify-center gap-2 mt-6">
+    <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
       <button
         onClick={onPrev}
         disabled={page === 1}
@@ -18,11 +18,15 @@ const PaginationControls = ({ page, totalPages, onPrev, onNext, onGoTo }) => {
         <FAIcon icon="chevron-left" size="sm" />
       </button>
 
+      <span className="flex sm:hidden items-center justify-center px-3 h-9 text-sm font-display font-semibold text-inkalt">
+        Página {page} de {totalPages}
+      </span>
+
       {pages.map((n) => (
         <button
           key={n}
           onClick={() => onGoTo(n)}
-          className={`w-9 h-9 flex items-center justify-center rounded-none text-sm font-display font-semibold transition-colors ${
+          className={`hidden sm:flex w-9 h-9 items-center justify-center rounded-none text-sm font-display font-semibold transition-colors ${
             n === page
               ? 'bg-ac text-white'
               : 'bg-surface text-inkalt border border-line hover:bg-surfalt'

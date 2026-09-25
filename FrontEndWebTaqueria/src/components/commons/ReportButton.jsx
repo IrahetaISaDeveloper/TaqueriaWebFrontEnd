@@ -121,7 +121,7 @@ const ReportButton = ({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 bg-surface rounded-none border border-line z-50 overflow-hidden">
+        <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-surface rounded-none border border-line z-50 overflow-hidden">
           <div className="px-4 py-3 border-b border-line">
             <p className="text-xs font-display font-bold text-inkalt uppercase tracking-wider">
               Reporte de {title}

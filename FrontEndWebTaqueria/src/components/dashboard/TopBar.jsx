@@ -127,11 +127,11 @@ const TopBar = ({ onMenuClick }) => {
   const logoSrc = theme === 'dark' ? '/logos/nav-dark-plain.png' : '/logos/nav-light-plain.png';
 
   return (
-    <div className="sticky top-0 z-30 px-4 sm:px-6 lg:px-8 h-[58px] border-b border-line bg-bg flex items-center gap-5">
+    <div className="sticky top-0 z-30 px-3 sm:px-6 lg:px-8 h-[58px] border-b border-line bg-bg flex items-center gap-2 sm:gap-3 lg:gap-5">
       {/* El menú lateral solo sobrevive en móvil: en pantallas grandes la
           navegación vive en la barra (ver NavMenu). */}
       <button
-        className="lg:hidden p-2 text-inkalt hover:text-ink transition-colors"
+        className="lg:hidden p-2 -ml-1 text-inkalt hover:text-ink transition-colors shrink-0"
         onClick={onMenuClick}
         aria-label="Abrir menú"
       >
@@ -139,13 +139,14 @@ const TopBar = ({ onMenuClick }) => {
       </button>
 
       <Link to="/dashboard" className="shrink-0">
-        <img src={logoSrc} alt="SYSCOR" className="h-9 w-auto object-contain" />
+        <img src={logoSrc} alt="SYSCOR" className="h-7 sm:h-9 w-auto object-contain" />
       </Link>
 
       <NavMenu />
 
-      {/* Buscador de secciones: tarjeta propia, ya no comparte el fondo con el resto de la barra */}
-      <div className="flex-1 max-w-[190px] relative ml-auto" ref={searchRef}>
+      {/* Buscador de secciones: tarjeta propia, ya no comparte el fondo con el resto de la barra.
+          En móvil no cabe junto al resto de la barra, así que se oculta ahí (igual que NavMenu). */}
+      <div className="hidden md:block flex-1 max-w-[190px] relative ml-auto" ref={searchRef}>
         <div className="bg-bg border border-line rounded-none">
           <form onSubmit={handleSearchSubmit}>
             <div className="relative">
@@ -185,7 +186,7 @@ const TopBar = ({ onMenuClick }) => {
         )}
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 ml-auto md:ml-0 shrink-0">
         {/* Asistente de IA: mismo trato visual que la campana. Antes solo
             existía el botón flotante de la esquina, que pasaba desapercibido;
             aquí queda a la vista y, sobre todo, avisa cuando está trabajando.
@@ -197,7 +198,7 @@ const TopBar = ({ onMenuClick }) => {
               aria-label={assistantBusy ? 'Asistente de IA, ejecutando una acción' : 'Asistente de IA (Ctrl+K)'}
               aria-expanded={assistantOpen}
               title="Asistente de IA · Ctrl+K"
-              className={`relative p-2.5 rounded-none transition-colors ${
+              className={`relative p-2 sm:p-2.5 rounded-none transition-colors ${
                 assistantBusy
                   ? 'text-ac'
                   : assistantOpen
@@ -228,7 +229,7 @@ const TopBar = ({ onMenuClick }) => {
               onClick={() => setOpenPanel((prev) => (prev === 'notifications' ? null : 'notifications'))}
               aria-label={`Notificaciones${unreadCount > 0 ? `, ${unreadCount} sin leer` : ''}`}
               aria-expanded={openPanel === 'notifications'}
-              className="relative p-2.5 text-muted hover:text-ink hover:bg-surface rounded-none transition-colors"
+              className="relative p-2 sm:p-2.5 text-muted hover:text-ink hover:bg-surface rounded-none transition-colors"
             >
               <FAIcon icon="bell" size="lg" />
               {/* El contador solo aparece si de verdad hay algo sin leer */}
@@ -256,7 +257,7 @@ const TopBar = ({ onMenuClick }) => {
               aria-label="Menú de usuario"
               aria-expanded={openPanel === 'user'}
               disabled={isLoading}
-              className="flex items-center gap-3 pl-2 pr-3 py-1 rounded-none hover:bg-surface transition-colors"
+              className="flex items-center gap-1.5 sm:gap-3 pl-1.5 sm:pl-2 pr-2 sm:pr-3 py-1 rounded-none hover:bg-surface transition-colors"
             >
               {isLoading ? (
                 <>
@@ -286,7 +287,7 @@ const TopBar = ({ onMenuClick }) => {
                   <FAIcon
                     icon="chevron-down"
                     size="xs"
-                    className={`text-muted transition-transform ${openPanel === 'user' ? 'rotate-180' : ''}`}
+                    className={`hidden sm:inline text-muted transition-transform ${openPanel === 'user' ? 'rotate-180' : ''}`}
                   />
                 </>
               )}

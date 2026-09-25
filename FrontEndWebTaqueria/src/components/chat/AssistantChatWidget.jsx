@@ -83,7 +83,7 @@ const AssistantChatWidget = () => {
       )}
 
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-[70] w-[92vw] max-w-md h-[32rem] max-h-[75vh] bg-surfalt rounded-none border border-line flex flex-col overflow-hidden">
+        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[70] w-[calc(100vw-2rem)] sm:w-[92vw] max-w-md h-[32rem] max-h-[75vh] bg-surfalt rounded-none border border-line flex flex-col overflow-hidden">
           <div className="flex items-center justify-between p-4 bg-ac text-white">
             <div className="flex items-center gap-2 min-w-0">
               <FAIcon icon="robot" size="sm" />

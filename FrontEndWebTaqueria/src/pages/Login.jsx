@@ -186,7 +186,12 @@ export default function Login() {
       >
 
         {/* --- Panel ilustrado --- */}
-        <div className="relative isolate overflow-hidden px-7 py-9 sm:px-12 sm:py-14 flex flex-col justify-between gap-9">
+        {/* Es contenido de marketing, no algo que alguien necesite para
+            entrar: en móvil se oculta por completo y solo queda el
+            formulario. Antes se mostraba después del formulario (con
+            scroll), pero para qué hacerlo bajar hasta un panel que no
+            necesita para iniciar sesión. */}
+        <div className="hidden lg:flex lg:order-1 relative isolate overflow-hidden px-5 py-7 sm:px-12 sm:py-14 flex-col justify-between gap-7 sm:gap-9">
           {/* El fondo va como <img> y no como background-image para que el
               navegador lo trate como un recurso normal: se precarga, se
               cachea y no depende de recalcular CSS al cambiar de tema. */}
@@ -212,17 +217,17 @@ export default function Login() {
             >
               Sistema de control (Syscor) · Taquería El Corral
             </p>
-            <h1 className="font-display text-[28px] sm:text-[38px] leading-[1.1] text-white w-full sm:max-w-[460px] mb-4">
+            <h1 className="font-display text-[24px] sm:text-[38px] leading-[1.1] text-white w-full sm:max-w-[460px] mb-3 sm:mb-4">
               Todo el local en una sola pantalla
             </h1>
-            <p className="text-[13.5px] leading-relaxed text-white/75 w-full sm:max-w-[430px] mb-7">
+            <p className="text-[13px] sm:text-[13.5px] leading-relaxed text-white/75 w-full sm:max-w-[430px] mb-5 sm:mb-7">
               Pedidos, mesas, inventario, personal y el IVA del mes. Entra con tu correo
               o con el código que te dio el administrador.
             </p>
 
-            <ul className="flex flex-col gap-3">
+            <ul className="flex flex-col gap-2.5 sm:gap-3">
               {HIGHLIGHTS.map((h) => (
-                <li key={h.icon} className="flex items-center gap-2.5 text-[13px] text-white/80">
+                <li key={h.icon} className="flex items-center gap-2.5 text-[12.5px] sm:text-[13px] text-white/80">
                   <FAIcon icon={h.icon} size="sm" className="text-ac shrink-0" />
                   {h.label}
                 </li>
@@ -230,12 +235,12 @@ export default function Login() {
             </ul>
           </div>
 
-      {/* Bloque de soporte de acceso: Ofrece ayuda mediante el bot "Chef Panchita" 
-              para usuarios que no pueden iniciar sesión, evitando incluir métricas o 
+      {/* Bloque de soporte de acceso: Ofrece ayuda mediante el bot "Chef Panchita"
+              para usuarios que no pueden iniciar sesión, evitando incluir métricas o
               datos estáticos que requerirían actualización manual. */}
-          <div className="pt-6 border-t border-white/20">
-            <p className="kick text-white/55 mb-3">¿Problemas para entrar?</p>
-            <ul className="flex flex-col gap-2 text-[12.5px] text-white/70 mb-5">
+          <div className="pt-5 sm:pt-6 border-t border-white/20">
+            <p className="kick text-white/55 mb-2.5 sm:mb-3">¿Problemas para entrar?</p>
+            <ul className="flex flex-col gap-2 text-[12.5px] text-white/70 mb-4 sm:mb-5">
               <li>
                 Si tienes problemas para acceder, habla con nuestra asistente <span className="text-white">Chef Panchita</span> para ayudarte a solucionarlo de inmediato.
               </li>
@@ -243,7 +248,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() => setPanel('chat')}
-              className="inline-flex items-center gap-2 px-3.5 py-2 mb-5 border border-white/30 text-white/85
+              className="inline-flex items-center gap-2 px-3.5 py-2 mb-4 sm:mb-5 border border-white/30 text-white/85
                 text-[12.5px] hover:border-white hover:text-white transition-colors"
             >
               {/* Este botón vive sobre el panel ilustrado, que bajo el velo
@@ -264,12 +269,27 @@ export default function Login() {
         </div>
 
         {/* --- Formulario --- */}
-        <div className="bg-surface border-t lg:border-t-0 lg:border-l border-line
+        <div className="lg:order-2 bg-surface lg:border-l border-line
           px-7 py-9 sm:px-10 sm:py-12 flex flex-col justify-center gap-6">
 
-          <div className="flex items-center justify-between gap-4">
+          {/* Sin el panel, este bloque es toda la pantalla entre sm y lg
+              (tablet): sin este límite se estira de punta a punta y los
+              campos quedan gigantes. Centrado y acotado solo hasta que el
+              panel vuelve a compartir el ancho (lg:), donde ya no aplica. */}
+          <div className="w-full max-w-md mx-auto lg:max-w-none lg:mx-0 flex flex-col gap-6">
+
+          {/* Con el panel oculto en móvil, el logo no se ve en ningún lado:
+              se repite aquí (solo en móvil, el panel ya lo trae en desktop)
+              para que quede claro de qué sistema es esta pantalla. */}
+          <img
+            src={theme === 'dark' ? '/logos/nav-dark-plain.png' : '/logos/nav-light-plain.png'}
+            alt="SYSCOR"
+            className="lg:hidden h-8 w-auto object-contain mb-1"
+          />
+
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-display text-[22px] text-ink mb-1">Portal administrador</h2>
+              <h2 className="font-display text-[20px] sm:text-[22px] text-ink mb-1">Portal administrador</h2>
               <p className="text-[12.5px] text-muted">Ingrese sus credenciales</p>
             </div>
             <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
@@ -327,7 +347,7 @@ export default function Login() {
             <p className="text-[12.5px] text-inkalt mb-2.5">
               ¿Empleado con permisos? Ingresa tu código de acceso:
             </p>
-            <form onSubmit={handleVerifyCode} className="flex gap-2">
+            <form onSubmit={handleVerifyCode} className="flex flex-wrap gap-2">
               <input
                 type="text"
                 value={accessCode}
@@ -335,7 +355,7 @@ export default function Login() {
                 placeholder="Ej. A3F92C"
                 maxLength={8}
                 aria-label="Código de acceso"
-                className="num flex-1 min-w-0 px-3 py-2.5 text-[13px] bg-bg border border-linealt text-ink
+                className="num flex-1 min-w-[140px] px-3 py-2.5 text-[13px] bg-bg border border-linealt text-ink
                   placeholder:text-muted uppercase tracking-[0.18em] focus:outline-none focus:border-ac
                   focus:ring-1 focus:ring-acline transition-colors"
               />
@@ -371,6 +391,7 @@ export default function Login() {
             <span className="text-[11.5px] text-muted">
               Soporte · <span className="num">7168-6876</span>
             </span>
+          </div>
           </div>
         </div>
       </div>

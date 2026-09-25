@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopBar from '../components/dashboard/TopBar';
-import ComboStats from '../components/dashboard/ComboStats'; // 👈 mismo componente que en Combos
+import StatLine from '../components/dashboard/StatLine';
 import DrinkCard from '../components/drinks/DrinkCard';
 import AddDrinkModal from '../components/drinks/AddDrinkModal';
 import ConfirmModal from '../components/commons/ConfirmModal';
@@ -164,10 +164,10 @@ function DrinksContent() {
 
       <Sidebar activeMenu={activeMenu} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 min-h-0 overflow-y-auto">
           <div className="p-4 sm:p-6 lg:p-8">
             {/* Encabezado (mismo estilo que Combos) */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
@@ -248,21 +248,20 @@ function DrinksContent() {
               ]}
             />
 
-            {/* 👇 Tres tarjetas de estadísticas con el MISMO diseño que en Combos */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-              <ComboStats
-                icon="wine-glass"
-                title="TOTAL BEBIDAS"
+            {/* Estadísticas: mismo lenguaje editorial del Dashboard */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-8">
+              <StatLine
+                title="Total bebidas"
                 value={loading ? '...' : totalBebidas}
                 label={
-                  <span className="flex gap-1.5 flex-wrap mt-1">
+                  <span className="flex gap-1.5 flex-wrap">
                     {CATEGORY_FILTERS.map((f) => (
                       <button
                         key={f.id}
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setCategoryFilter(f.id); }}
                         className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
-                          categoryFilter === f.id ? 'bg-ac text-white' : 'bg-surface text-inkalt hover:bg-surface'
+                          categoryFilter === f.id ? 'bg-ac text-white' : 'bg-surfalt text-inkalt hover:bg-line'
                         }`}
                       >
                         {f.label}
@@ -270,21 +269,17 @@ function DrinksContent() {
                     ))}
                   </span>
                 }
-                highlighted={true}
               />
-              <ComboStats
-                icon="exclamation-triangle"
-                title="STOCK CRÍTICO"
+              <StatLine
+                title="Stock crítico"
                 value={loading ? '...' : stockCritico}
                 label={stockCritico > 0 ? `Menos de ${lowStockThreshold} unidades` : 'Todo en orden'}
-                highlighted={true}
+                highlighted={stockCritico > 0}
               />
-              <ComboStats
-                icon="chart-line"
-                title="BEBIDA ESTRELLA"
+              <StatLine
+                title="Bebida estrella"
                 value={loading ? '...' : bebidaEstrella}
                 label="Bebida destacada"
-                highlighted={true}
               />
             </div>
 

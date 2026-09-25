@@ -139,23 +139,26 @@ const AddDishModal = ({ isOpen, onClose, onSave, onEditExisting, dishToEdit = nu
     onSave(formData);
   };
 
-  // Estilos clay para inputs
+  // Estilos planos estilo editorial: sin relieve, foco marcado con borde de acento
   const inputClasses =
-    'w-full px-4 py-2.5 bg-surfalt border border-line rounded-none focus:outline-none focus:ring-2 focus:ring-acline focus:border-acline transition-all text-inkalt placeholder:text-muted text-sm';
-  const labelClasses = 'block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5';
+    'w-full px-4 py-2.5 bg-surfalt border border-line rounded-none focus:outline-none focus:border-ac transition-colors text-inkalt placeholder:text-muted text-sm';
+  const labelClasses = 'kick text-muted mb-1.5 block';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-surfalt rounded-none w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden border border-line">
-        {/* Cabecera roja con relieve */}
-        <div className="flex items-center justify-between p-4 sm:p-5 bg-ac text-white">
-          <h2 className="text-base sm:text-lg font-display font-bold">
-            {dishToEdit ? 'Editar Platillo' : 'Nuevo Platillo'}
-          </h2>
+      <div className="bg-surface rounded-none w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden border border-line">
+        {/* Cabecera plana estilo editorial */}
+        <div className="flex items-center justify-between gap-3 p-4 sm:p-5 border-b-2 border-ac">
+          <div className="min-w-0">
+            <p className="kick text-ac mb-1">{dishToEdit ? 'Editar registro' : 'Nuevo registro'}</p>
+            <h2 className="text-base sm:text-lg font-display font-bold text-ink truncate">
+              {dishToEdit ? 'Editar Platillo' : 'Nuevo Platillo'}
+            </h2>
+          </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-white/80 hover:text-white p-1.5 rounded-none hover:bg-surface/10 transition-all"
+            className="text-muted hover:text-ac p-1.5 rounded-none hover:bg-surfalt transition-all shrink-0"
           >
             <FAIcon icon="times" size="lg" />
           </button>
@@ -230,10 +233,10 @@ const AddDishModal = ({ isOpen, onClose, onSave, onEditExisting, dishToEdit = nu
                     key={q}
                     type="button"
                     onClick={() => setTacoQuantity(q)}
-                    className={`flex-1 py-2.5 rounded-none font-display font-semibold text-sm transition-all ${
+                    className={`flex-1 py-2.5 rounded-none font-display font-semibold text-sm border transition-colors ${
                       tacoQuantity === q
-                        ? 'bg-ac text-white'
-                        : 'bg-surface text-inkalt border border-line hover:bg-surfalt'
+                        ? 'border-ac text-ac bg-acsoft'
+                        : 'border-line text-inkalt bg-surfalt hover:border-ac'
                     }`}
                   >
                     {q} tacos
@@ -267,31 +270,47 @@ const AddDishModal = ({ isOpen, onClose, onSave, onEditExisting, dishToEdit = nu
 
           <div className="border-t border-line pt-4">
             <label className={labelClasses}>Imagen (opcional)</label>
+
             {dishToEdit?.image && !imageFile && (
-              <div className="mb-3 flex items-center gap-2 bg-surface p-2 rounded-none border border-line">
-                <img src={dishToEdit.image} alt="Actual" className="w-10 h-10 object-cover rounded-none shadow-inner" />
-                <span className="text-xs text-muted truncate">Conservar imagen actual</span>
+              <div className="mb-3 flex items-center gap-3 bg-surface p-2.5 rounded-none border border-line">
+                <img src={dishToEdit.image} alt="Actual" className="w-11 h-11 object-cover rounded-none shadow-inner shrink-0" />
+                <span className="text-xs text-muted">Conservar imagen actual</span>
               </div>
             )}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const selected = e.target.files?.[0] || null;
-                if (selected) setRawImageFile(selected);
-                e.target.value = '';
-              }}
-              className="w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-xs file:font-semibold file:bg-ac file:text-white hover:file:bg-ac file:transition-colors file: cursor-pointer"
-            />
-            {imageFile && (
-              <div className="flex items-center gap-3 mt-2">
-                <img src={URL.createObjectURL(imageFile)} alt="Vista previa" className="w-12 h-12 rounded-none object-cover ring-2 ring-red-400" />
-                <button type="button" onClick={() => setRawImageFile(imageFile)} className="text-xs text-muted hover:text-ac">Ajustar</button>
-                <button type="button" onClick={() => setImageFile(null)} className="text-xs text-muted hover:text-ac">Quitar</button>
+
+            {imageFile ? (
+              <div className="flex flex-wrap items-center gap-3 bg-surface p-2.5 rounded-none border border-line">
+                <img src={URL.createObjectURL(imageFile)} alt="Vista previa" className="w-11 h-11 rounded-none object-cover ring-2 ring-red-400 shrink-0" />
+                <span className="text-xs text-inkalt flex-1 min-w-[80px] truncate">{imageFile.name}</span>
+                <div className="flex gap-3 shrink-0">
+                  <button type="button" onClick={() => setRawImageFile(imageFile)} className="text-xs font-medium text-ac hover:underline">Ajustar</button>
+                  <button type="button" onClick={() => setImageFile(null)} className="text-xs font-medium text-muted hover:text-ac">Quitar</button>
+                </div>
               </div>
+            ) : (
+              <label className="flex flex-wrap items-center gap-3 bg-surfalt border border-dashed border-linealt px-4 py-3 cursor-pointer hover:border-ac transition-colors">
+                <span className="shrink-0 inline-flex items-center gap-2 px-3 py-1.5 bg-ac text-white text-xs font-display font-semibold">
+                  <FAIcon icon="image" size="xs" />
+                  Seleccionar imagen
+                </span>
+                <span className="text-xs text-muted truncate">
+                  {dishToEdit?.image ? 'Toca para reemplazarla' : 'Ningún archivo seleccionado'}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const selected = e.target.files?.[0] || null;
+                    if (selected) setRawImageFile(selected);
+                    e.target.value = '';
+                  }}
+                  className="hidden"
+                />
+              </label>
             )}
+
             {!dishToEdit?.image && !imageFile && (
-              <p className="text-[11px] text-muted mt-1">Si no seleccionas una imagen se usará un diseño por defecto</p>
+              <p className="text-[11px] text-muted mt-1.5">Si no seleccionas una imagen se usará un diseño por defecto</p>
             )}
           </div>
 
@@ -300,16 +319,13 @@ const AddDishModal = ({ isOpen, onClose, onSave, onEditExisting, dishToEdit = nu
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 bg-line text-inkalt rounded-none hover:bg-linealt font-display font-semibold text-sm transition-all
-              "
+              className="flex-1 px-4 py-3 bg-surfalt border border-line text-inkalt rounded-none hover:border-ac font-display font-semibold text-sm transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-3 bg-ac text-white rounded-none hover:bg-ac font-display font-semibold text-sm transition-all
-                active:
-              "
+              className="flex-1 px-4 py-3 bg-ac text-white rounded-none hover:bg-ac font-display font-semibold text-sm transition-colors"
             >
               {dishToEdit ? 'Actualizar' : 'Guardar'}
             </button>

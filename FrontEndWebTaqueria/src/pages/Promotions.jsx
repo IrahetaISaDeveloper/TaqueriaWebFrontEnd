@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopBar from '../components/dashboard/TopBar';
-import ComboStats from '../components/dashboard/ComboStats';
+import StatLine from '../components/dashboard/StatLine';
 import PromotionCard from '../components/promotions/PromotionCard';
 import AddPromotionModal from '../components/promotions/AddPromotionModal';
 import ConfirmModal from '../components/commons/ConfirmModal';
@@ -151,10 +151,10 @@ function PromotionsContent() {
 
       <Sidebar activeMenu={activeMenu} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 min-h-0 overflow-y-auto">
           <div className="p-4 sm:p-6 lg:p-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
               <div>
@@ -203,27 +203,23 @@ function PromotionsContent() {
               ]}
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-              <ComboStats
-                icon="tag"
-                title="CORRIENDO AHORA"
+            {/* Estadísticas: mismo lenguaje editorial del Dashboard */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-8">
+              <StatLine
+                title="Corriendo ahora"
                 value={loading ? '...' : runningCount}
                 label={runningCount > 0 ? 'Visibles en la app' : 'Sin promociones activas'}
-                highlighted={true}
+                highlighted={runningCount > 0}
               />
-              <ComboStats
-                icon="clock"
-                title="TERMINA PRIMERO"
+              <StatLine
+                title="Termina primero"
                 value={endingSoon?.name || 'Sin datos'}
                 label={endingSoon ? new Date(endingSoon.endsAt).toLocaleString('es-SV') : 'Nada por vencer'}
-                highlighted={true}
               />
-              <ComboStats
-                icon="wand-magic-sparkles"
-                title="SUGERIDAS POR IA"
+              <StatLine
+                title="Sugeridas por IA"
                 value={loading ? '...' : aiCount}
                 label="Armadas con ayuda del asistente"
-                highlighted={true}
               />
             </div>
 

@@ -261,34 +261,50 @@ const AddDrinkModal = ({ isOpen, onClose, onSave, onEditExisting, editData = nul
 
           <div className="border-t border-line pt-4">
             <label className={labelClasses}>Imagen (opcional)</label>
+
             {editData?.image && keepExistingImage && !imageFile && (
-              <div className="flex items-center gap-3 mb-2">
-                <img src={editData.image} alt="Imagen actual" className="w-12 h-12 rounded-none object-cover" />
+              <div className="mb-3 flex items-center gap-3 bg-surface p-2.5 rounded-none border border-line">
+                <img src={editData.image} alt="Imagen actual" className="w-11 h-11 rounded-none object-cover shrink-0" />
                 <span className="text-xs text-muted">Conservar imagen actual</span>
               </div>
             )}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const selected = e.target.files?.[0] || null;
-                if (selected) {
-                  setRawImageFile(selected);
-                  setKeepExistingImage(false);
-                }
-                e.target.value = '';
-              }}
-              className="w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-xs file:font-semibold file:bg-ac file:text-white hover:file:bg-ac file:transition-colors file: cursor-pointer"
-            />
-            {imageFile && (
-              <div className="flex items-center gap-3 mt-2">
-                <img src={URL.createObjectURL(imageFile)} alt="Vista previa" className="w-12 h-12 rounded-none object-cover ring-2 ring-red-400" />
-                <button type="button" onClick={() => setRawImageFile(imageFile)} className="text-xs text-muted hover:text-ac">Ajustar</button>
-                <button type="button" onClick={() => setImageFile(null)} className="text-xs text-muted hover:text-ac">Quitar</button>
+
+            {imageFile ? (
+              <div className="flex flex-wrap items-center gap-3 bg-surface p-2.5 rounded-none border border-line">
+                <img src={URL.createObjectURL(imageFile)} alt="Vista previa" className="w-11 h-11 rounded-none object-cover ring-2 ring-red-400 shrink-0" />
+                <span className="text-xs text-inkalt flex-1 min-w-[80px] truncate">{imageFile.name}</span>
+                <div className="flex gap-3 shrink-0">
+                  <button type="button" onClick={() => setRawImageFile(imageFile)} className="text-xs font-medium text-ac hover:underline">Ajustar</button>
+                  <button type="button" onClick={() => setImageFile(null)} className="text-xs font-medium text-muted hover:text-ac">Quitar</button>
+                </div>
               </div>
+            ) : (
+              <label className="flex flex-wrap items-center gap-3 bg-surfalt border border-dashed border-linealt px-4 py-3 cursor-pointer hover:border-ac transition-colors">
+                <span className="shrink-0 inline-flex items-center gap-2 px-3 py-1.5 bg-ac text-white text-xs font-display font-semibold">
+                  <FAIcon icon="image" size="xs" />
+                  Seleccionar imagen
+                </span>
+                <span className="text-xs text-muted truncate">
+                  {editData?.image ? 'Toca para reemplazarla' : 'Ningún archivo seleccionado'}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const selected = e.target.files?.[0] || null;
+                    if (selected) {
+                      setRawImageFile(selected);
+                      setKeepExistingImage(false);
+                    }
+                    e.target.value = '';
+                  }}
+                  className="hidden"
+                />
+              </label>
             )}
+
             {!editData?.image && !imageFile && (
-              <p className="text-[11px] text-muted mt-1">Si no seleccionas una imagen se usará un diseño por defecto</p>
+              <p className="text-[11px] text-muted mt-1.5">Si no seleccionas una imagen se usará un diseño por defecto</p>
             )}
           </div>
 
