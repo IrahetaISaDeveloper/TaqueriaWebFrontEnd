@@ -12,6 +12,7 @@ import { ToastProvider } from '../components/commons/ToastProvider';
 import ReportButton from '../components/commons/ReportButton';
 import { payrollReportColumns, bonusPayrollReportColumns } from '../constants/reportConfigs';
 import PayslipModal from '../components/payroll/PayslipModal';
+import AdminTabs from '../components/commons/AdminTabs';
 
 const money = (n) => `$${Number(n || 0).toFixed(2)}`;
 
@@ -36,12 +37,6 @@ const getInitials = (name) => {
   return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
 };
 
-const PERSONAL_TABS = [
-  { id: 'employees', label: 'EMPLEADOS', path: '/employees' },
-  { id: 'invitations', label: 'INVITACIONES', path: '/InviteStaff' },
-  { id: 'payroll_general', label: 'PLANILLA GENERAL', path: '/payroll' },
-  { id: 'payroll_bonuses', label: 'PLANILLA DE BONOS', path: '/payroll?tab=bonuses' },
-];
 
 function PayrollContent() {
   const [activeMenu] = useState('payroll');
@@ -160,25 +155,8 @@ function PayrollContent() {
                 </div>
               </div>
 
-              {/* Pestañas de navegación de Personal */}
-              <div className="flex items-center gap-6 sm:gap-8 border-b border-line mb-8 text-[11px] font-mono tracking-wider font-semibold">
-                {PERSONAL_TABS.map((t) => {
-                  const isActive = t.id === currentTabId;
-                  return (
-                    <Link
-                      key={t.id}
-                      to={t.path}
-                      className={`pb-3 transition-colors ${
-                        isActive
-                          ? 'text-ink border-b-2 border-ac -mb-[1px]'
-                          : 'text-muted hover:text-ink'
-                      }`}
-                    >
-                      {t.label}
-                    </Link>
-                  );
-                })}
-              </div>
+              {/* Pestañas de navegación de Administración */}
+              <AdminTabs activeTab={currentTabId} />
 
               {/* Resumen Hero de cifras principales */}
               <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 pb-2">

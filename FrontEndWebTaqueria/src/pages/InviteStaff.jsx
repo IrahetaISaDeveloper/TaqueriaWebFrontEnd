@@ -14,6 +14,7 @@ import { calculatePayrollDeductions } from '../utils/payroll'
 import { EMPLOYEE_TYPE_OPTIONS } from '../constants/employeeTypes'
 import useDuiScan from '../hooks/useDuiScan'
 import DuiScanStep from '../components/employee/DuiScanStep'
+import AdminTabs from '../components/commons/AdminTabs'
 
 const API_URL = import.meta.env.VITE_API_URL || '/api'
 
@@ -27,12 +28,6 @@ const DAYS = [
   { value: 'domingo', label: 'Dom' },
 ]
 
-const PERSONAL_TABS = [
-  { id: 'employees', label: 'EMPLEADOS', path: '/employees' },
-  { id: 'invitations', label: 'INVITACIONES', path: '/InviteStaff' },
-  { id: 'payroll_general', label: 'PLANILLA GENERAL', path: '/payroll' },
-  { id: 'payroll_bonuses', label: 'PLANILLA DE BONOS', path: '/payroll?tab=bonuses' },
-]
 
 const ROLE_CONFIG = {
   admin: {
@@ -55,8 +50,10 @@ const ROLE_CONFIG = {
     steps: [
       {
         title: 'Información básica',
-        subtitle: 'Correo y datos de identificación inicial del empleado',
-        fields: ['email', 'name', 'lastname'],
+        subtitle: 'Correo electrónico al que se enviará la invitación de acceso',
+        fields: ['email'],
+        compact: true,
+        note: 'Los nombres y apellidos se leerán automáticamente del DUI en el siguiente paso.',
       },
       {
         title: 'Escanear el DUI',
@@ -66,7 +63,7 @@ const ROLE_CONFIG = {
       {
         title: 'Datos del documento',
         subtitle: 'Verifica la información leída del documento de identidad',
-        fields: ['duiNit', 'birthDate', 'gender', 'maritalStatus', 'address'],
+        fields: ['name', 'lastname', 'duiNit', 'birthDate', 'gender', 'maritalStatus', 'address'],
       },
       {
         title: 'Contacto y puesto',
@@ -82,11 +79,6 @@ const ROLE_CONFIG = {
         title: 'Identificadores y banco',
         subtitle: 'Afiliaciones de seguridad social y cuenta de planilla (opcional)',
         fields: ['isssNumber', 'afpInstitution', 'afpNumber', 'bankName', 'bankAccount'],
-      },
-      {
-        title: 'Documentos del expediente',
-        subtitle: 'Comprobante de domicilio y solvencia de antecedentes (opcional)',
-        fields: ['extraDocuments'],
       },
       {
         title: 'Horario de trabajo',
@@ -158,58 +150,6 @@ const MARITAL_STATUS_OPTIONS = [
 const inputClasses =
   'w-full px-3 py-1.5 bg-surfalt/40 border border-line rounded-none focus:outline-none focus:border-ac transition-colors text-ink placeholder:text-muted text-xs'
 
-const uploadExtraDocuments = async ({ proofOfAddress, criminalRecord }) => {
-  try {
-    const body = new FormData()
-    if (proofOfAddress) body.append('proofOfAddress', proofOfAddress)
-    if (criminalRecord) body.append('criminalRecord', criminalRecord)
-
-    const res = await fetch(`${API_URL}/users/dui-scan/documents`, {
-      method: 'POST',
-      credentials: 'include',
-      body,
-    })
-
-    const data = await res.json().catch(() => ({}))
-    if (!res.ok) return { success: false, error: data.message }
-
-    return { success: true, documents: data.documents || {} }
-  } catch (err) {
-    console.error('Error al subir los documentos del expediente:', err)
-    return { success: false, error: 'Error de conexión al guardar los documentos.' }
-  }
-}
-
-const DocumentSlot = ({ label, hint, file, onPick, onClear }) => (
-  <div className="flex items-center gap-3 p-3 bg-surfalt/30 rounded-none border border-line">
-    <div className="w-8 h-8 bg-surfalt border border-line flex items-center justify-center shrink-0">
-      <FAIcon icon={file ? 'file-circle-check' : 'file-arrow-up'} className={file ? 'text-ok' : 'text-muted'} size="sm" />
-    </div>
-    <div className="min-w-0 flex-1">
-      <p className="text-xs font-bold text-ink">{label}</p>
-      <p className="text-[11px] text-muted truncate">{file ? file.name : hint}</p>
-    </div>
-    {file ? (
-      <button
-        type="button"
-        onClick={onClear}
-        className="text-xs text-ac font-medium hover:underline shrink-0"
-      >
-        Quitar
-      </button>
-    ) : (
-      <label className="px-2.5 py-1 bg-surface border border-line text-xs font-medium text-ink cursor-pointer hover:border-ac hover:text-ac transition-colors shrink-0">
-        Elegir archivo
-        <input
-          type="file"
-          accept="image/*,application/pdf"
-          onChange={(e) => onPick(e.target.files?.[0] || null)}
-          className="hidden"
-        />
-      </label>
-    )}
-  </div>
-)
 
 function InviteStaffContent() {
   const [step, setStep] = useState(1) // 1: elegir rol, 2: formulario, 3: éxito
@@ -237,8 +177,6 @@ function InviteStaffContent() {
     },
   })
 
-  const [extraDocs, setExtraDocs] = useState({ proofOfAddress: null, criminalRecord: null })
-  const [uploadingDocs, setUploadingDocs] = useState(false)
 
   const [formData, setFormData] = useState(INITIAL_FORM_DATA)
   const [validationErrors, setValidationErrors] = useState({})
@@ -309,19 +247,6 @@ function InviteStaffContent() {
       lastname: formData.lastname.trim(),
     }
 
-    let uploadedDocs = {}
-    if (role === 'employee' && (extraDocs.proofOfAddress || extraDocs.criminalRecord)) {
-      setUploadingDocs(true)
-      const uploaded = await uploadExtraDocuments(extraDocs)
-      setUploadingDocs(false)
-
-      if (!uploaded.success) {
-        addToast(uploaded.error || 'No se pudieron guardar los documentos', 'error')
-        return
-      }
-      uploadedDocs = uploaded.documents
-    }
-
     if (role === 'employee') {
       Object.assign(data, {
         phone: formData.phone.trim(),
@@ -344,7 +269,7 @@ function InviteStaffContent() {
         afpNumber: formData.afpNumber.trim() || null,
         bankName: formData.bankName.trim() || null,
         bankAccount: formData.bankAccount.trim() || null,
-        documents: { ...(duiScan.documents || {}), ...uploadedDocs },
+        documents: { ...(duiScan.documents || {}) },
       })
     }
 
@@ -366,7 +291,6 @@ function InviteStaffContent() {
     setStep(1)
     reset()
     duiScan.reset()
-    setExtraDocs({ proofOfAddress: null, criminalRecord: null })
   }
 
   const handleSelectRole = (selectedRole) => {
@@ -375,7 +299,6 @@ function InviteStaffContent() {
     setSubStep(0)
     reset()
     duiScan.reset()
-    setExtraDocs({ proofOfAddress: null, criminalRecord: null })
   }
 
   const handleInviteAnother = () => {
@@ -386,7 +309,6 @@ function InviteStaffContent() {
     setStep(1)
     reset()
     duiScan.reset()
-    setExtraDocs({ proofOfAddress: null, criminalRecord: null })
   }
 
   const handleCancelConfirmed = () => {
@@ -922,28 +844,7 @@ function InviteStaffContent() {
             </p>
           </div>
         )
-      case 'extraDocuments':
-        return (
-          <div key={fieldName} className="mb-4 sm:col-span-2 space-y-3">
-            <DocumentSlot
-              label="Comprobante de domicilio"
-              hint="Recibo de servicio (agua o luz) reciente"
-              file={extraDocs.proofOfAddress}
-              onPick={(file) => setExtraDocs((prev) => ({ ...prev, proofOfAddress: file }))}
-              onClear={() => setExtraDocs((prev) => ({ ...prev, proofOfAddress: null }))}
-            />
-            <DocumentSlot
-              label="Solvencia de antecedentes penales"
-              hint="Documento emitido por Centros Penales"
-              file={extraDocs.criminalRecord}
-              onPick={(file) => setExtraDocs((prev) => ({ ...prev, criminalRecord: file }))}
-              onClear={() => setExtraDocs((prev) => ({ ...prev, criminalRecord: null }))}
-            />
-            <p className="text-[11px] text-muted">
-              Si faltan, el expediente quedará identificado con &ldquo;Atención requerida&rdquo; para completarse luego.
-            </p>
-          </div>
-        )
+
       case 'permissions':
         return (
           <div key={fieldName} className="sm:col-span-2 space-y-4">
@@ -1009,15 +910,22 @@ function InviteStaffContent() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+        <div className={currentStep.compact ? 'max-w-xl' : 'grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1'}>
           {currentStep.fields.map(renderField)}
         </div>
+
+        {currentStep.note && (
+          <div className="max-w-xl flex items-start gap-3 p-3 border border-line bg-surfalt/40">
+            <FAIcon icon="id-card" className="text-ac mt-0.5" />
+            <p className="text-xs text-muted leading-relaxed">{currentStep.note}</p>
+          </div>
+        )}
 
         <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 pt-6 mt-6 border-t border-line max-w-xl">
           <button
             type="button"
             onClick={handleBack}
-            disabled={loading || uploadingDocs}
+            disabled={loading}
             className="px-4 py-2 border border-line text-xs font-semibold text-ink hover:border-linealt hover:bg-surfalt transition disabled:opacity-40"
           >
             <FAIcon icon="arrow-left" className="mr-1.5" /> Volver
@@ -1025,17 +933,17 @@ function InviteStaffContent() {
           <button
             type="button"
             onClick={() => setConfirmCancelOpen(true)}
-            disabled={loading || uploadingDocs}
+            disabled={loading}
             className="px-4 py-2 border border-line text-xs font-semibold text-muted hover:text-ac hover:border-ac transition disabled:opacity-40"
           >
             Cancelar
           </button>
           <button
             type="submit"
-            disabled={loading || uploadingDocs}
+            disabled={loading}
             className="px-6 py-2 bg-ac hover:bg-ac/90 text-white text-xs font-semibold transition disabled:opacity-50 ml-auto flex items-center gap-2"
           >
-            {loading || uploadingDocs ? (
+            {loading ? (
               <LoadingSpinner color="white" size="xs" />
             ) : (
               <>
@@ -1106,25 +1014,8 @@ function InviteStaffContent() {
                 </div>
               </div>
 
-              {/* Pestañas de navegación de Personal */}
-              <div className="flex items-center gap-6 sm:gap-8 border-b border-line mb-8 text-[11px] font-mono tracking-wider font-semibold">
-                {PERSONAL_TABS.map((t) => {
-                  const isActive = t.id === 'invitations';
-                  return (
-                    <Link
-                      key={t.id}
-                      to={t.path}
-                      className={`pb-3 transition-colors ${
-                        isActive
-                          ? 'text-ink border-b-2 border-ac -mb-[1px]'
-                          : 'text-muted hover:text-ink'
-                      }`}
-                    >
-                      {t.label}
-                    </Link>
-                  );
-                })}
-              </div>
+              {/* Pestañas de navegación de Administración */}
+              <AdminTabs activeTab="invitations" />
 
               {/* Contenido principal según el paso */}
               {step === 1 && renderRoleSelection()}

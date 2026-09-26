@@ -16,6 +16,7 @@ import { exportTaxReportToPdf } from '../utils/taxReportPdf';
 import { ToastProvider, useToast } from '../components/commons/ToastProvider';
 import ReportButton from '../components/commons/ReportButton';
 import { purchaseInvoicesReportColumns } from '../constants/reportConfigs';
+import AdminTabs from '../components/commons/AdminTabs';
 
 const money = (n) =>
   `$${Number(n || 0).toLocaleString('en-US', {
@@ -152,7 +153,7 @@ function ReportsContent() {
           <div className="p-4 sm:p-6 lg:p-8">
             <div className="bg-surface border border-line p-5 sm:p-7 lg:p-9">
               {/* Encabezado */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1">
                     Reportes contables
@@ -203,8 +204,11 @@ function ReportsContent() {
                 </div>
               </div>
 
+              {/* Pestañas de navegación de Administración */}
+              <AdminTabs activeTab="reports" />
+
               {/* Sección Hero & Métricas */}
-              <div className="border-t border-line pt-8 mb-10">
+              <div className="mb-10">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
                   {/* Hero Izquierda: IVA a pagar */}
                   <div className="lg:col-span-5 flex flex-col justify-between">

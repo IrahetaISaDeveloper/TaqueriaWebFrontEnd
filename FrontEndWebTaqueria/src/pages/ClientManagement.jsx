@@ -16,6 +16,7 @@ import { hasPermission } from '../constants/permissions'
 import ReportButton from '../components/commons/ReportButton'
 import { clientsReportColumns } from '../constants/reportConfigs'
 import { getPrimaryPhone } from '../utils/customerPhones'
+import AdminTabs from '../components/commons/AdminTabs'
 
 function ClientManagementContent() {
   const [activeMenu] = useState('clients')
@@ -142,7 +143,7 @@ function ClientManagementContent() {
           <div className="p-4 sm:p-6 lg:p-8">
             <div className="bg-surface border border-line p-5 sm:p-7 lg:p-8">
               {/* Encabezado */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1">
                     Gestión de Clientes
@@ -172,6 +173,9 @@ function ClientManagementContent() {
                   />
                 </div>
               </div>
+
+              {/* Pestañas de navegación de Administración */}
+              <AdminTabs activeTab="clients" />
 
               {/* Resumen Hero de cifras principales */}
               <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 pb-2">

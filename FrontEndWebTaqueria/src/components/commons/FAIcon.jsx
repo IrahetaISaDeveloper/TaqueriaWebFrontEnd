@@ -27,7 +27,7 @@ const PHOSPHOR_BY_FA_NAME = {
   // Flechas y navegación
   'chevron-left': 'caret-left', 'chevron-right': 'caret-right',
   'chevron-down': 'caret-down', 'chevron-up': 'caret-up',
-  'arrow-right': 'arrow-right', 'bars': 'list', 'bars-staggered': 'list',
+  'arrow-right': 'arrow-right', 'arrow-left': 'arrow-left', 'bars': 'list', 'bars-staggered': 'list',
   'list': 'list', 'list-check': 'list-checks', 'layer-group': 'stack',
 
   // Avisos y estados

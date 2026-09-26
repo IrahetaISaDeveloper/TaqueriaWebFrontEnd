@@ -15,6 +15,7 @@ import usePagination from '../hooks/usePagination';
 import { ToastProvider, useToast } from '../components/commons/ToastProvider';
 import ReportButton from '../components/commons/ReportButton';
 import AttentionCenter from '../components/commons/AttentionCenter';
+import AdminTabs from '../components/commons/AdminTabs';
 import { employeesReportColumns } from '../constants/reportConfigs';
 
 const DAY_ABBR = {
@@ -31,12 +32,6 @@ const formatSchedule = (emp) => {
   return `${daysLabel} · ${start}-${end}`;
 };
 
-const PERSONAL_TABS = [
-  { id: 'employees', label: 'EMPLEADOS', path: '/employees' },
-  { id: 'invitations', label: 'INVITACIONES', path: '/InviteStaff' },
-  { id: 'payroll_general', label: 'PLANILLA GENERAL', path: '/payroll' },
-  { id: 'payroll_bonuses', label: 'PLANILLA DE BONOS', path: '/payroll?tab=bonuses' },
-];
 
 function EmployeeManagementContent() {
   const [activeMenu] = useState('staff');
@@ -45,7 +40,8 @@ function EmployeeManagementContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [confirmStatus, setConfirmStatus] = useState({ isOpen: false, employee: null });
-  const [detailModal, setDetailModal] = useState({ isOpen: false, employee: null, readOnly: false });
+  const [detailModal, setDetailModal] = useState({ isOpen: false, employee: null, readOnly: false, fromAttention: false });
+  const [attentionOpen, setAttentionOpen] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState(null);
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
 
@@ -169,12 +165,18 @@ function EmployeeManagementContent() {
                 <div className="flex items-center gap-3">
                   {employees.some((e) => e.hasMissingFields) && (
                     <AttentionCenter
+                      isOpen={attentionOpen}
+                      onOpenChange={setAttentionOpen}
                       items={employees.filter((e) => e.hasMissingFields)}
                       getKey={(e) => e._id}
                       getTitle={(e) => `${e.personalInfo?.name || ''} ${e.personalInfo?.lastname || ''}`.trim() || 'Empleado'}
+                      getSubtitle={(e) => translateRole(e.personalInfo?.type)}
                       getImage={(e) => e.personalInfo?.image}
-                      getReason={(e) => (e.missingFields || []).join(', ')}
-                      onEdit={(emp) => setDetailModal({ isOpen: true, employee: emp, readOnly: false })}
+                      getReason={(e) => e.missingFields || []}
+                      onEdit={(emp) => {
+                        setAttentionOpen(false);
+                        setDetailModal({ isOpen: true, employee: emp, readOnly: false, fromAttention: true });
+                      }}
                     />
                   )}
 
@@ -192,25 +194,8 @@ function EmployeeManagementContent() {
                 </div>
               </div>
 
-              {/* Pestañas de navegación de Personal */}
-              <div className="flex items-center gap-6 sm:gap-8 border-b border-line mb-8 text-[11px] font-mono tracking-wider font-semibold">
-                {PERSONAL_TABS.map((t) => {
-                  const isActive = t.id === 'employees';
-                  return (
-                    <Link
-                      key={t.id}
-                      to={t.path}
-                      className={`pb-3 transition-colors ${
-                        isActive
-                          ? 'text-ink border-b-2 border-ac -mb-[1px]'
-                          : 'text-muted hover:text-ink'
-                      }`}
-                    >
-                      {t.label}
-                    </Link>
-                  );
-                })}
-              </div>
+              {/* Pestañas de navegación de Administración */}
+              <AdminTabs activeTab="employees" />
 
               {/* Resumen Hero de cifras principales */}
               <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 pb-2">
@@ -489,7 +474,11 @@ function EmployeeManagementContent() {
 
             <EmployeeDetailModal
               isOpen={detailModal.isOpen}
-              onClose={() => setDetailModal({ isOpen: false, employee: null, readOnly: false })}
+              onClose={() => setDetailModal({ isOpen: false, employee: null, readOnly: false, fromAttention: false })}
+              onBack={detailModal.fromAttention ? () => {
+                setDetailModal({ isOpen: false, employee: null, readOnly: false, fromAttention: false });
+                setAttentionOpen(true);
+              } : undefined}
               employee={detailModal.employee}
               readOnly={detailModal.readOnly}
               onSave={updateEmployee}

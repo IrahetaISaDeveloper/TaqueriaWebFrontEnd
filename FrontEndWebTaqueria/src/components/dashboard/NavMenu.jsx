@@ -47,13 +47,21 @@ const NAV = [
   {
     id: 'admin',
     label: 'Administración',
-    items: [
-      { label: 'Empleados', path: '/employees', icon: 'user-tie', desc: 'Equipo, estados y expedientes', permission: 'employees' },
-      { label: 'Clientes', path: '/clients', icon: 'users', desc: 'Comensales registrados y su historial', permission: 'clients' },
-      { label: 'Reportes (IVA)', path: '/reports', icon: 'file-invoice-dollar', desc: 'IVA cobrado contra IVA pagado', permission: 'reports' },
-    ],
+    path: '/employees',
   },
 ];
+
+const ADMIN_PATHS = ['/employees', '/invitestaff', '/payroll', '/clients', '/reports'];
+const ADMIN_PERMISSIONS = ['employees', 'invite_staff', 'payroll', 'clients', 'reports'];
+
+const getAdminPath = (user) => {
+  if (hasPermission(user, 'employees')) return '/employees';
+  if (hasPermission(user, 'clients')) return '/clients';
+  if (hasPermission(user, 'reports')) return '/reports';
+  if (hasPermission(user, 'payroll')) return '/payroll';
+  if (hasPermission(user, 'invite_staff')) return '/InviteStaff';
+  return '/employees';
+};
 
 const NavMenu = () => {
   const { user } = useAuth();
@@ -83,19 +91,33 @@ const NavMenu = () => {
   // aquí, así que no hace falta un efecto que vigile location.
 
   const categories = NAV
-    .map((cat) => (
-      cat.items
-        ? { ...cat, items: cat.items.filter((i) => !i.permission || hasPermission(user, i.permission)) }
-        : cat
-    ))
-    .filter((cat) => !cat.items || cat.items.length > 0);
+    .map((cat) => {
+      if (cat.id === 'admin') {
+        const canAccessAdmin = ADMIN_PERMISSIONS.some((p) => hasPermission(user, p));
+        if (!canAccessAdmin) return null;
+        return {
+          ...cat,
+          path: getAdminPath(user),
+        };
+      }
+      if (cat.items) {
+        return { ...cat, items: cat.items.filter((i) => !i.permission || hasPermission(user, i.permission)) };
+      }
+      return cat;
+    })
+    .filter((cat) => cat && (!cat.items || cat.items.length > 0));
 
   // Una categoría se marca como activa cuando la ruta actual es una de las
   // suyas, para que la línea roja indique dónde está parado el usuario.
-  const isActive = (cat) =>
-    cat.path
-      ? location.pathname === cat.path
+  const isActive = (cat) => {
+    if (cat.id === 'admin') {
+      const current = location.pathname.toLowerCase();
+      return ADMIN_PATHS.some((p) => current === p.toLowerCase() || current.startsWith(`${p.toLowerCase()}/`));
+    }
+    return cat.path
+      ? location.pathname.toLowerCase() === cat.path.toLowerCase()
       : cat.items.some((i) => location.pathname.toLowerCase() === i.path.toLowerCase());
+  };
 
   const ACTIVE_STYLE = {
     color: 'var(--color-ink)',
