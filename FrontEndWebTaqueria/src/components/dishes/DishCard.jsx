@@ -17,11 +17,11 @@ export default function DishCard({ image, name, category, subcategory, price, st
   const isAvailable = status === 'Activo';
 
   return (
-    <div className="bg-surface rounded-none overflow-hidden border border-line flex flex-col h-full transition-transform duration-200 hover:scale-[1.02]">
+    <div className="bg-surface rounded-none overflow-hidden border border-line flex flex-col h-full transition-colors duration-200 hover:border-ac">
       {/* Imagen con overlay y badges */}
       <div className="relative h-44 sm:h-48">
-        <img src={image || PLACEHOLDER_IMAGE} alt={name} className="w-full h-full object-cover rounded-t-3xl" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-t-3xl" />
+        <img src={image || PLACEHOLDER_IMAGE} alt={name} className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
 
         <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
           {isMostSold && (
@@ -45,7 +45,7 @@ export default function DishCard({ image, name, category, subcategory, price, st
 
         {/* Overlay de "SIN STOCK" si no está disponible */}
         {!isAvailable && (
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center rounded-t-3xl">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center">
             <span className="text-white font-display font-bold text-base sm:text-lg tracking-wide border-2 border-line px-4 py-1 rounded-none">
               SIN STOCK
             </span>
@@ -72,7 +72,7 @@ export default function DishCard({ image, name, category, subcategory, price, st
             )}
           </div>
         )}
-        <p className="text-ac font-display font-bold text-lg sm:text-xl mb-2">
+        <p className="num text-ac font-bold text-lg sm:text-xl mb-2">
           {price}
         </p>
         {/* Espacio flexible */}

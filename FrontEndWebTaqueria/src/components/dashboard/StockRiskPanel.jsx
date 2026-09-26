@@ -9,7 +9,7 @@ import FAIcon from '../commons/FAIcon';
 
 const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/ai/stock-forecast` : '/api/ai/stock-forecast';
 
-const StockRiskPanel = () => {
+const StockRiskPanel = ({ naked = false }) => {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [available, setAvailable] = useState(true);
@@ -36,8 +36,11 @@ const StockRiskPanel = () => {
     fetchForecast();
   }, []);
 
+  const Wrapper = naked ? 'div' : Card;
+  const wrapperProps = naked ? { className: 'h-full' } : { className: 'p-4 sm:p-6' };
+
   return (
-    <Card className="p-4 sm:p-6">
+    <Wrapper {...wrapperProps}>
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div>
           <h3 className="text-base sm:text-lg font-display font-bold text-ink flex items-center gap-2">
@@ -85,7 +88,7 @@ const StockRiskPanel = () => {
           ))}
         </div>
       )}
-    </Card>
+    </Wrapper>
   );
 };
 

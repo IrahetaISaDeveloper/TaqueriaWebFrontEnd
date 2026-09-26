@@ -1,8 +1,7 @@
-// src/pages/settings.jsx
+// src/pages/Settings.jsx
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopBar from '../components/dashboard/TopBar';
-import Card from '../components/commons/Card';
 import FAIcon from '../components/commons/FAIcon';
 import ImageCropModal from '../components/commons/ImageCropModal';
 import { ToastProvider, useToast } from '../components/commons/ToastProvider';
@@ -17,25 +16,53 @@ const TABS = [
   // sesión iniciada los ve. "operation" y "notifications" son configuración
   // general del sistema, así que solo se muestran a quien tiene el permiso
   // "settings" (siempre true para admin, ver adminOnly más abajo).
-  { id: 'profile', label: 'Perfil y cuenta', icon: 'user' },
-  { id: 'appearance', label: 'Apariencia', icon: 'moon' },
-  { id: 'operation', label: 'Operación', icon: 'sliders', adminOnly: true },
-  { id: 'notifications', label: 'Notificaciones', icon: 'bell', adminOnly: true },
+  { id: 'profile', label: 'PERFIL Y CUENTA' },
+  { id: 'appearance', label: 'APARIENCIA' },
+  { id: 'operation', label: 'OPERACIÓN', adminOnly: true },
+  { id: 'notifications', label: 'NOTIFICACIONES', adminOnly: true },
 ];
 
 // Descripción de cada categoría, para que se entienda qué se apaga al desactivarla
 const NOTIFICATION_CATEGORIES = [
-  { id: 'orders', label: 'Órdenes', icon: 'receipt', description: 'Pedidos creados, cambios de estado y cancelaciones' },
-  { id: 'inventory', label: 'Inventario', icon: 'box', description: 'Altas, ajustes de existencias y alertas de stock bajo' },
-  { id: 'tables', label: 'Mesas', icon: 'chair', description: 'Mesas habilitadas y cambios de disponibilidad' },
-  { id: 'menu', label: 'Menú', icon: 'utensils', description: 'Platillos, bebidas, combos y extras del menú' },
-  { id: 'staff', label: 'Personal', icon: 'user-tie', description: 'Invitaciones, altas y cambios en el equipo' },
-  { id: 'clients', label: 'Clientes', icon: 'users', description: 'Registro y actualización de clientes' },
+  {
+    id: 'orders',
+    label: 'Órdenes',
+    icon: 'receipt',
+    description: 'Pedidos creados, cambios de estado y cancelaciones',
+  },
+  {
+    id: 'inventory',
+    label: 'Inventario',
+    icon: 'box',
+    description: 'Altas, ajustes de existencias y alertas de stock bajo',
+  },
+  {
+    id: 'tables',
+    label: 'Mesas',
+    icon: 'chair',
+    description: 'Mesas habilitadas y cambios de disponibilidad',
+  },
+  {
+    id: 'menu',
+    label: 'Menú',
+    icon: 'utensils',
+    description: 'Platillos, bebidas, combos y extras del menú',
+  },
+  {
+    id: 'staff',
+    label: 'Personal',
+    icon: 'user-tie',
+    description: 'Invitaciones, altas y cambios en el equipo',
+  },
+  {
+    id: 'clients',
+    label: 'Clientes',
+    icon: 'users',
+    description: 'Registro y actualización de clientes',
+  },
 ];
 
-// Secciones que tienen su propio umbral de "agotado" configurable. Inventario
-// no aparece aquí: desde que el umbral es obligatorio por insumo (ver
-// InventoryModal), ya no tiene sentido un umbral general para toda la sección.
+// Secciones que tienen su propio umbral de "agotado" configurable.
 const LOW_STOCK_SECTIONS = [
   { id: 'drinks', label: 'Bebidas' },
   { id: 'saucers', label: 'Platillos' },
@@ -43,7 +70,7 @@ const LOW_STOCK_SECTIONS = [
   { id: 'combos', label: 'Combos' },
 ];
 
-// Interruptor reutilizable con el estilo del sistema
+// Interruptor institucional reutilizable
 const Toggle = ({ checked, onChange, disabled }) => (
   <button
     type="button"
@@ -51,17 +78,26 @@ const Toggle = ({ checked, onChange, disabled }) => (
     aria-checked={checked}
     disabled={disabled}
     onClick={() => onChange(!checked)}
-    className={`relative w-12 h-6 rounded-full transition-colors shrink-0 disabled:opacity-50 ${
-      checked ? 'bg-ac' : 'bg-linealt'
+    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+      checked ? 'bg-ac' : 'bg-line'
     }`}
   >
     <span
-      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-surface rounded-full transition-transform ${
-        checked ? 'translate-x-6' : 'translate-x-0'
+      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
+        checked ? 'translate-x-4' : 'translate-x-0'
       }`}
     />
   </button>
 );
+
+const inputClass =
+  'w-full px-4 py-2.5 bg-surface border border-line rounded-none focus:outline-none focus:border-ac text-sm text-ink placeholder:text-muted/70 transition-colors disabled:bg-surfalt/60 disabled:text-muted cursor-text';
+
+const labelClass =
+  'block text-xs font-mono tracking-wider font-semibold text-ink uppercase mb-2';
+
+const buttonClass =
+  'inline-flex items-center gap-2 px-6 py-2.5 bg-ac hover:opacity-90 text-white font-bold text-sm rounded-none transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-xs';
 
 function SettingsContent() {
   const { user } = useAuth();
@@ -74,18 +110,12 @@ function SettingsContent() {
 
   // Solo el administrador puede modificar la configuración global del negocio
   const isAdmin = user?.role === 'admin';
-  // Un empleado con el permiso "settings" también puede ver/editar esa
-  // configuración general; sin él, solo ve su propio perfil y apariencia.
   const canSeeSystemSettings = hasPermission(user, 'settings');
   const visibleTabs = TABS.filter((tab) => !tab.adminOnly || canSeeSystemSettings);
 
   // --- Perfil ---
-  // Guardamos solo lo que el usuario va escribiendo (el "borrador"). Mientras no
-  // toque nada, el formulario muestra directamente los datos de la sesión, así no
-  // hace falta sincronizar con un efecto cuando esos datos terminan de cargar.
   const [profileDraft, setProfileDraft] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  // Archivo recién elegido en el input, pendiente de recortar/ajustar en el modal
   const [rawImageFile, setRawImageFile] = useState(null);
 
   const profileForm = profileDraft ?? {
@@ -93,10 +123,6 @@ function SettingsContent() {
     lastname: user?.lastname || '',
   };
 
-  // Vista previa de la foto seleccionada, antes de guardarla. Crear y liberar
-  // la URL temporal del navegador (Blob URL) es justo el tipo de sincronización
-  // con un sistema externo para el que existen los efectos: se crea cuando
-  // cambia el archivo y se libera automáticamente en la limpieza del efecto.
   const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
@@ -117,7 +143,6 @@ function SettingsContent() {
     if (result.success) {
       addToast('Perfil actualizado correctamente', 'success');
       setImageFile(null);
-      // Descartamos el borrador para volver a mostrar lo que devolvió el servidor
       setProfileDraft(null);
     } else {
       addToast(result.message, 'error');
@@ -153,8 +178,6 @@ function SettingsContent() {
   };
 
   // --- Operación ---
-  // Mismo enfoque que el perfil: mientras no se edite nada se muestran los
-  // valores que vienen del servidor, sin efectos de sincronización.
   const [operationDraft, setOperationDraft] = useState(null);
   const operationForm = operationDraft ?? settings.operation;
 
@@ -170,7 +193,6 @@ function SettingsContent() {
   };
 
   // --- Notificaciones ---
-  // Se guarda al instante al pulsar el interruptor: son cambios de un solo clic
   const handleNotificationToggle = async (category, value) => {
     const result = await saveSettings({ notifications: { [category]: value } });
     if (result.success) {
@@ -183,155 +205,200 @@ function SettingsContent() {
     }
   };
 
-  const inputClass =
-    'w-full px-4 py-2.5 text-sm bg-surface border border-line rounded-none text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-red-200 transition-all disabled:bg-surfalt disabled:text-muted';
-  const labelClass = 'block text-sm font-display font-semibold text-inkalt mb-1.5';
-  const buttonClass =
-    'flex items-center gap-2 px-5 py-2.5 bg-ac text-white rounded-none font-display font-semibold text-sm transition-all hover:bg-ac disabled:opacity-60 disabled:cursor-not-allowed';
+  const initials =
+    `${user?.name?.[0] || ''}${user?.lastname?.[0] || ''}`.toUpperCase() || 'U';
 
   return (
     <>
-    <div className="p-6 sm:p-8">
       {/* Encabezado */}
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1 sm:mb-2">
-          Ajustes
-        </h1>
-        <p className="text-sm sm:text-base text-inkalt">
-          Configura tu cuenta y el funcionamiento del sistema
-        </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1">Ajustes</h1>
+          <p className="text-sm text-muted">
+            Configura tu cuenta y el funcionamiento del sistema
+          </p>
+        </div>
       </div>
 
-      {/* Pestañas */}
-      <div className="flex flex-wrap items-center gap-2 mb-6">
+      {/* Pestañas de navegación con diseño idéntico a Empleados */}
+      <div className="flex items-center gap-6 sm:gap-8 border-b border-line mb-8 text-xs sm:text-[13px] font-mono tracking-wider font-semibold overflow-x-auto">
         {visibleTabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-none text-sm font-display font-medium transition-all ${
+              className={`pb-3 transition-colors cursor-pointer uppercase whitespace-nowrap ${
                 isActive
-                  ? 'bg-ac text-white'
-                  : 'bg-surface text-inkalt hover:bg-surface hover:text-ink border border-line'
+                  ? 'text-ink border-b-2 border-ac -mb-[1px] font-bold'
+                  : 'text-muted hover:text-ink'
               }`}
             >
-              <FAIcon icon={tab.icon} size="sm" />
-              <span>{tab.label}</span>
+              {tab.label}
             </button>
           );
         })}
       </div>
 
-      {/* --- Perfil y cuenta --- */}
+      {/* --- Pestaña: Perfil y cuenta --- */}
       {activeTab === 'profile' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="p-4 sm:p-6">
-            <h2 className="text-lg font-display font-bold text-ink mb-1">Mi perfil</h2>
-            <p className="text-sm text-inkalt mb-5">
-              Así te ve el resto del equipo dentro del sistema
-            </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          {/* Tarjeta Mi perfil */}
+          <div className="border border-line bg-surface p-6 sm:p-7 border-l-2 border-l-ac space-y-6">
+            <div>
+              <p className="kick text-xs font-bold text-ac tracking-wider mb-1.5">
+                DATOS PERSONALES · SESIÓN ACTIVA
+              </p>
+              <h2 className="text-lg sm:text-xl font-bold text-ink">Mi perfil</h2>
+              <p className="text-sm text-muted mt-1 leading-relaxed">
+                Así te ve el resto del equipo dentro del sistema
+              </p>
+            </div>
 
-            <form onSubmit={handleProfileSubmit} className="space-y-4">
-              <div className="flex items-center gap-4">
+            <form onSubmit={handleProfileSubmit} className="space-y-5">
+              {/* Foto de perfil */}
+              <div className="flex items-center gap-4 p-4 bg-surfalt/30 border border-line">
                 {imagePreview || user?.image ? (
                   <img
                     src={imagePreview || user.image}
                     alt={user?.name || 'Perfil'}
-                    className={`w-16 h-16 rounded-full object-cover ${
-                      imagePreview ? 'ring-2 ring-red-400' : 'ring-2 ring-white'
-                    }`}
+                    className="w-16 h-16 object-cover border border-line shadow-xs shrink-0"
                   />
                 ) : (
-                  <div className="w-16 h-16 bg-ink rounded-full flex items-center justify-center text-white font-display font-bold text-lg ring-2 ring-white">
-                    {`${user?.name?.[0] || ''}${user?.lastname?.[0] || ''}`.toUpperCase() || '?'}
+                  <div className="w-16 h-16 bg-acsoft text-ac border border-acline/60 flex items-center justify-center font-display font-bold text-lg shadow-xs shrink-0">
+                    {initials}
                   </div>
                 )}
 
                 <div className="flex-1 min-w-0">
                   <label className={labelClass}>Foto de perfil</label>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <label
+                      htmlFor="profile-image-upload"
+                      className="px-3.5 py-2 bg-surface border border-line hover:border-ac hover:text-ac text-xs sm:text-sm font-semibold text-ink cursor-pointer transition-colors shadow-xs"
+                    >
+                      <FAIcon icon="camera" size="xs" className="mr-1.5" />
+                      Seleccionar foto
+                    </label>
+                    <input
+                      id="profile-image-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const selected = e.target.files?.[0] || null;
+                        if (selected) setRawImageFile(selected);
+                        e.target.value = '';
+                      }}
+                      className="hidden"
+                    />
+
+                    {imageFile ? (
+                      <div className="flex items-center gap-2 text-xs sm:text-sm">
+                        <span className="text-ok font-semibold flex items-center gap-1">
+                          <FAIcon icon="check" size="xs" /> Lista
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setRawImageFile(imageFile)}
+                          className="text-xs sm:text-sm text-muted hover:text-ac underline cursor-pointer"
+                        >
+                          Ajustar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setImageFile(null)}
+                          className="text-xs sm:text-sm text-muted hover:text-ac p-1 cursor-pointer"
+                          title="Descartar nueva foto"
+                        >
+                          <FAIcon icon="times" size="xs" />
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-xs sm:text-sm text-muted truncate">
+                        Formatos JPG o PNG
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass} htmlFor="profile-name">
+                    Nombre <span className="text-ac font-bold">*</span>
+                  </label>
                   <input
-                    type="file"
-                    accept="image/*"
-                    // Abrimos el modal de ajuste con el archivo elegido; el
-                    // input se limpia para poder volver a elegir la misma foto después
-                    onChange={(e) => {
-                      const selected = e.target.files?.[0] || null;
-                      if (selected) setRawImageFile(selected);
-                      e.target.value = '';
-                    }}
-                    className="block w-full text-xs text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-none file:border-0 file:text-xs file:font-display file:font-semibold file:bg-surfalt file:text-inkalt hover:file:bg-line file:cursor-pointer"
+                    id="profile-name"
+                    type="text"
+                    value={profileForm.name}
+                    onChange={(e) => setProfileDraft({ ...profileForm, name: e.target.value })}
+                    className={inputClass}
+                    required
                   />
-                  {imageFile && (
-                    <div className="flex items-center gap-3 mt-1">
-                      <p className="text-xs text-ok">Foto lista para guardar</p>
-                      <button
-                        type="button"
-                        onClick={() => setRawImageFile(imageFile)}
-                        className="text-xs text-muted hover:text-ac shrink-0"
-                      >
-                        Ajustar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setImageFile(null)}
-                        className="text-xs text-muted hover:text-ac shrink-0"
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-                  )}
+                </div>
+
+                <div>
+                  <label className={labelClass} htmlFor="profile-lastname">
+                    Apellido <span className="text-ac font-bold">*</span>
+                  </label>
+                  <input
+                    id="profile-lastname"
+                    type="text"
+                    value={profileForm.lastname}
+                    onChange={(e) => setProfileDraft({ ...profileForm, lastname: e.target.value })}
+                    className={inputClass}
+                    required
+                  />
                 </div>
               </div>
 
               <div>
-                <label className={labelClass} htmlFor="profile-name">Nombre</label>
+                <label className={labelClass}>Rol en el sistema</label>
                 <input
-                  id="profile-name"
                   type="text"
-                  value={profileForm.name}
-                  onChange={(e) => setProfileDraft({ ...profileForm, name: e.target.value })}
+                  value={user?.role === 'admin' ? 'Administrador' : 'Empleado operativo'}
                   className={inputClass}
-                  required
+                  disabled
                 />
-              </div>
-
-              <div>
-                <label className={labelClass} htmlFor="profile-lastname">Apellido</label>
-                <input
-                  id="profile-lastname"
-                  type="text"
-                  value={profileForm.lastname}
-                  onChange={(e) => setProfileDraft({ ...profileForm, lastname: e.target.value })}
-                  className={inputClass}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className={labelClass}>Rol</label>
-                <input type="text" value={user?.role || ''} className={inputClass} disabled />
-                <p className="text-xs text-muted mt-1">
-                  El rol solo lo puede cambiar un administrador
+                <p className="text-xs text-muted mt-1.5">
+                  El rol solo lo puede cambiar un administrador desde el módulo de personal.
                 </p>
               </div>
 
-              <button type="submit" disabled={savingProfile} className={buttonClass}>
-                <FAIcon icon="floppy-disk" size="sm" />
-                {savingProfile ? 'Guardando...' : 'Guardar cambios'}
-              </button>
-            </form>
-          </Card>
+              {user?.email && (
+                <div>
+                  <label className={labelClass}>Correo electrónico</label>
+                  <input type="text" value={user.email} className={inputClass} disabled />
+                </div>
+              )}
 
-          <Card className="p-4 sm:p-6">
-            <h2 className="text-lg font-display font-bold text-ink mb-1">Contraseña</h2>
-            <p className="text-sm text-inkalt mb-5">
-              Debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un símbolo
-            </p>
+              <div className="pt-2">
+                <button type="submit" disabled={savingProfile} className={buttonClass}>
+                  <FAIcon icon="floppy-disk" size="sm" />
+                  <span>{savingProfile ? 'Guardando...' : 'Guardar cambios de perfil'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Tarjeta Contraseña */}
+          <div className="border border-line bg-surface p-6 sm:p-7 border-l-2 border-l-ac space-y-6">
+            <div>
+              <p className="kick text-xs font-bold text-ac tracking-wider mb-1.5">
+                SEGURIDAD · CREDENCIALES
+              </p>
+              <h2 className="text-lg sm:text-xl font-bold text-ink">Contraseña</h2>
+              <p className="text-sm text-muted mt-1 leading-relaxed">
+                Debe tener al menos 8 caracteres, mayúscula, minúscula, número y símbolo
+              </p>
+            </div>
 
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
               <div>
-                <label className={labelClass} htmlFor="current-password">Contraseña actual</label>
+                <label className={labelClass} htmlFor="current-password">
+                  Contraseña actual <span className="text-ac font-bold">*</span>
+                </label>
                 <input
                   id="current-password"
                   type="password"
@@ -345,19 +412,25 @@ function SettingsContent() {
               </div>
 
               <div>
-                <label className={labelClass} htmlFor="new-password">Nueva contraseña</label>
+                <label className={labelClass} htmlFor="new-password">
+                  Nueva contraseña <span className="text-ac font-bold">*</span>
+                </label>
                 <input
                   id="new-password"
                   type="password"
                   value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm((p) => ({ ...p, newPassword: e.target.value }))}
+                  onChange={(e) =>
+                    setPasswordForm((p) => ({ ...p, newPassword: e.target.value }))
+                  }
                   className={inputClass}
                   required
                 />
               </div>
 
               <div>
-                <label className={labelClass} htmlFor="confirm-password">Confirmar nueva contraseña</label>
+                <label className={labelClass} htmlFor="confirm-password">
+                  Confirmar nueva contraseña <span className="text-ac font-bold">*</span>
+                </label>
                 <input
                   id="confirm-password"
                   type="password"
@@ -370,92 +443,119 @@ function SettingsContent() {
                 />
               </div>
 
-              <button type="submit" disabled={savingPassword} className={buttonClass}>
-                <FAIcon icon="key" size="sm" />
-                {savingPassword ? 'Actualizando...' : 'Cambiar contraseña'}
-              </button>
+              <div className="pt-2">
+                <button type="submit" disabled={savingPassword} className={buttonClass}>
+                  <FAIcon icon="key" size="sm" />
+                  <span>{savingPassword ? 'Actualizando...' : 'Cambiar contraseña'}</span>
+                </button>
+              </div>
             </form>
-          </Card>
+          </div>
         </div>
       )}
 
-      {/* --- Apariencia --- */}
+      {/* --- Pestaña: Apariencia --- */}
       {activeTab === 'appearance' && (
-        <Card className="p-4 sm:p-6 max-w-2xl">
-          <h2 className="text-lg font-display font-bold text-ink mb-1">Apariencia</h2>
-          <p className="text-sm text-inkalt mb-5">
-            Elige cómo se ve el sistema en este navegador. Es una preferencia personal: no afecta a los demás usuarios.
-          </p>
+        <div className="max-w-2xl border border-line bg-surface p-6 sm:p-7 border-l-2 border-l-ac space-y-6">
+          <div>
+            <p className="kick text-xs font-bold text-ac tracking-wider mb-1.5">
+              PREFERENCIAS VISUALES
+            </p>
+            <h2 className="text-lg sm:text-xl font-bold text-ink">Apariencia</h2>
+            <p className="text-sm text-muted mt-1 leading-relaxed">
+              Elige cómo se ve el sistema en este navegador. Es una preferencia personal y no afecta
+              a los demás usuarios.
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
               type="button"
               onClick={() => setTheme('light')}
-              className={`text-left p-4 rounded-none border-2 transition-all ${
-                theme === 'light' ? 'border-acline' : 'border-line hover:border-linealt'
+              className={`text-left p-5 rounded-none border-2 transition-all cursor-pointer ${
+                theme === 'light'
+                  ? 'border-ac bg-surfalt/40 shadow-xs'
+                  : 'border-line hover:border-linealt bg-surface'
               }`}
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-none bg-surfalt border border-line flex items-center justify-center">
-                  <FAIcon icon="sun" className="text-warn" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-11 h-11 rounded-none bg-surfalt border border-line flex items-center justify-center">
+                  <FAIcon icon="sun" className="text-warn text-lg" />
                 </div>
-                {theme === 'light' && <FAIcon icon="circle-check" className="text-ac" />}
+                {theme === 'light' && (
+                  <span className="text-xs font-mono font-bold text-ac flex items-center gap-1.5">
+                    <FAIcon icon="circle-check" size="xs" /> ACTIVO
+                  </span>
+                )}
               </div>
-              <p className="font-display font-semibold text-ink text-sm">Claro</p>
-              <p className="text-xs text-muted mt-0.5">El estilo por defecto del sistema</p>
+              <p className="font-display font-semibold text-ink text-base">Modo Claro</p>
+              <p className="text-xs sm:text-sm text-muted mt-1 leading-relaxed">
+                El estilo estándar de alto contraste
+              </p>
             </button>
 
             <button
               type="button"
               onClick={() => setTheme('dark')}
-              className={`text-left p-4 rounded-none border-2 transition-all ${
-                theme === 'dark' ? 'border-acline' : 'border-line hover:border-linealt'
+              className={`text-left p-5 rounded-none border-2 transition-all cursor-pointer ${
+                theme === 'dark'
+                  ? 'border-ac bg-surfalt/40 shadow-xs'
+                  : 'border-line hover:border-linealt bg-surface'
               }`}
             >
-              <div className="flex items-center justify-between mb-3">
-                {/* Muestra literal de la paleta oscura (ver index.css): estos
-                    colores van en duro a propósito, para que se vean igual
-                    aunque el sistema esté en modo claro. */}
-                <div className="w-10 h-10 rounded-none bg-[#161826] border border-[#3f424d] flex items-center justify-center">
-                  <FAIcon icon="moon" className="text-[#e08472]" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-11 h-11 rounded-none bg-[#161826] border border-[#3f424d] flex items-center justify-center">
+                  <FAIcon icon="moon" className="text-[#e08472] text-lg" />
                 </div>
-                {theme === 'dark' && <FAIcon icon="circle-check" className="text-ac" />}
+                {theme === 'dark' && (
+                  <span className="text-xs font-mono font-bold text-ac flex items-center gap-1.5">
+                    <FAIcon icon="circle-check" size="xs" /> ACTIVO
+                  </span>
+                )}
               </div>
-              <p className="font-display font-semibold text-ink text-sm">Oscuro</p>
-              <p className="text-xs text-muted mt-0.5">Fondos oscuros en todo el sistema</p>
+              <p className="font-display font-semibold text-ink text-base">Modo Oscuro</p>
+              <p className="text-xs sm:text-sm text-muted mt-1 leading-relaxed">
+                Fondos oscuros para trabajar de noche
+              </p>
             </button>
           </div>
-        </Card>
+        </div>
       )}
 
-      {/* --- Operación --- */}
+      {/* --- Pestaña: Operación --- */}
       {activeTab === 'operation' && canSeeSystemSettings && (
-        <Card className="p-4 sm:p-6 max-w-2xl">
-          <h2 className="text-lg font-display font-bold text-ink mb-1">
-            Operación e inventario
-          </h2>
-          <p className="text-sm text-inkalt mb-5">
-            Estos valores afectan a todo el equipo, no solo a tu cuenta
-          </p>
+        <div className="max-w-2xl border border-line bg-surface p-6 sm:p-7 border-l-2 border-l-ac space-y-6">
+          <div>
+            <p className="kick text-xs font-bold text-ac tracking-wider mb-1.5">
+              GESTIÓN GLOBAL DEL SISTEMA
+            </p>
+            <h2 className="text-lg sm:text-xl font-bold text-ink">Operación e inventario</h2>
+            <p className="text-sm text-muted mt-1 leading-relaxed">
+              Estos valores afectan a todo el restaurante y sincronizan las alertas del sistema.
+            </p>
+          </div>
 
           {!isAdmin && (
-            <div className="mb-5 bg-warnsoft/80 border border-warn text-warn text-xs sm:text-sm rounded-none p-3">
-              Solo un administrador puede modificar estos ajustes. Puedes verlos pero no cambiarlos.
+            <div className="bg-warnsoft/30 border border-warn text-warn text-xs sm:text-sm p-3.5 flex items-center gap-2.5">
+              <FAIcon icon="triangle-exclamation" size="sm" />
+              <span>Solo un administrador puede modificar estos ajustes. Puedes verlos pero no cambiarlos.</span>
             </div>
           )}
 
-          <form onSubmit={handleOperationSubmit} className="space-y-5">
+          <form onSubmit={handleOperationSubmit} className="space-y-6">
             <div>
               <label className={labelClass}>Umbral de "agotado" por sección</label>
-              <p className="text-xs text-muted mb-3">
-                Cuando una sección baje de su propio umbral, el sistema genera una alerta
-                automática y la marca como crítica en el panel. Cada área puede tener un
-                número distinto.
+              <p className="text-xs sm:text-sm text-muted mb-3.5 leading-relaxed">
+                Cuando una categoría baje de su umbral, el sistema emite una alerta automática y la
+                marca como crítica en el panel.
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {LOW_STOCK_SECTIONS.map((section) => (
                   <div key={section.id}>
-                    <label className="block text-xs font-display font-medium text-inkalt mb-1" htmlFor={`low-stock-${section.id}`}>
+                    <label
+                      className="block text-xs font-mono font-medium text-inkalt mb-1.5"
+                      htmlFor={`low-stock-${section.id}`}
+                    >
                       {section.label}
                     </label>
                     <input
@@ -480,13 +580,13 @@ function SettingsContent() {
               </div>
             </div>
 
-            <div className="flex items-start justify-between gap-4 py-3 border-t border-line">
+            <div className="flex items-start justify-between gap-4 py-4 border-t border-line">
               <div>
-                <p className="font-display font-semibold text-ink text-sm">
+                <p className="font-semibold text-ink text-sm sm:text-base">
                   Refrescar el panel automáticamente
                 </p>
-                <p className="text-xs text-muted mt-0.5">
-                  Recarga los datos del panel sin que tengas que actualizar la página
+                <p className="text-xs sm:text-sm text-muted mt-1 leading-relaxed">
+                  Recarga los datos de ventas y órdenes sin necesidad de actualizar la página
                 </p>
               </div>
               <Toggle
@@ -513,47 +613,51 @@ function SettingsContent() {
                 className={inputClass}
                 disabled={!isAdmin || loading || !operationForm.autoRefreshDashboard}
               />
-              <p className="text-xs text-muted mt-1">Mínimo 10 segundos</p>
+              <p className="text-xs text-muted mt-1.5">Mínimo 10 segundos</p>
             </div>
 
             {isAdmin && (
-              <button type="submit" disabled={saving} className={buttonClass}>
-                <FAIcon icon="floppy-disk" size="sm" />
-                {saving ? 'Guardando...' : 'Guardar ajustes'}
-              </button>
+              <div className="pt-2">
+                <button type="submit" disabled={saving} className={buttonClass}>
+                  <FAIcon icon="floppy-disk" size="sm" />
+                  <span>{saving ? 'Guardando...' : 'Guardar ajustes de operación'}</span>
+                </button>
+              </div>
             )}
           </form>
-        </Card>
+        </div>
       )}
 
-      {/* --- Notificaciones --- */}
+      {/* --- Pestaña: Notificaciones --- */}
       {activeTab === 'notifications' && canSeeSystemSettings && (
-        <Card className="p-4 sm:p-6 max-w-2xl">
-          <h2 className="text-lg font-display font-bold text-ink mb-1">
-            Preferencias de notificaciones
-          </h2>
-          <p className="text-sm text-inkalt mb-5">
-            Elige qué movimientos del sistema quedan registrados en la campana
-          </p>
+        <div className="max-w-2xl border border-line bg-surface p-6 sm:p-7 border-l-2 border-l-ac space-y-6">
+          <div>
+            <p className="kick text-xs font-bold text-ac tracking-wider mb-1.5">
+              CANAL DE AVISOS
+            </p>
+            <h2 className="text-lg sm:text-xl font-bold text-ink">Preferencias de notificaciones</h2>
+            <p className="text-sm text-muted mt-1 leading-relaxed">
+              Elige qué eventos quedan registrados en la campana de notificaciones.
+            </p>
+          </div>
 
           {!isAdmin && (
-            <div className="mb-5 bg-warnsoft/80 border border-warn text-warn text-xs sm:text-sm rounded-none p-3">
-              Solo un administrador puede modificar estas preferencias.
+            <div className="bg-warnsoft/30 border border-warn text-warn text-xs sm:text-sm p-3.5 flex items-center gap-2.5">
+              <FAIcon icon="triangle-exclamation" size="sm" />
+              <span>Solo un administrador puede modificar estas preferencias globales.</span>
             </div>
           )}
 
-          <div className="divide-y divide-line">
+          <div className="divide-y divide-line/60">
             {NOTIFICATION_CATEGORIES.map((category) => (
               <div key={category.id} className="flex items-center justify-between gap-4 py-4">
-                <div className="flex items-start gap-3 min-w-0">
-                  <span className="shrink-0 w-9 h-9 rounded-full bg-surfalt text-muted flex items-center justify-center">
+                <div className="flex items-start gap-3.5 min-w-0">
+                  <span className="shrink-0 w-9 h-9 rounded-none border border-line bg-surfalt text-ink flex items-center justify-center">
                     <FAIcon icon={category.icon} size="sm" />
                   </span>
                   <div className="min-w-0">
-                    <p className="font-display font-semibold text-ink text-sm">
-                      {category.label}
-                    </p>
-                    <p className="text-xs text-muted mt-0.5">{category.description}</p>
+                    <p className="font-semibold text-ink text-sm sm:text-base">{category.label}</p>
+                    <p className="text-xs sm:text-sm text-muted mt-0.5 leading-relaxed">{category.description}</p>
                   </div>
                 </div>
 
@@ -566,22 +670,21 @@ function SettingsContent() {
             ))}
           </div>
 
-          <p className="text-xs text-muted mt-4">
-            Desactivar una categoría no borra las notificaciones existentes: solo deja de
-            registrar las nuevas.
+          <p className="text-xs text-muted leading-relaxed">
+            Desactivar una categoría no borra las notificaciones existentes: solo deja de registrar
+            los nuevos eventos.
           </p>
-        </Card>
+        </div>
       )}
-    </div>
 
-    <ImageCropModal
-      file={rawImageFile}
-      onCancel={() => setRawImageFile(null)}
-      onConfirm={(croppedFile) => {
-        setImageFile(croppedFile);
-        setRawImageFile(null);
-      }}
-    />
+      <ImageCropModal
+        file={rawImageFile}
+        onCancel={() => setRawImageFile(null)}
+        onConfirm={(croppedFile) => {
+          setImageFile(croppedFile);
+          setRawImageFile(null);
+        }}
+      />
     </>
   );
 }
@@ -592,11 +695,23 @@ export default function Settings() {
   return (
     <ToastProvider>
       <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
         <Sidebar activeMenu="settings" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <div className="flex-1 flex flex-col min-w-0">
+
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
           <TopBar onMenuClick={() => setSidebarOpen(true)} />
-          <main className="flex-1 overflow-y-auto">
-            <SettingsContent />
+
+          <main className="flex-1 overflow-y-auto min-h-0">
+            <div className="p-4 sm:p-6 lg:p-8">
+              <div className="bg-surface border border-line p-5 sm:p-7 lg:p-9">
+                <SettingsContent />
+              </div>
+            </div>
           </main>
         </div>
       </div>

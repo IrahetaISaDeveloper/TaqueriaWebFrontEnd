@@ -34,8 +34,8 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
       <div className="fixed inset-0 z-40 bg-black/40 sm:bg-transparent" onClick={onClose} aria-hidden="true" />
 
       <div
-        className="fixed left-1/2 top-20 -translate-x-1/2 w-[calc(100vw-2rem)] max-w-sm
-          sm:absolute sm:left-auto sm:top-full sm:right-0 sm:translate-x-0 sm:mt-2
+        className="fixed inset-x-4 top-20 max-w-sm mx-auto
+          sm:absolute sm:inset-x-auto sm:left-auto sm:top-full sm:right-0 sm:mx-0 sm:w-80 sm:mt-2
           z-50 bg-surface rounded-none border border-line overflow-hidden"
         role="dialog"
         aria-label="Notificaciones"

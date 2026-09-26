@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopBar from '../components/dashboard/TopBar';
 import ComboCard from '../components/dashboard/ComboCard';
-import ComboStats from '../components/dashboard/ComboStats';
+import StatLine from '../components/dashboard/StatLine';
 import AddComboModal from '../components/dashboard/AddComboModal';
 import ConfirmModal from '../components/commons/ConfirmModal';
 import PaginationControls from '../components/commons/PaginationControls';
@@ -177,10 +177,10 @@ function ComboManagementContent() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 min-h-0 overflow-y-auto">
           <div className="p-4 sm:p-6 lg:p-8">
             {/* Encabezado */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
@@ -252,21 +252,20 @@ function ComboManagementContent() {
               ]}
             />
 
-            {/* Estadísticas */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 sm:mb-8">
-              <ComboStats
-                icon="list"
-                title="TOTAL COMBOS"
+            {/* Estadísticas: mismo lenguaje editorial del Dashboard */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-8">
+              <StatLine
+                title="Total combos"
                 value={loading ? '...' : filteredCombos.length}
                 label={
-                  <span className="flex gap-1.5 flex-wrap mt-1">
+                  <span className="flex gap-1.5 flex-wrap">
                     {CATEGORY_FILTERS.map((f) => (
                       <button
                         key={f.id}
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setCategoryFilter(f.id); }}
                         className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
-                          categoryFilter === f.id ? 'bg-ac text-white' : 'bg-surface text-inkalt hover:bg-surface'
+                          categoryFilter === f.id ? 'bg-ac text-white' : 'bg-surfalt text-inkalt hover:bg-line'
                         }`}
                       >
                         {f.label}
@@ -274,21 +273,17 @@ function ComboManagementContent() {
                     ))}
                   </span>
                 }
-                highlighted={true}
               />
-              <ComboStats
-                icon="check-circle"
-                title="COMBOS DISPONIBLES"
+              <StatLine
+                title="Combos disponibles"
                 value={loading ? '...' : combos.filter(c => c.status === 'disponible').length}
                 label={`${combos.filter(c => c.status === 'disponible').length} combos disponibles`}
-                highlighted={true}
               />
-              <ComboStats
-                icon="star"
-                title="COMBO ESTRELLA"
+              <StatLine
+                title="Combo estrella"
                 value={loading ? '...' : (bestSellers[0]?.combo?.name || 'Sin datos aún')}
                 label={bestSellers[0] ? `${bestSellers[0].totalSold} vendidos` : 'Aún no hay ventas registradas'}
-                highlighted={true}
+                highlighted={Boolean(bestSellers[0])}
               />
             </div>
 

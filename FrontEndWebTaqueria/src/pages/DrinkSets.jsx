@@ -11,9 +11,9 @@ import Sidebar from '../components/dashboard/Sidebar';
 import TopBar from '../components/dashboard/TopBar';
 import FAIcon from '../components/commons/FAIcon';
 import Select from '../components/commons/Select';
-import ComboStats from '../components/dashboard/ComboStats';
 import ReportButton from '../components/commons/ReportButton';
 import AddDrinkSetModal from '../components/dashboard/AddDrinkSetModal';
+import StatLine from '../components/dashboard/StatLine';
 import useDrinkSets from '../hooks/useDrinkSets';
 import useDrinks from '../hooks/useDrinks';
 import { drinkSetsReportColumns } from '../constants/reportConfigs';
@@ -61,10 +61,10 @@ function DrinkSetsContent() {
       )}
       <Sidebar activeMenu={activeMenu} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 min-h-0 overflow-y-auto">
           <div className="p-4 sm:p-6 lg:p-8">
             {/* Encabezado */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
@@ -102,24 +102,21 @@ function DrinkSetsContent() {
               </div>
             </div>
 
-            {/* Resumen */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 sm:mb-8">
-              <ComboStats
-                icon="layer-group"
-                title="CONJUNTOS"
+            {/* Resumen: mismo lenguaje editorial del Dashboard */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-8">
+              <StatLine
+                title="Conjuntos"
                 value={loading ? '—' : String(drinkSets.length)}
                 label="Registrados en el sistema"
               />
-              <ComboStats
-                icon="check-circle"
-                title="ACTIVOS"
+              <StatLine
+                title="Activos"
                 value={loading ? '—' : String(activeCount)}
                 label="Disponibles para usar en combos"
-                highlighted={true}
+                highlighted
               />
-              <ComboStats
-                icon="wine-glass"
-                title="BEBIDAS DE TERCERO"
+              <StatLine
+                title="Bebidas de tercero"
                 value={loading ? '—' : String(thirdPartyDrinks.length)}
                 label="Se pueden agrupar en conjuntos"
               />
@@ -172,7 +169,7 @@ function DrinkSetsContent() {
                         key={set._id}
                         className={`p-4 rounded-none border transition-colors ${
                           set.status === 'activo'
-                            ? 'border-line bg-surface'
+                            ? 'border-line bg-surface hover:border-ac'
                             : 'border-line bg-surfalt opacity-60'
                         }`}
                       >

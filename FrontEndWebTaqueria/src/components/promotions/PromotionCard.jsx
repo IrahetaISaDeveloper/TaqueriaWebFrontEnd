@@ -36,7 +36,7 @@ const PromotionCard = ({ promotion, onEdit, onDelete, onToggleStatus, onView }) 
   const isRunning = status === 'activa' && new Date(endsAt).getTime() > Date.now();
 
   return (
-    <div className="bg-surface rounded-none overflow-hidden border border-line flex flex-col">
+    <div className="bg-surface rounded-none overflow-hidden border border-line flex flex-col transition-colors duration-200 hover:border-ac">
       <div className="relative h-40 bg-surfalt">
         <img
           src={image || items[0]?.refId?.image || PLACEHOLDER_IMAGE}
@@ -60,7 +60,7 @@ const PromotionCard = ({ promotion, onEdit, onDelete, onToggleStatus, onView }) 
       </div>
 
       <div className="p-4 flex flex-col gap-2 flex-1">
-        <h3 className="font-display font-bold text-ink text-base leading-snug">{name}</h3>
+        <h3 className="font-display font-bold text-ink text-base leading-snug line-clamp-2">{name}</h3>
 
         {/* Lo que se lleva el cliente, resumido: "4 Taco al pastor · 1 Burrito" */}
         <p className="text-xs text-muted line-clamp-2 min-h-[2rem]">
@@ -72,9 +72,9 @@ const PromotionCard = ({ promotion, onEdit, onDelete, onToggleStatus, onView }) 
         </p>
 
         <div className="flex items-baseline gap-2">
-          <span className="text-xl font-bold text-ac">${Number(price).toFixed(2)}</span>
+          <span className="num text-xl font-bold text-ac">${Number(price).toFixed(2)}</span>
           {hasDiscount && (
-            <span className="text-sm text-muted line-through">${Number(originalPrice).toFixed(2)}</span>
+            <span className="num text-sm text-muted line-through">${Number(originalPrice).toFixed(2)}</span>
           )}
         </div>
 

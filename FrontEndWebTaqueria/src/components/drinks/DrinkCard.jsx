@@ -12,12 +12,12 @@ const DrinkCard = (drink) => {
   const stockLabel = hasStock ? (status || (stock > 0 ? 'Disponible' : 'Agotado')) : 'Preparación en casa';
 
   return (
-    <div className="bg-surface rounded-none overflow-hidden border border-line flex flex-col h-full transition-transform duration-200 hover:scale-[1.02]">
+    <div className="bg-surface rounded-none overflow-hidden border border-line flex flex-col h-full transition-colors duration-200 hover:border-ac">
       {/* Imagen con overlay degradado y badges (idéntico a ComboCard) */}
       <div className="relative h-44 sm:h-48">
-        <img src={image || PLACEHOLDER_IMAGE} alt={title} className="w-full h-full object-cover rounded-t-3xl" />
+        <img src={image || PLACEHOLDER_IMAGE} alt={title} className="w-full h-full object-cover" />
         {/* Overlay sutil para que los badges resalten */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-t-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
 
         {/* Badges superiores */}
         <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
@@ -46,7 +46,7 @@ const DrinkCard = (drink) => {
         <h3 className="font-display font-bold text-ink mb-1 text-sm sm:text-base line-clamp-1">
           {title}
         </h3>
-        <p className="text-ac font-display font-bold text-lg sm:text-xl mb-2">
+        <p className="num text-ac font-bold text-lg sm:text-xl mb-2">
           ${parseFloat(price).toFixed(2)}
         </p>
         

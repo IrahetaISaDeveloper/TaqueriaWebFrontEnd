@@ -236,7 +236,7 @@ export default function AcceptInvitation() {
             <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
               Foto de perfil (opcional)
             </label>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               {imagePreview && (
                 <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-acline">
                   <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
