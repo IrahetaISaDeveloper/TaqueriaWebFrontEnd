@@ -49,8 +49,6 @@ const NAV = [
     label: 'Administración',
     items: [
       { label: 'Empleados', path: '/employees', icon: 'user-tie', desc: 'Equipo, estados y expedientes', permission: 'employees' },
-      { label: 'Invitar staff', path: '/InviteStaff', icon: 'user-plus', desc: 'Alta de empleados y administradores', permission: 'invite_staff' },
-      { label: 'Planilla', path: '/payroll', icon: 'sack-dollar', desc: 'Planilla general y de bonos', permission: 'payroll' },
       { label: 'Clientes', path: '/clients', icon: 'users', desc: 'Comensales registrados y su historial', permission: 'clients' },
       { label: 'Reportes (IVA)', path: '/reports', icon: 'file-invoice-dollar', desc: 'IVA cobrado contra IVA pagado', permission: 'reports' },
     ],

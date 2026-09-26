@@ -22,7 +22,7 @@ const AttentionCenter = ({ items, getKey, getTitle, getImage, getReason, onEdit 
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className={`mb-4 inline-flex items-center gap-2 pl-3 pr-4 py-2 rounded-full text-sm font-display font-semibold cursor-pointer transition-all border hover:scale-[1.03] active:scale-[0.98] ${
+        className={`mb-4 inline-flex items-center gap-2 pl-3 pr-4 py-2 rounded-none text-sm font-display font-semibold cursor-pointer transition-all border hover:scale-[1.03] active:scale-[0.98] ${
           hasIssues
             ? 'bg-warnsoft border-warn text-warn hover:bg-warnsoft/70'
             : 'bg-oksoft border-ok text-ok hover:bg-oksoft/70'
@@ -36,63 +36,91 @@ const AttentionCenter = ({ items, getKey, getTitle, getImage, getReason, onEdit 
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-surfalt rounded-none w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-line">
+          <div className="bg-surfalt rounded-none border border-acline/60 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-xl">
+
+            {/* Header delgado — estilo institucional */}
             <div
-              className={`flex items-center justify-between p-4 sm:p-5 text-white ${
+              className={`flex items-center justify-between px-4 sm:px-5 py-2.5 text-white sticky top-0 z-10 shadow-sm ${
                 hasIssues ? 'bg-warn' : 'bg-ok'
               }`}
             >
-              <h2 className="text-base sm:text-lg font-display font-bold">
-                {hasIssues ? `Atención: ${count} por completar` : 'Todo en orden'}
-              </h2>
+              <div className="min-w-0">
+                <h2 className="text-base sm:text-lg font-display font-bold leading-tight truncate">
+                  {hasIssues ? `Atención: ${count} por completar` : 'Todo en orden'}
+                </h2>
+                {hasIssues && (
+                  <p className="text-white/70 text-xs mt-0.5">
+                    Expedientes con información pendiente
+                  </p>
+                )}
+              </div>
               <button
+                type="button"
                 onClick={() => setIsOpen(false)}
-                className="text-white/80 hover:text-white p-1.5 rounded-none hover:bg-surface/10 transition-all"
+                className="text-white/70 hover:text-white w-7 h-7 flex items-center justify-center hover:bg-white/10 transition-colors ml-2 shrink-0"
               >
-                <FAIcon icon="times" size="lg" />
+                <FAIcon icon="times" />
               </button>
             </div>
 
-            <div className="p-4 sm:p-6 overflow-y-auto flex-1">
+            {/* Cuerpo */}
+            <div className="p-4 sm:p-5 overflow-y-auto flex-1">
               {!hasIssues ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <FAIcon icon="face-smile" size="3xl" className="text-ok mb-3" />
-                  <p className="text-inkalt font-display font-semibold text-lg">
+                  <div className="w-14 h-14 rounded-full bg-oksoft flex items-center justify-center mb-4">
+                    <FAIcon icon="face-smile" size="2xl" className="text-ok" />
+                  </div>
+                  <p className="text-ink font-display font-bold text-base">
                     No hay nada que revisar
+                  </p>
+                  <p className="text-muted text-xs mt-1">
+                    Todos los expedientes están completos
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  {items.map((item) => {
-                    const clickable = Boolean(onEdit);
-                    const Wrapper = clickable ? 'button' : 'div';
-                    return (
-                      <Wrapper
-                        key={getKey(item)}
-                        type={clickable ? 'button' : undefined}
-                        onClick={clickable ? () => handleItemClick(item) : undefined}
-                        className={`flex items-center gap-3 bg-surface rounded-none p-3 border border-line text-left w-full ${
-                          clickable ? 'hover:border-warn transition-all cursor-pointer' : ''
-                        }`}
-                      >
-                        <img
-                          src={getImage?.(item) || PLACEHOLDER_IMAGE}
-                          alt=""
-                          className="w-14 h-14 rounded-none object-cover shrink-0"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="font-display font-semibold text-ink text-sm truncate">
-                            {getTitle(item)}
-                          </p>
-                          <p className="text-xs text-warn mt-0.5">{getReason(item)}</p>
-                        </div>
-                        {clickable && (
-                          <FAIcon icon="pen" size="sm" className="text-muted shrink-0" />
-                        )}
-                      </Wrapper>
-                    );
-                  })}
-                </div>
+                <>
+                  {/* Etiqueta de sección */}
+                  <h4 className="text-[10.5px] text-warn font-bold tracking-wider mb-3 flex items-center gap-1.5 uppercase">
+                    <span className="w-1.5 h-1.5 rounded-full bg-warn shrink-0" />
+                    Expedientes pendientes
+                  </h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {items.map((item) => {
+                      const clickable = Boolean(onEdit);
+                      const Wrapper = clickable ? 'button' : 'div';
+                      return (
+                        <Wrapper
+                          key={getKey(item)}
+                          type={clickable ? 'button' : undefined}
+                          onClick={clickable ? () => handleItemClick(item) : undefined}
+                          className={`flex items-center gap-3 bg-surface rounded-none p-3 border border-line text-left w-full group ${
+                            clickable ? 'hover:border-warn/60 transition-all cursor-pointer' : ''
+                          }`}
+                        >
+                          <img
+                            src={getImage?.(item) || PLACEHOLDER_IMAGE}
+                            alt=""
+                            className="w-11 h-11 rounded-none object-cover shrink-0 border border-line"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-display font-semibold text-ink text-[13px] leading-tight truncate">
+                              {getTitle(item)}
+                            </p>
+                            <p className="text-[11px] text-warn mt-0.5 leading-snug line-clamp-2">
+                              {getReason(item)}
+                            </p>
+                          </div>
+                          {clickable && (
+                            <span className="w-7 h-7 flex items-center justify-center text-muted group-hover:text-warn transition-colors shrink-0">
+                              <FAIcon icon="pen" size="sm" />
+                            </span>
+                          )}
+                        </Wrapper>
+                      );
+                    })}
+                  </div>
+                </>
               )}
             </div>
           </div>
