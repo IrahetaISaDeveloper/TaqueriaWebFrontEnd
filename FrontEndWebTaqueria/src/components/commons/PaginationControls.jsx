@@ -2,8 +2,24 @@
 import React from 'react';
 import FAIcon from './FAIcon';
 
-const PaginationControls = ({ page, totalPages, onPrev, onNext, onGoTo }) => {
+const PaginationControls = ({ page, totalPages, onPrev, onNext, onGoTo, compact = false }) => {
   if (totalPages <= 1) return null;
+
+  // Versión corta "‹ 1/4 ›" de las pantallas del catálogo.
+  if (compact) {
+    const arrow = 'w-8 h-8 flex items-center justify-center border border-line text-inkalt hover:border-ac hover:text-ac disabled:opacity-40 disabled:hover:border-line disabled:hover:text-inkalt transition-colors cursor-pointer';
+    return (
+      <div className="flex items-center justify-center gap-3 mt-7">
+        <button onClick={onPrev} disabled={page === 1} className={arrow} aria-label="Página anterior">
+          <FAIcon icon="chevron-left" size="sm" />
+        </button>
+        <span className="num text-xs text-muted">{page}/{totalPages}</span>
+        <button onClick={onNext} disabled={page === totalPages} className={arrow} aria-label="Página siguiente">
+          <FAIcon icon="chevron-right" size="sm" />
+        </button>
+      </div>
+    );
+  }
 
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 

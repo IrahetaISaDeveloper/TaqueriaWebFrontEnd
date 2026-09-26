@@ -1,16 +1,14 @@
 // src/components/promotions/PromotionCard.jsx
 import React from 'react';
-import FAIcon from '../commons/FAIcon';
+import MenuItemCard from '../menu/MenuItemCard';
 
-const PLACEHOLDER_IMAGE = 'https://placehold.co/400x260/f3f0eb/9ca3af?text=Sin+imagen';
-
-// Colores por estado. "activa" no siempre significa visible para el cliente:
-// una promoción programada para mañana está activa pero todavía no corre, y
-// eso se distingue con la etiqueta de vigencia, no con el color.
-const STATUS_STYLES = {
-  activa: 'bg-oksoft text-ok',
-  pausada: 'bg-warnsoft text-warn',
-  expirada: 'bg-line text-inkalt',
+// "activa" no siempre significa visible para el cliente: una promoción
+// programada para mañana está activa pero todavía no corre, y eso se
+// distingue con la etiqueta de vigencia, no con el color.
+const STATUS = {
+  activa: { label: 'Activa', tone: 'ok' },
+  pausada: { label: 'Pausada', tone: 'warn' },
+  expirada: { label: 'Expirada', tone: 'muted' },
 };
 
 // Cuánto le queda de vida a la promoción, en el lenguaje en que la piensa el
@@ -34,93 +32,37 @@ const PromotionCard = ({ promotion, onEdit, onDelete, onToggleStatus, onView }) 
 
   const hasDiscount = Number(originalPrice) > Number(price);
   const isRunning = status === 'activa' && new Date(endsAt).getTime() > Date.now();
+  const statusInfo = STATUS[status] || STATUS.expirada;
+
+  // Lo que se lleva el cliente, resumido: "4 Taco al pastor · 1 Burrito"
+  const meta = items.length === 0
+    ? 'Sin productos'
+    : items.map((item) => `${item.quantity || 1} ${item.refId?.name || 'Producto eliminado'}`).join(' · ');
+
+  // Reactivar una promo vencida no haría nada visible, así que el botón solo
+  // se ofrece mientras siga teniendo vigencia por delante.
+  const extraActions = (isRunning || status === 'pausada')
+    ? [{ icon: isRunning ? 'pause' : 'play', label: isRunning ? 'Pausar' : 'Reactivar', onClick: onToggleStatus }]
+    : [];
 
   return (
-    <div className="bg-surface rounded-none overflow-hidden border border-line flex flex-col transition-colors duration-200 hover:border-ac">
-      <div className="relative h-40 bg-surfalt">
-        <img
-          src={image || items[0]?.refId?.image || PLACEHOLDER_IMAGE}
-          alt={name}
-          className="w-full h-full object-cover"
-        />
-
-        {discountPercent > 0 && (
-          <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-ac text-white text-xs font-bold shadow">
-            -{discountPercent}%
-          </span>
-        )}
-
-        <span
-          className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-bold ${
-            STATUS_STYLES[status] || STATUS_STYLES.expirada
-          }`}
-        >
-          {status?.toUpperCase()}
-        </span>
-      </div>
-
-      <div className="p-4 flex flex-col gap-2 flex-1">
-        <h3 className="font-display font-bold text-ink text-base leading-snug line-clamp-2">{name}</h3>
-
-        {/* Lo que se lleva el cliente, resumido: "4 Taco al pastor · 1 Burrito" */}
-        <p className="text-xs text-muted line-clamp-2 min-h-[2rem]">
-          {items.length === 0
-            ? 'Sin productos'
-            : items
-                .map((item) => `${item.quantity || 1} ${item.refId?.name || 'Producto eliminado'}`)
-                .join(' · ')}
-        </p>
-
-        <div className="flex items-baseline gap-2">
-          <span className="num text-xl font-bold text-ac">${Number(price).toFixed(2)}</span>
-          {hasDiscount && (
-            <span className="num text-sm text-muted line-through">${Number(originalPrice).toFixed(2)}</span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1.5 text-xs text-muted">
-          <FAIcon icon="clock" size="xs" />
-          {formatTimeLeft(endsAt)}
-        </div>
-
-        <div className="flex items-center gap-2 mt-auto pt-3">
-          <button
-            type="button"
-            onClick={onView}
-            className="flex-1 px-3 py-2 rounded-none bg-surfalt text-inkalt text-xs font-semibold hover:bg-line transition-colors"
-          >
-            Ver
-          </button>
-          <button
-            type="button"
-            onClick={onEdit}
-            className="flex-1 px-3 py-2 rounded-none bg-surfalt text-inkalt text-xs font-semibold hover:bg-line transition-colors"
-          >
-            Editar
-          </button>
-          {/* Reactivar una promo vencida no haría nada visible, así que el
-              botón solo se ofrece mientras siga teniendo vigencia por delante */}
-          {(isRunning || status === 'pausada') && (
-            <button
-              type="button"
-              onClick={onToggleStatus}
-              title={isRunning ? 'Pausar' : 'Reactivar'}
-              className="px-3 py-2 rounded-none bg-surfalt text-inkalt text-xs font-semibold hover:bg-line transition-colors"
-            >
-              <FAIcon icon={isRunning ? 'pause' : 'play'} size="xs" />
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={onDelete}
-            title="Eliminar"
-            className="px-3 py-2 rounded-none bg-acsoft text-ac text-xs font-semibold hover:bg-acsoft transition-colors"
-          >
-            <FAIcon icon="trash" size="xs" />
-          </button>
-        </div>
-      </div>
-    </div>
+    <MenuItemCard
+      image={image || items[0]?.refId?.image}
+      name={name}
+      price={`$${Number(price).toFixed(2)}`}
+      originalPrice={hasDiscount ? `$${Number(originalPrice).toFixed(2)}` : null}
+      corner={discountPercent > 0 ? `-${discountPercent}%` : null}
+      meta={meta}
+      status={statusInfo.label}
+      statusTone={statusInfo.tone}
+      tag={formatTimeLeft(endsAt)}
+      tagTone={isRunning ? 'ac' : 'muted'}
+      dimmed={status === 'expirada'}
+      onView={onView}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      extraActions={extraActions}
+    />
   );
 };
 

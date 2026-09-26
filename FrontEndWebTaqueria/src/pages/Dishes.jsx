@@ -1,17 +1,15 @@
 // src/pages/Dishes.jsx
 import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/dashboard/Sidebar';
-import TopBar from '../components/dashboard/TopBar';
-import StatLine from '../components/dashboard/StatLine';
+import MenuPageShell, { MENU_PRIMARY_BUTTON } from '../components/menu/MenuPageShell';
+import MenuHero from '../components/menu/MenuHero';
+import MenuFilterRow from '../components/menu/MenuFilterRow';
+import MenuAttentionBanner from '../components/menu/MenuAttentionBanner';
 import DishCard from '../components/dishes/DishCard';
 import AddDishModal from '../components/dishes/AddDishModal';
 import ConfirmModal from '../components/commons/ConfirmModal';
 import PaginationControls from '../components/commons/PaginationControls';
-import AttentionCenter from '../components/commons/AttentionCenter';
-import FilterBar from '../components/commons/FilterBar';
 import ViewDetailsModal from '../components/commons/ViewDetailsModal';
 import DetailRow from '../components/commons/DetailRow';
-import FAIcon from '../components/commons/FAIcon';
 import useSaucers from '../hooks/useSaucers';
 import { usePagination } from '../hooks/usePagination';
 import { ToastProvider, useToast } from '../components/commons/ToastProvider';
@@ -33,7 +31,6 @@ function DishesContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDish, setEditingDish] = useState(null);
   const [viewingDish, setViewingDish] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState({ isOpen: false, dishId: null });
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [subcategoryFilter, setSubcategoryFilter] = useState('all');
@@ -58,10 +55,9 @@ function DishesContent() {
     (statusFilter === 'all' || d.status === statusFilter)
   );
 
-  const { page, totalPages, paginatedItems, goTo, next, prev } = usePagination(filteredDishes, 6);
+  const { page, totalPages, paginatedItems, goTo, next, prev } = usePagination(filteredDishes, 8);
 
   // Datos para las estadísticas
-  const totalDishes = filteredDishes.length;
   const outOfStockDishes = saucers.filter(dish => dish.status !== 'Activo').length;
   const platoEstrella = bestSeller?.saucer?.name || 'Sin datos aún';
 
@@ -142,212 +138,170 @@ function DishesContent() {
     }
   };
 
+  const activeDishes = saucers.filter((d) => d.status === 'Activo').length;
+  const missingImage = saucers.filter((d) => !d.image);
+  const heroNote = [
+    outOfStockDishes > 0 && `${outOfStockDishes} platillo${outOfStockDishes === 1 ? ' está marcado' : 's están marcados'} como no disponible${outOfStockDishes === 1 ? '' : 's'}`,
+    missingImage.length > 0 && `${missingImage.length} no ${missingImage.length === 1 ? 'tiene' : 'tienen'} imagen cargada`,
+  ].filter(Boolean).join(' y ');
+
+  const openCreate = () => { setEditingDish(null); setIsModalOpen(true); };
+  const openEdit = (dish) => { setEditingDish(dish); setIsModalOpen(true); };
+
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
+    <MenuPageShell
+      activeMenu={activeMenu}
+      subtitle="Administra el catálogo y su disponibilidad en tiempo real"
+      actions={
+        <>
+          {/* Exporta lo que está filtrado en pantalla, no solo la página actual */}
+          <ReportButton
+            compact
+            label="Exportar"
+            title="Platillos"
+            columns={dishesReportColumns}
+            rows={filteredDishes}
+            getImageUrl={(r) => r.image}
+            itemTag="platillo"
+            summary={[
+              { label: 'Total de platillos', value: filteredDishes.length },
+              { label: 'Con receta', value: filteredDishes.filter((d) => d.recipe?.length > 0).length },
+            ]}
+          />
+          <button type="button" onClick={openCreate} disabled={loading} className={MENU_PRIMARY_BUTTON}>
+            Nuevo platillo
+          </button>
+        </>
+      }
+      modals={
+        <>
+          <AddDishModal
+            isOpen={isModalOpen}
+            onClose={() => { setIsModalOpen(false); setEditingDish(null); }}
+            onSave={handleSaveDish}
+            onEditExisting={openEdit}
+            dishToEdit={editingDish}
+          />
+
+          <ConfirmModal
+            isOpen={confirmDelete.isOpen}
+            onClose={() => setConfirmDelete({ isOpen: false, dishId: null })}
+            onConfirm={handleDeleteConfirm}
+            title="Eliminar platillo"
+            message="¿Estás seguro de que deseas eliminar este platillo? Esta acción no se puede deshacer."
+            confirmText="Eliminar"
+            loading={loading}
+          />
+
+          <ViewDetailsModal
+            key={viewingDish?._id}
+            isOpen={Boolean(viewingDish)}
+            onClose={() => setViewingDish(null)}
+            title={viewingDish?.name}
+            image={viewingDish?.image}
+            sections={viewingDish ? buildDishSections(viewingDish) : []}
+          />
+        </>
+      }
+    >
+      {error && (
+        <div className="mb-5 bg-acsoft border border-acline text-ac px-4 py-3 text-sm">
+          Error de conexión: {error}
+        </div>
       )}
 
-      <Sidebar activeMenu={activeMenu} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        <TopBar onMenuClick={() => setSidebarOpen(true)} />
-
-        {/* Sin min-h-0, un hijo flex nunca se encoge más que su contenido:
-            en vez de scrollear, todo se desbordaba y el overflow-hidden del
-            contenedor de más afuera lo recortaba en seco. */}
-        <main className="flex-1 min-h-0 overflow-y-auto">
-          <div className="p-4 sm:p-6 lg:p-8">
-            {/* Encabezado */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1 sm:mb-2">
-                  Gestión de Platillos
-                </h1>
-                <p className="text-sm sm:text-base text-inkalt">
-                  Administra el menú de carnes y disponibilidad en tiempo real.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                {/* Exporta lo que esta filtrado en pantalla, no solo
-                    la pagina actual del listado. */}
-                <ReportButton
-                  title="Platillos"
-                  columns={dishesReportColumns}
-                  rows={filteredDishes}
-                  getImageUrl={(r) => r.image}
-                  itemTag="platillo"
-                  summary={[
-                    { label: 'Total de platillos', value: filteredDishes.length },
-                    { label: 'Con receta', value: filteredDishes.filter((d) => d.recipe?.length > 0).length },
-                  ]}
-                />
-
-                <button
-                  onClick={() => { setEditingDish(null); setIsModalOpen(true); }}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-ac text-white rounded-none font-display font-semibold text-sm
-                    hover:bg-ac hover:
-                    transition-all disabled:opacity-60"
-                  disabled={loading}
-                >
-                  <FAIcon icon="plus" />
-                  Nuevo Platillo
-                </button>
-              </div>
-            </div>
-
-            {/* Error */}
-            {error && (
-              <div className="mb-4 bg-acsoft border border-acline text-ac px-4 py-3 rounded-none text-sm">
-                Error de conexión: {error}
-              </div>
-            )}
-
-            {/* Platillos sin imagen */}
-            <AttentionCenter
-              items={saucers.filter((d) => !d.image)}
-              getKey={(d) => d._id}
-              getTitle={(d) => d.name}
-              getImage={(d) => d.image}
-              getReason={() => 'Falta imagen'}
-              onEdit={(dish) => { setEditingDish(dish); setIsModalOpen(true); }}
-            />
-
-            <FilterBar
-              filters={[
-                {
-                  label: 'Subcategoría',
-                  value: subcategoryFilter,
-                  onChange: setSubcategoryFilter,
-                  options: [{ value: 'all', label: 'Todas las subcategorías' }, ...subcategoryOptions.map((s) => ({ value: s, label: s }))],
-                },
-                {
-                  label: 'Estado',
-                  value: statusFilter,
-                  onChange: setStatusFilter,
-                  options: [
-                    { value: 'all', label: 'Todos los estados' },
-                    { value: 'Activo', label: 'Disponibles' },
-                    { value: 'Inactivo', label: 'No disponibles' },
-                  ],
-                },
-              ]}
-            />
-
-            {/* Estadísticas: mismo lenguaje editorial del Dashboard (regla fina
-                arriba, sin tarjetas con icono) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-8">
-              <StatLine
-                title="Total platillos"
-                value={loading ? '...' : totalDishes}
-                label={
-                  <span className="flex gap-1.5 flex-wrap">
-                    {CATEGORY_FILTERS.map((f) => (
-                      <button
-                        key={f.id}
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); setCategoryFilter(f.id); }}
-                        className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
-                          categoryFilter === f.id ? 'bg-ac text-white' : 'bg-surfalt text-inkalt hover:bg-line'
-                        }`}
-                      >
-                        {f.label}
-                      </button>
-                    ))}
-                  </span>
-                }
-              />
-              <StatLine
-                title="Platillo estrella"
-                value={platoEstrella}
-                label="Más vendido"
-              />
-              <StatLine
-                title="Platillos agotados"
-                value={loading ? '...' : outOfStockDishes}
-                label={outOfStockDishes > 0 ? 'Fuera de stock' : 'Todos disponibles'}
-                highlighted={outOfStockDishes > 0}
-              />
-            </div>
-
-            {/* Loader */}
-            {loading && (
-              <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ac"></div>
-                <span className="ml-3 text-inkalt font-medium">Cargando platillos...</span>
-              </div>
-            )}
-
-            {/* Grid de platillos (sin contenedor blanco) */}
-            {!loading && (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                  {paginatedItems.map((dish) => (
-                    <DishCard
-                      key={dish._id}
-                      image={dish.image}
-                      name={dish.name}
-                      category={dish.category}
-                      subcategory={dish.subcategory}
-                      price={`$${parseFloat(dish.price).toFixed(2)}`}
-                      status={dish.status}
-                      isMostSold={bestSeller?.saucer?._id === dish._id}
-                      onEdit={() => { setEditingDish(dish); setIsModalOpen(true); }}
-                      onDelete={() => handleRequestDelete(dish._id)}
-                      onView={() => setViewingDish(dish)}
-                    />
-                  ))}
-                </div>
-                <PaginationControls page={page} totalPages={totalPages} onPrev={prev} onNext={next} onGoTo={goTo} />
-              </>
-            )}
-
-            {/* Estado vacío */}
-            {!loading && filteredDishes.length === 0 && !error && (
-              <div className="text-center py-12">
-                <FAIcon icon="utensils" size="3x" className="text-muted mx-auto mb-3" />
-                <p className="text-muted text-base sm:text-lg font-display font-semibold">
-                  No hay platillos {categoryFilter !== 'all' ? 'en esta categoría' : 'registrados'}
-                </p>
-                <p className="text-muted text-xs sm:text-sm mb-4">
-                  Haz click en "Nuevo Platillo" para agregar uno
-                </p>
-              </div>
-            )}
-          </div>
-        </main>
-      </div>
-
-      <AddDishModal
-        isOpen={isModalOpen}
-        onClose={() => { setIsModalOpen(false); setEditingDish(null); }}
-        onSave={handleSaveDish}
-        onEditExisting={(existing) => { setEditingDish(existing); setIsModalOpen(true); }}
-        dishToEdit={editingDish}
-      />
-
-      <ConfirmModal
-        isOpen={confirmDelete.isOpen}
-        onClose={() => setConfirmDelete({ isOpen: false, dishId: null })}
-        onConfirm={handleDeleteConfirm}
-        title="Eliminar platillo"
-        message="¿Estás seguro de que deseas eliminar este platillo? Esta acción no se puede deshacer."
-        confirmText="Eliminar"
+      <MenuHero
         loading={loading}
+        primary={{
+          kick: 'Platillos activos',
+          value: activeDishes,
+          suffix: `de ${saucers.length} registrados`,
+          note: heroNote ? `${heroNote}.` : 'Todo el catálogo está disponible y completo.',
+          noteTone: heroNote ? 'ac' : 'ok',
+        }}
+        secondary={[
+          { kick: 'Platillo estrella', value: platoEstrella, label: 'Más vendido' },
+          {
+            kick: 'Platillos agotados',
+            value: outOfStockDishes,
+            label: outOfStockDishes > 0 ? 'Fuera de stock' : 'Todos disponibles',
+            tone: outOfStockDishes > 0 ? 'ac' : undefined,
+          },
+        ]}
       />
 
-      <ViewDetailsModal
-        key={viewingDish?._id}
-        isOpen={Boolean(viewingDish)}
-        onClose={() => setViewingDish(null)}
-        title={viewingDish?.name}
-        image={viewingDish?.image}
-        sections={viewingDish ? buildDishSections(viewingDish) : []}
+      <MenuFilterRow
+        chips={CATEGORY_FILTERS}
+        value={categoryFilter}
+        onChange={setCategoryFilter}
+        filters={[
+          {
+            label: 'Subcategoría',
+            value: subcategoryFilter,
+            onChange: setSubcategoryFilter,
+            options: [{ value: 'all', label: 'Todas las subcategorías' }, ...subcategoryOptions.map((s) => ({ value: s, label: s }))],
+          },
+          {
+            label: 'Estado',
+            value: statusFilter,
+            onChange: setStatusFilter,
+            options: [
+              { value: 'all', label: 'Todos los estados' },
+              { value: 'Activo', label: 'Disponibles' },
+              { value: 'Inactivo', label: 'No disponibles' },
+            ],
+          },
+        ]}
       />
-    </div>
+
+      <MenuAttentionBanner
+        items={missingImage}
+        getKey={(d) => d._id}
+        getTitle={(d) => d.name}
+        onEdit={openEdit}
+        noun={['platillo', 'platillos']}
+      />
+
+      {loading && (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-ac"></div>
+          <span className="ml-3 text-sm text-muted">Cargando platillos...</span>
+        </div>
+      )}
+
+      {!loading && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+            {paginatedItems.map((dish) => (
+              <DishCard
+                key={dish._id}
+                image={dish.image}
+                name={dish.name}
+                category={dish.category}
+                subcategory={dish.subcategory}
+                quantity={dish.quantity}
+                price={`$${parseFloat(dish.price).toFixed(2)}`}
+                status={dish.status}
+                isMostSold={bestSeller?.saucer?._id === dish._id}
+                onEdit={() => openEdit(dish)}
+                onDelete={() => handleRequestDelete(dish._id)}
+                onView={() => setViewingDish(dish)}
+              />
+            ))}
+          </div>
+          <PaginationControls compact page={page} totalPages={totalPages} onPrev={prev} onNext={next} onGoTo={goTo} />
+        </>
+      )}
+
+      {!loading && filteredDishes.length === 0 && !error && (
+        <div className="text-center py-14 border border-dashed border-line">
+          <p className="kick text-muted mb-2">Sin resultados</p>
+          <p className="text-sm text-inkalt">
+            No hay platillos {categoryFilter !== 'all' ? 'en esta categoría' : 'registrados'}.
+          </p>
+        </div>
+      )}
+    </MenuPageShell>
   );
 }
 
