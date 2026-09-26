@@ -8,8 +8,11 @@
 // ver. Ahora son su propia pantalla, con su propio permiso.
 import React, { useState, useMemo } from 'react';
 import MenuPageShell, { MENU_PRIMARY_BUTTON } from '../components/menu/MenuPageShell';
-import MenuHero from '../components/menu/MenuHero';
-import MenuFilterRow from '../components/menu/MenuFilterRow';
+import CatalogStats from '../components/menu/CatalogStats';
+import CatalogToolbar from '../components/menu/CatalogToolbar';
+import CatalogEmpty from '../components/menu/CatalogEmpty';
+import CatalogCard from '../components/menu/CatalogCard';
+import FAIcon from '../components/commons/FAIcon';
 import ReportButton from '../components/commons/ReportButton';
 import AddDrinkSetModal from '../components/dashboard/AddDrinkSetModal';
 import useDrinkSets from '../hooks/useDrinkSets';
@@ -52,7 +55,21 @@ function DrinkSetsContent() {
   };
 
   const inactiveCount = drinkSets.length - activeCount;
+  const activePct = drinkSets.length ? Math.round((activeCount / drinkSets.length) * 100) : 0;
+  const avgDrinks = drinkSets.length
+    ? (drinkSets.reduce((sum, s) => sum + (s.drinkIds || []).length, 0) / drinkSets.length).toFixed(1)
+    : '0';
   const openCreate = () => { setEditingSet(null); setIsModalOpen(true); };
+  const openEdit = (set) => { setEditingSet(set); setIsModalOpen(true); };
+
+  const hasActiveFilters = statusFilter !== 'all' || Boolean(searchTerm.trim());
+  const clearFilters = () => { setStatusFilter('all'); setSearchTerm(''); };
+
+  // Conteo por pestaña de estado respetando la búsqueda.
+  const statusCount = (id) =>
+    drinkSets.filter((s) =>
+      s.name?.toLowerCase().includes(searchTerm.toLowerCase()) && (id === 'all' || s.status === id)
+    ).length;
 
   return (
     <MenuPageShell
@@ -90,113 +107,149 @@ function DrinkSetsContent() {
         />
       }
     >
-      <MenuHero
+      <CatalogStats
         loading={loading}
-        primary={{
-          kick: 'Conjuntos activos',
-          value: activeCount,
-          suffix: `de ${drinkSets.length} registrados`,
-          note: inactiveCount > 0
-            ? `${inactiveCount} conjunto${inactiveCount === 1 ? ' está deshabilitado' : 's están deshabilitados'} y no se ofrece${inactiveCount === 1 ? '' : 'n'} en los combos.`
-            : 'Todos los conjuntos se pueden usar en combos.',
-          noteTone: inactiveCount > 0 ? 'ac' : 'ok',
-        }}
-        secondary={[
-          { kick: 'Bebidas de tercero', value: thirdPartyDrinks.length, label: 'Se pueden agrupar en conjuntos' },
-          { kick: 'Inactivos', value: inactiveCount, label: 'Deshabilitados, no se borran' },
+        cells={[
+          {
+            kick: 'Conjuntos activos',
+            icon: 'layer-group',
+            value: activeCount,
+            suffix: `/ ${drinkSets.length}`,
+            progress: activePct,
+            label: `${activePct}% se ofrece en combos`,
+          },
+          {
+            kick: 'Inactivos',
+            icon: 'ban',
+            value: inactiveCount,
+            tone: inactiveCount > 0 ? 'ac' : undefined,
+            label: statusFilter === 'inactivo'
+              ? 'Mostrando solo estos · quitar'
+              : inactiveCount > 0 ? 'Deshabilitados · ver cuáles' : 'Todos habilitados',
+            active: statusFilter === 'inactivo',
+            onClick: inactiveCount > 0 || statusFilter === 'inactivo'
+              ? () => setStatusFilter((s) => (s === 'inactivo' ? 'all' : 'inactivo'))
+              : undefined,
+          },
+          {
+            kick: 'Bebidas de tercero',
+            icon: 'wine-glass',
+            value: thirdPartyDrinks.length,
+            label: 'Se pueden agrupar en conjuntos',
+          },
+          {
+            kick: 'Promedio por conjunto',
+            icon: 'list-check',
+            value: avgDrinks,
+            label: 'Bebidas por conjunto',
+          },
         ]}
       />
 
-      <MenuFilterRow
-        label="Estado"
-        chips={[
-          { id: 'all', label: 'Todos' },
-          { id: 'activo', label: 'Activos' },
-          { id: 'inactivo', label: 'Inactivos' },
+      <CatalogToolbar
+        search={searchTerm}
+        onSearch={setSearchTerm}
+        searchPlaceholder="Buscar conjunto por nombre..."
+        tabs={[
+          { id: 'all', label: 'Todos', count: statusCount('all') },
+          { id: 'activo', label: 'Activos', count: statusCount('activo') },
+          { id: 'inactivo', label: 'Inactivos', count: statusCount('inactivo') },
         ]}
-        value={statusFilter}
-        onChange={setStatusFilter}
-        extra={
-          <input
-            type="text"
-            placeholder="Buscar conjunto..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="px-3 py-1.5 w-full sm:w-56 bg-surface border border-line rounded-none focus:outline-none focus:border-ac text-xs text-inkalt placeholder:text-muted"
-          />
-        }
+        tabsLabel="Estado"
+        tabValue={statusFilter}
+        onTab={setStatusFilter}
+        loading={loading}
+        shown={filteredSets.length}
+        total={drinkSets.length}
+        noun="conjuntos"
+        hasActiveFilters={hasActiveFilters}
+        onClear={clearFilters}
       />
 
       {loading ? (
-        <p className="text-sm text-muted text-center py-12">Cargando conjuntos...</p>
-      ) : drinkSets.length === 0 ? (
-        <div className="text-center py-14 border border-dashed border-line">
-          <p className="kick text-muted mb-2">Sin conjuntos</p>
-          <p className="text-sm text-inkalt">
-            Crea uno para poder ofrecer varias bebidas a elegir dentro de un combo.
-          </p>
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-ac"></div>
+          <span className="ml-3 text-sm text-muted">Cargando conjuntos...</span>
         </div>
       ) : filteredSets.length === 0 ? (
-        <div className="text-center py-14 border border-dashed border-line">
-          <p className="kick text-muted mb-2">Sin resultados</p>
-          <p className="text-sm text-inkalt">Ningún conjunto coincide con los filtros.</p>
-        </div>
+        <CatalogEmpty
+          hasActiveFilters={hasActiveFilters}
+          onClear={clearFilters}
+          onCreate={openCreate}
+          filteredText="Ningún conjunto coincide con los filtros aplicados."
+          emptyText="Crea uno para poder ofrecer varias bebidas a elegir dentro de un combo."
+          createLabel="Nuevo conjunto"
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-          {filteredSets.map((set) => {
+          {filteredSets.map((set, i) => {
             const active = set.status === 'activo';
-            const count = (set.drinkIds || []).length;
+            const names = (set.drinkIds || []).map((d) => d.name).filter(Boolean);
+            const count = names.length;
             return (
-              <div
+              <CatalogCard
                 key={set._id}
-                className={`group bg-surface border border-line flex flex-col transition-colors hover:border-ac ${active ? '' : 'opacity-60'}`}
-              >
-                <div className="px-4 pt-3.5 pb-3 flex-1 flex flex-col">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="text-[14px] font-medium text-ink leading-snug line-clamp-2 min-w-0">{set.name}</h3>
-                    <span className="num text-[13px] text-ink shrink-0">{count}</span>
-                  </div>
-                  <p className="kick text-muted mt-1.5">{count} bebida{count === 1 ? '' : 's'}</p>
-                  <p className="text-xs text-inkalt mt-3 line-clamp-3 min-h-[3rem]">
-                    {(set.drinkIds || []).map((d) => d.name).join(', ') || 'Sin bebidas'}
-                  </p>
-
-                  <div className="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-line">
-                    <span className={`kick inline-flex items-center gap-1.5 ${active ? 'text-ok' : 'text-muted'}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-ok' : 'bg-muted'}`} />
-                      {active ? 'Activo' : 'Inactivo'}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => { setEditingSet(set); setIsModalOpen(true); }}
-                        className="kick text-inkalt hover:text-ac transition-colors cursor-pointer"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleToggleStatus(set)}
-                        className={`kick transition-colors cursor-pointer ${active ? 'text-ac hover:text-ink' : 'text-ok hover:text-ink'}`}
-                      >
-                        {active ? 'Deshabilitar' : 'Habilitar'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                visual={<DrinkSetVisual count={count} names={names} index={i + 1} />}
+                name={set.name}
+                description={names.join(', ')}
+                emptyDescription="Sin bebidas asignadas."
+                category="Conjunto"
+                eyebrow={`${count} bebida${count === 1 ? '' : 's'}`}
+                available={active}
+                availableLabel="Activo"
+                unavailableLabel="Inactivo"
+                meta={count === 0 ? [{ icon: 'triangle-exclamation', label: 'Vacío', tone: 'warn' }] : []}
+                onView={() => openEdit(set)}
+                onEdit={() => openEdit(set)}
+                extraActions={[
+                  {
+                    icon: active ? 'ban' : 'check',
+                    label: active ? 'Deshabilitar' : 'Habilitar',
+                    onClick: () => handleToggleStatus(set),
+                    danger: active,
+                  },
+                ]}
+              />
             );
           })}
         </div>
       )}
 
-      <p className="mt-6 text-xs text-muted">
-        Los conjuntos no se eliminan, solo se deshabilitan: si un combo ya usa uno, borrarlo
-        dejaría ese combo sin opciones de bebida.
+      <p className="mt-6 flex items-start gap-2 text-xs text-muted">
+        <FAIcon icon="circle-info" size="xs" className="mt-0.5 shrink-0" />
+        <span>
+          Los conjuntos no se eliminan, solo se deshabilitan: si un combo ya usa uno, borrarlo
+          dejaría ese combo sin opciones de bebida.
+        </span>
       </p>
     </MenuPageShell>
   );
 }
+
+// Zona visual de la tarjeta (los conjuntos no llevan foto): la cantidad de
+// bebidas en grande y los nombres como fichas, sobre el fondo alterno.
+const DrinkSetVisual = ({ count, names, index }) => {
+  const shown = names.slice(0, 3);
+  const rest = names.length - shown.length;
+  return (
+    <div className="w-full h-full flex flex-col justify-between p-3 pt-12 bg-surfalt">
+      <div className="flex items-end gap-3 px-1">
+        <span className="num text-5xl font-light text-ink leading-none">{String(count).padStart(2, '0')}</span>
+        <span className="kick text-muted mb-1">bebida{count === 1 ? '' : 's'}</span>
+        <FAIcon icon="wine-glass" className="ml-auto mb-1 text-ac/70" size="lg" />
+      </div>
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {shown.map((n) => (
+          <span key={n} className="text-[11px] px-2 py-1 bg-surface border border-line text-inkalt truncate max-w-[45%]">
+            {n}
+          </span>
+        ))}
+        {rest > 0 && <span className="num text-[11px] px-2 py-1 bg-ac text-white">+{rest}</span>}
+        <span className="num text-[11px] text-muted ml-auto">N.º {String(index).padStart(2, '0')}</span>
+      </div>
+    </div>
+  );
+};
 
 export default function DrinkSets() {
   return (

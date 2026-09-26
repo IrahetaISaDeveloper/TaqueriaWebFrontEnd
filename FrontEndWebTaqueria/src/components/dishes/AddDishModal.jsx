@@ -1,7 +1,7 @@
 // src/components/dishes/AddDishModal.jsx
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import FAIcon from '../commons/FAIcon';
+import FormModal, { FormSection, FORM_INPUT, FORM_LABEL, FORM_ERROR, PillGroup, ImagePickerField, RequiredBadge, CountBadge, OptionalBadge } from '../commons/FormModal';
 import Select from '../commons/Select';
 import ImageCropModal from '../commons/ImageCropModal';
 import RecipeBuilder from '../commons/RecipeBuilder';
@@ -139,55 +139,48 @@ const AddDishModal = ({ isOpen, onClose, onSave, onEditExisting, dishToEdit = nu
     onSave(formData);
   };
 
-  // Estilos planos estilo editorial: sin relieve, foco marcado con borde de acento
-  const inputClasses =
-    'w-full px-4 py-2.5 bg-surfalt border border-line rounded-none focus:outline-none focus:border-ac transition-colors text-inkalt placeholder:text-muted text-sm';
-  const labelClasses = 'kick text-muted mb-1.5 block';
+  const recipeCount = recipeRows.filter((r) => r.name.trim()).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-surface rounded-none w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden border border-line">
-        {/* Cabecera plana estilo editorial */}
-        <div className="flex items-center justify-between gap-3 p-4 sm:p-5 border-b-2 border-ac">
-          <div className="min-w-0">
-            <p className="kick text-ac mb-1">{dishToEdit ? 'Editar registro' : 'Nuevo registro'}</p>
-            <h2 className="text-base sm:text-lg font-display font-bold text-ink truncate">
-              {dishToEdit ? 'Editar Platillo' : 'Nuevo Platillo'}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-muted hover:text-ac p-1.5 rounded-none hover:bg-surfalt transition-all shrink-0"
-          >
-            <FAIcon icon="times" size="lg" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto flex-1">
-          <div>
-            <label className={labelClasses}>Nombre del Platillo</label>
-            <input
-              type="text"
-              {...register('name', {
-                required: 'El nombre es obligatorio',
-                minLength: { value: 3, message: 'Mínimo 3 caracteres' },
-              })}
-              placeholder="Ej. Tacos al Pastor"
-              className={inputClasses}
-            />
-            {errors.name && <span className="text-ac text-xs mt-1 block font-medium">{errors.name.message}</span>}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label className={labelClasses}>Categoría</label>
-              <Select {...register('category', { required: true })}>
-                {DISH_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </Select>
+    <>
+      <FormModal
+        icon="utensils"
+        title={dishToEdit ? 'Editar platillo' : 'Nuevo platillo'}
+        badge={dishToEdit ? 'Edición' : 'Nuevo'}
+        subtitle={dishToEdit ? dishToEdit.name : 'Completa la información para agregarlo al menú'}
+        onClose={onClose}
+        onSubmit={handleSubmit(onSubmit)}
+        footerNote={dishToEdit ? 'Los cambios se aplican al guardar' : 'Se agregará al catálogo del menú'}
+        submitLabel={dishToEdit ? 'Guardar cambios' : 'Guardar platillo'}
+      >
+        {/* SECCIÓN 1: Información general */}
+        <FormSection icon="list" title="Información general">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3.5 gap-y-3">
+            <div className="sm:col-span-2">
+              <label className={FORM_LABEL}>Nombre del platillo</label>
+              <input
+                type="text"
+                {...register('name', {
+                  required: 'El nombre es obligatorio',
+                  minLength: { value: 3, message: 'Mínimo 3 caracteres' },
+                })}
+                placeholder="ej. Tacos al Pastor"
+                className={FORM_INPUT}
+              />
+              {errors.name && <span className={FORM_ERROR}>{errors.name.message}</span>}
             </div>
+
             <div>
-              <label className={labelClasses}>Precio ($)</label>
+              <label className={FORM_LABEL}>Categoría</label>
+              <div className="mt-1">
+                <Select {...register('category', { required: true })} value={category}>
+                  {DISH_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <label className={FORM_LABEL}>Precio ($)</label>
               <input
                 type="number"
                 step="0.01"
@@ -198,140 +191,89 @@ const AddDishModal = ({ isOpen, onClose, onSave, onEditExisting, dishToEdit = nu
                   valueAsNumber: true,
                 })}
                 placeholder="0.00"
-                className={inputClasses}
+                className={FORM_INPUT}
               />
-              {errors.price && <span className="text-ac text-xs mt-1 block font-medium">{errors.price.message}</span>}
+              {errors.price && <span className={FORM_ERROR}>{errors.price.message}</span>}
             </div>
-          </div>
 
-          {subcategoryApplies && (
-            <div>
-              <label className={labelClasses}>Subcategoría</label>
-              <Select {...register('subcategory')}>
-                <option value="">Selecciona una subcategoría...</option>
-                {SUBCATEGORY_SUGGESTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-              </Select>
-            </div>
-          )}
-
-          <div>
-            <label className={labelClasses}>Descripción</label>
-            <textarea
-              {...register('description')}
-              placeholder="Breve descripción del platillo..."
-              rows={2}
-              className={inputClasses}
-            />
-          </div>
-
-          {isTacoCategory && (
-            <div>
-              <label className={labelClasses}>Cantidad de tacos por orden</label>
-              <div className="flex gap-2">
-                {TACO_QUANTITIES.map((q) => (
-                  <button
-                    key={q}
-                    type="button"
-                    onClick={() => setTacoQuantity(q)}
-                    className={`flex-1 py-2.5 rounded-none font-display font-semibold text-sm border transition-colors ${
-                      tacoQuantity === q
-                        ? 'border-ac text-ac bg-acsoft'
-                        : 'border-line text-inkalt bg-surfalt hover:border-ac'
-                    }`}
-                  >
-                    {q} tacos
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {dishToEdit && (
-            <div>
-              <label className={labelClasses}>Estado</label>
-              <Select {...register('status')}>
-                <option value="Activo">Activo</option>
-                <option value="Inactivo">Inactivo</option>
-              </Select>
-            </div>
-          )}
-
-          <div className="border-t border-line pt-4">
-            <RecipeBuilder
-              rows={recipeRows}
-              setRows={setRecipeRows}
-              categories={INGREDIENT_CATEGORIES_DISHES}
-              showRemovable
-              paginate
-              title="Receta (obligatoria)"
-              helperText="Marca 'el cliente puede quitarlo' para los ingredientes que se puedan pedir sin ellos. Los ingredientes ligados a un insumo descuentan inventario al confirmarse una orden con este platillo."
-            />
-          </div>
-
-          <div className="border-t border-line pt-4">
-            <label className={labelClasses}>Imagen (opcional)</label>
-
-            {dishToEdit?.image && !imageFile && (
-              <div className="mb-3 flex items-center gap-3 bg-surface p-2.5 rounded-none border border-line">
-                <img src={dishToEdit.image} alt="Actual" className="w-11 h-11 object-cover rounded-none shadow-inner shrink-0" />
-                <span className="text-xs text-muted">Conservar imagen actual</span>
-              </div>
-            )}
-
-            {imageFile ? (
-              <div className="flex flex-wrap items-center gap-3 bg-surface p-2.5 rounded-none border border-line">
-                <img src={URL.createObjectURL(imageFile)} alt="Vista previa" className="w-11 h-11 rounded-none object-cover ring-2 ring-red-400 shrink-0" />
-                <span className="text-xs text-inkalt flex-1 min-w-[80px] truncate">{imageFile.name}</span>
-                <div className="flex gap-3 shrink-0">
-                  <button type="button" onClick={() => setRawImageFile(imageFile)} className="text-xs font-medium text-ac hover:underline">Ajustar</button>
-                  <button type="button" onClick={() => setImageFile(null)} className="text-xs font-medium text-muted hover:text-ac">Quitar</button>
+            {subcategoryApplies && (
+              <div className={dishToEdit ? '' : 'sm:col-span-2'}>
+                <label className={FORM_LABEL}>Subcategoría</label>
+                <div className="mt-1">
+                  <Select {...register('subcategory')} value={watch('subcategory')}>
+                    <option value="">Selecciona una subcategoría...</option>
+                    {SUBCATEGORY_SUGGESTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </Select>
                 </div>
               </div>
-            ) : (
-              <label className="flex flex-wrap items-center gap-3 bg-surfalt border border-dashed border-linealt px-4 py-3 cursor-pointer hover:border-ac transition-colors">
-                <span className="shrink-0 inline-flex items-center gap-2 px-3 py-1.5 bg-ac text-white text-xs font-display font-semibold">
-                  <FAIcon icon="image" size="xs" />
-                  Seleccionar imagen
-                </span>
-                <span className="text-xs text-muted truncate">
-                  {dishToEdit?.image ? 'Toca para reemplazarla' : 'Ningún archivo seleccionado'}
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const selected = e.target.files?.[0] || null;
-                    if (selected) setRawImageFile(selected);
-                    e.target.value = '';
-                  }}
-                  className="hidden"
+            )}
+
+            {dishToEdit && (
+              <div className={subcategoryApplies ? '' : 'sm:col-span-2'}>
+                <label className={FORM_LABEL}>Estado</label>
+                <div className="mt-1">
+                  <Select {...register('status')} value={watch('status')}>
+                    <option value="Activo">Activo</option>
+                    <option value="Inactivo">Inactivo</option>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            <div className="sm:col-span-2">
+              <label className={FORM_LABEL}>Descripción</label>
+              <textarea
+                {...register('description')}
+                placeholder="Breve descripción del platillo..."
+                rows={2}
+                className={`${FORM_INPUT} resize-none`}
+              />
+            </div>
+
+            {isTacoCategory && (
+              <div className="sm:col-span-2">
+                <label className={`${FORM_LABEL} block mb-1.5`}>Cantidad de tacos por orden</label>
+                <PillGroup
+                  columns={3}
+                  options={TACO_QUANTITIES.map((q) => ({ value: q, label: `${q} tacos` }))}
+                  value={tacoQuantity}
+                  onChange={setTacoQuantity}
                 />
-              </label>
-            )}
-
-            {!dishToEdit?.image && !imageFile && (
-              <p className="text-[11px] text-muted mt-1.5">Si no seleccionas una imagen se usará un diseño por defecto</p>
+              </div>
             )}
           </div>
+        </FormSection>
 
-          {/* Botones */}
-          <div className="flex gap-3 pt-4 border-t border-line">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-3 bg-surfalt border border-line text-inkalt rounded-none hover:border-ac font-display font-semibold text-sm transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-3 bg-ac text-white rounded-none hover:bg-ac font-display font-semibold text-sm transition-colors"
-            >
-              {dishToEdit ? 'Actualizar' : 'Guardar'}
-            </button>
-          </div>
-        </form>
-      </div>
+        {/* SECCIÓN 2: Receta */}
+        <FormSection
+          icon="list-check"
+          title="Receta"
+          badge={recipeCount > 0
+            ? <CountBadge>{recipeCount} ingrediente{recipeCount === 1 ? '' : 's'}</CountBadge>
+            : <RequiredBadge />}
+        >
+          <RecipeBuilder
+            rows={recipeRows}
+            setRows={setRecipeRows}
+            categories={INGREDIENT_CATEGORIES_DISHES}
+            showRemovable
+            paginate
+            title=""
+            helperText="Marca 'el cliente puede quitarlo' para los ingredientes que se puedan pedir sin ellos. Los ingredientes ligados a un insumo descuentan inventario al confirmarse una orden con este platillo."
+          />
+        </FormSection>
+
+        {/* SECCIÓN 3: Imagen */}
+        <FormSection icon="image" title="Imagen" badge={<OptionalBadge />}>
+          <ImagePickerField
+            imageFile={imageFile}
+            currentImage={dishToEdit?.image}
+            onPick={setRawImageFile}
+            onAdjust={() => setRawImageFile(imageFile)}
+            onRemove={() => setImageFile(null)}
+          />
+        </FormSection>
+      </FormModal>
 
       <ImageCropModal
         file={rawImageFile}
@@ -353,7 +295,7 @@ const AddDishModal = ({ isOpen, onClose, onSave, onEditExisting, dishToEdit = nu
         onCreateAnyway={handleCreateAnyway}
         onCancel={() => { setDuplicate(null); setPendingSubmit(null); }}
       />
-    </div>
+    </>
   );
 };
 

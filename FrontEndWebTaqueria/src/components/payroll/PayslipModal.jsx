@@ -5,6 +5,7 @@
 // del empleado en la pantalla de Planilla.
 import React, { useState, useEffect } from 'react';
 import FAIcon from '../commons/FAIcon';
+import FormModal, { FormSection, ModalAvatar, ReadField, FORM_LABEL } from '../commons/FormModal';
 import ReportButton from '../commons/ReportButton';
 import { exportPayslipToPdf } from '../../utils/payslipPdf';
 import { formatPeriodLabel } from '../../hooks/usePayroll';
@@ -93,145 +94,122 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName, period, fetch
     { concepto: 'Neto a pagar', tipo: 'Total', monto: payslip.netSalary },
   ] : [];
 
+  const employee = payslip?.employee;
+  const workDays = new Set(employee?.workDays || []);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-surfalt rounded-none border border-line max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="bg-ac px-5 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-          <div className="min-w-0">
-            <h3 className="text-white font-display font-bold text-lg truncate">Boleta de pago</h3>
-            <p className="text-white/80 text-xs truncate">
-              {employeeName} · {formatPeriodLabel(period)}
-            </p>
-          </div>
+    <FormModal
+      avatar={<ModalAvatar image={employee?.image} name={employeeName || employee?.name || ''} />}
+      title="Boleta de pago"
+      badge={formatPeriodLabel(period)}
+      badgeTone="muted"
+      subtitle={employeeName || employee?.name}
+      onClose={onClose}
+      cancelLabel="Cerrar"
+      footerNote={payslip ? 'Documento generado desde la planilla general' : undefined}
+      footerExtra={payslip && (
+        <>
+          <ReportButton
+            title={`Boleta ${employee.name}`}
+            subtitle={`Período: ${formatPeriodLabel(period)}`}
+            columns={payslipReportColumns}
+            rows={reportRows}
+            itemTag="concepto"
+            summary={[
+              { label: 'Empleado', value: employee.name },
+              { label: 'Puesto', value: employee.typeLabel },
+              { label: 'Neto a pagar', value: money(payslip.netSalary) },
+            ]}
+          />
           <button
             type="button"
-            onClick={onClose}
-            className="text-white/90 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface/10 shrink-0"
-            aria-label="Cerrar"
+            onClick={handleExportPdf}
+            className="px-4 py-2 text-xs sm:text-sm font-display font-semibold text-white bg-ac hover:bg-ac/90 rounded-lg transition-all inline-flex items-center gap-2 cursor-pointer shadow-xs active:scale-95"
           >
-            <FAIcon icon="times" />
+            <FAIcon icon="file-pdf" size="xs" />
+            <span>Descargar boleta</span>
           </button>
+        </>
+      )}
+    >
+      {loading ? (
+        <p className="text-sm text-muted text-center py-10">Generando boleta...</p>
+      ) : error ? (
+        <div className="bg-white dark:bg-surface border border-ac/30 rounded-xl p-4 text-sm text-ac flex items-center gap-2">
+          <FAIcon icon="circle-exclamation" />
+          {error}
         </div>
-
-        <div className="p-5 sm:p-6">
-          {loading ? (
-            <p className="text-sm text-muted text-center py-10">Generando boleta...</p>
-          ) : error ? (
-            <p className="text-sm text-ac text-center py-10">{error}</p>
-          ) : payslip ? (
-            <>
-              {/* Identificación del empleado */}
-              <div className="bg-surface rounded-none border border-line p-4 mb-4">
-                <div className="flex items-center gap-3 mb-3">
-                  {payslip.employee.image ? (
-                    <img
-                      src={payslip.employee.image}
-                      alt={payslip.employee.name}
-                      className="w-12 h-12 rounded-none object-cover"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-none bg-surfalt flex items-center justify-center text-muted">
-                      <FAIcon icon="user" size="lg" />
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="font-display font-bold text-ink truncate">{payslip.employee.name}</p>
-                    <p className="text-xs text-muted">{payslip.employee.typeLabel}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
-                  <div>
-                    <span className="text-muted">DUI / NIT</span>
-                    <p className="text-inkalt font-medium">{payslip.employee.duiNit || '—'}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted">Horario</span>
-                    <p className="text-inkalt font-medium">{payslip.employee.schedule || '—'}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <span className="text-muted">Días de trabajo</span>
-                    <p className="text-inkalt font-medium">
-                      {(payslip.employee.workDays || []).map((d) => DAY_ABBR[d] || d).join(', ') || '—'}
-                    </p>
-                  </div>
+      ) : payslip ? (
+        <>
+          {/* SECCIÓN 1: Datos del empleado */}
+          <FormSection icon="user" title="Datos del empleado">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3.5 gap-y-3">
+              <ReadField label="Nombre" value={employee.name} />
+              <ReadField label="Puesto" value={employee.typeLabel} />
+              <ReadField label="DUI / NIT" value={employee.duiNit} mono />
+              <ReadField label="Horario" value={employee.schedule} />
+              <div className="sm:col-span-2">
+                <p className={FORM_LABEL}>Días que trabaja</p>
+                <div className="grid grid-cols-7 gap-1.5 mt-1.5">
+                  {Object.entries(DAY_ABBR).map(([day, label]) => (
+                    <span
+                      key={day}
+                      className={`py-1.5 text-xs font-display font-semibold rounded-full border text-center ${
+                        workDays.has(day) ? 'bg-ac text-white border-ac shadow-2xs' : 'bg-white dark:bg-surface text-muted border-line'
+                      }`}
+                    >
+                      {label}
+                    </span>
+                  ))}
                 </div>
               </div>
+            </div>
+          </FormSection>
 
-              {/* Ingresos */}
-              <div className="bg-surface rounded-none border border-line p-4 mb-3">
-                <h4 className="text-xs font-display font-bold uppercase tracking-wide text-ok mb-1">
-                  Ingresos
-                </h4>
-                <Line label="Salario base" value={payslip.earnings.salary} bold />
-                <p className="text-[11px] text-muted mt-1">
-                  Los bonos no aparecen aquí: se documentan en la Planilla de bonos, sin descuentos de ley.
-                </p>
-              </div>
+          {/* SECCIÓN 2: Ingresos */}
+          <FormSection icon="money-bill-wave" title="Ingresos">
+            <Line label="Salario base" value={payslip.earnings.salary} bold />
+            <p className="text-[11px] text-muted mt-1">
+              Los bonos no aparecen aquí: se documentan en la Planilla de bonos, sin descuentos de ley.
+            </p>
+          </FormSection>
 
-              {/* Deducciones */}
-              <div className="bg-surface rounded-none border border-line p-4 mb-4">
-                <h4 className="text-xs font-display font-bold uppercase tracking-wide text-ac mb-1">
-                  Deducciones de ley
-                </h4>
-                <Line label="AFP" hint="7.25% del salario base" value={payslip.deductions.afp} negative />
-                <Line label="ISSS" hint="3% del salario base, tope $30" value={payslip.deductions.isss} negative />
-                <Line
-                  label="Renta (ISR)"
-                  hint={`Base gravada ${money(payslip.deductions.taxableBase)}`}
-                  value={payslip.deductions.isr}
-                  negative
-                />
-                <Line label="Total deducciones" value={payslip.deductions.total} negative bold />
-              </div>
+          {/* SECCIÓN 3: Deducciones */}
+          <FormSection icon="receipt" title="Deducciones de ley">
+            <Line label="AFP" hint="7.25% del salario base" value={payslip.deductions.afp} negative />
+            <Line label="ISSS" hint="3% del salario base, tope $30" value={payslip.deductions.isss} negative />
+            <Line
+              label="Renta (ISR)"
+              hint={`Base gravada ${money(payslip.deductions.taxableBase)}`}
+              value={payslip.deductions.isr}
+              negative
+            />
+            <Line label="Total deducciones" value={payslip.deductions.total} negative bold />
+          </FormSection>
 
-              {/* Neto */}
-              <div className="flex items-center justify-between px-5 py-4 bg-surface rounded-none border border-line mb-4">
-                <span className="text-sm font-display font-bold text-inkalt">NETO A PAGAR</span>
-                <span className="text-2xl font-display font-bold text-ac tabular-nums">
-                  {money(payslip.netSalary)}
-                </span>
-              </div>
+          {/* Neto a pagar */}
+          <div className="rounded-xl bg-ac text-white px-5 py-4 flex items-center justify-between shadow-xs">
+            <div>
+              <p className="text-[11px] font-semibold tracking-wide uppercase text-white/80">Neto a pagar</p>
+              <p className="text-xs text-white/70 mt-0.5">Salario base menos deducciones de ley</p>
+            </div>
+            <span className="text-2xl font-display font-bold tabular-nums">{money(payslip.netSalary)}</span>
+          </div>
 
-              {/* Si no se le retuvo renta, conviene explicar por qué: es la
-                  duda más común al revisar una boleta. */}
-              {payslip.deductions.isr === 0 && (
-                <p className="text-[11px] text-muted mb-4 bg-surface rounded-none p-3 border border-line">
-                  <FAIcon icon="circle-info" size="xs" className="text-muted mr-1" />
-                  No se retiene renta porque la base gravada ({money(payslip.deductions.taxableBase)}) no
-                  supera el mínimo exento de $550 que establece la tabla de retención mensual.
-                </p>
-              )}
-
-              <div className="flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={handleExportPdf}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-ac text-white rounded-none text-sm font-display font-semibold hover:bg-ac transition-colors"
-                >
-                  <FAIcon icon="file-pdf" />
-                  Descargar boleta
-                </button>
-
-                {/* Los otros formatos, por consistencia con el resto del sistema */}
-                <ReportButton
-                  title={`Boleta ${payslip.employee.name}`}
-                  subtitle={`Período: ${formatPeriodLabel(period)}`}
-                  columns={payslipReportColumns}
-                  rows={reportRows}
-                  itemTag="concepto"
-                  summary={[
-                    { label: 'Empleado', value: payslip.employee.name },
-                    { label: 'Puesto', value: payslip.employee.typeLabel },
-                    { label: 'Neto a pagar', value: money(payslip.netSalary) },
-                  ]}
-                />
-              </div>
-            </>
-          ) : null}
-        </div>
-      </div>
-    </div>
+          {/* Si no se le retuvo renta, conviene explicar por qué: es la
+              duda más común al revisar una boleta. */}
+          {payslip.deductions.isr === 0 && (
+            <div className="bg-white dark:bg-surface border border-line rounded-xl p-3.5 flex items-start gap-2.5 text-[11.5px] text-muted">
+              <FAIcon icon="circle-info" size="xs" className="mt-0.5 shrink-0" />
+              <p>
+                No se retiene renta porque la base gravada ({money(payslip.deductions.taxableBase)}) no
+                supera el mínimo exento de $550 que establece la tabla de retención mensual.
+              </p>
+            </div>
+          )}
+        </>
+      ) : null}
+    </FormModal>
   );
 };
 

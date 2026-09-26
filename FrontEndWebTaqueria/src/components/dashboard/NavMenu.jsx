@@ -2,8 +2,9 @@
 //
 // Navegación principal del rediseño: cuatro entradas en la barra superior en
 // lugar de la barra lateral. Una barra horizontal no aguanta las 14 rutas del
-// sistema, así que se agrupan en "Actividad" (directa) y tres menús que se
-// despliegan: Menú, Operaciones y Administración.
+// sistema, así que se agrupan: "Actividad", "Menú" y "Administración" son
+// entradas directas (sus secciones viven en pestañas dentro de cada
+// pantalla) y "Operaciones" se despliega.
 //
 // El mapa de rutas y sus permisos es el mismo que tenía el Sidebar; aquí solo
 // cambia la forma de presentarlo. Un empleado sin cierto permiso no ve esa
@@ -23,16 +24,20 @@ const NAV = [
     path: '/dashboard', // entrada directa, sin desplegable
   },
   {
+    // Entrada directa: las secciones (Platillos, Bebidas...) ya están en las
+    // pestañas de MenuPageShell, así que aquí no se despliegan. Lleva a la
+    // primera sección permitida y se marca activa en cualquiera de ellas.
     id: 'menu',
     label: 'Menú',
+    direct: true,
     items: [
-      { label: 'Platillos', path: '/dishes', icon: 'utensils', desc: 'Catálogo de comida y disponibilidad', permission: 'dishes' },
-      { label: 'Bebidas', path: '/drinks', icon: 'wine-glass', desc: 'Refrescos, jugos y aguas', permission: 'drinks' },
-      { label: 'Conjuntos de bebidas', path: '/drink-sets', icon: 'layer-group', desc: 'Jarras y paquetes de bebida', permission: 'drink_sets' },
-      { label: 'Combos', path: '/combos', icon: 'shopping-bag', desc: 'Paquetes armados con varios productos', permission: 'combos' },
-      { label: 'Extras', path: '/extras', icon: 'star', desc: 'Complementos que se agregan al pedido', permission: 'extras' },
-      { label: 'Recetas', path: '/recetas', icon: 'flask', desc: 'Insumos que consume cada platillo', permission: 'recipes' },
-      { label: 'Promociones de hoy', path: '/promociones', icon: 'tag', desc: 'Descuentos vigentes del día', permission: 'promotions' },
+      { path: '/dishes', permission: 'dishes' },
+      { path: '/drinks', permission: 'drinks' },
+      { path: '/drink-sets', permission: 'drink_sets' },
+      { path: '/combos', permission: 'combos' },
+      { path: '/extras', permission: 'extras' },
+      { path: '/recetas', permission: 'recipes' },
+      { path: '/promociones', permission: 'promotions' },
     ],
   },
   {
@@ -101,7 +106,12 @@ const NavMenu = () => {
         };
       }
       if (cat.items) {
-        return { ...cat, items: cat.items.filter((i) => !i.permission || hasPermission(user, i.permission)) };
+        const items = cat.items.filter((i) => !i.permission || hasPermission(user, i.permission));
+        if (cat.direct) {
+          if (items.length === 0) return null;
+          return { id: cat.id, label: cat.label, path: items[0].path, matchPaths: items.map((i) => i.path) };
+        }
+        return { ...cat, items };
       }
       return cat;
     })
@@ -113,6 +123,10 @@ const NavMenu = () => {
     if (cat.id === 'admin') {
       const current = location.pathname.toLowerCase();
       return ADMIN_PATHS.some((p) => current === p.toLowerCase() || current.startsWith(`${p.toLowerCase()}/`));
+    }
+    if (cat.matchPaths) {
+      const current = location.pathname.toLowerCase();
+      return cat.matchPaths.some((p) => current === p.toLowerCase());
     }
     return cat.path
       ? location.pathname.toLowerCase() === cat.path.toLowerCase()

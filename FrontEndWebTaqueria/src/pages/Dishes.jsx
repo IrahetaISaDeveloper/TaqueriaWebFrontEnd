@@ -1,9 +1,9 @@
 // src/pages/Dishes.jsx
 import React, { useState, useEffect } from 'react';
 import MenuPageShell, { MENU_PRIMARY_BUTTON } from '../components/menu/MenuPageShell';
-import MenuHero from '../components/menu/MenuHero';
-import MenuFilterRow from '../components/menu/MenuFilterRow';
-import MenuAttentionBanner from '../components/menu/MenuAttentionBanner';
+import CatalogStats from '../components/menu/CatalogStats';
+import CatalogToolbar from '../components/menu/CatalogToolbar';
+import CatalogEmpty from '../components/menu/CatalogEmpty';
 import DishCard from '../components/dishes/DishCard';
 import AddDishModal from '../components/dishes/AddDishModal';
 import ConfirmModal from '../components/commons/ConfirmModal';
@@ -16,6 +16,8 @@ import { ToastProvider, useToast } from '../components/commons/ToastProvider';
 import { UNIT_LABELS } from '../constants/units';
 import ReportButton from '../components/commons/ReportButton';
 import { dishesReportColumns } from '../constants/reportConfigs';
+
+const PAGE_SIZE = 12;
 
 const CATEGORY_FILTERS = [
   { id: 'all', label: 'Todos' },
@@ -35,6 +37,8 @@ function DishesContent() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [subcategoryFilter, setSubcategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [onlyMissingImage, setOnlyMissingImage] = useState(false);
+  const [search, setSearch] = useState('');
   const [bestSeller, setBestSeller] = useState(null);
 
   const { saucers, loading, error, createSaucer, updateSaucer, deleteSaucer } = useSaucers();
@@ -49,13 +53,33 @@ function DishesContent() {
 
   const subcategoryOptions = [...new Set(saucers.map((d) => d.subcategory).filter(Boolean))];
 
-  const filteredDishes = saucers.filter((d) =>
-    (categoryFilter === 'all' || d.category === categoryFilter) &&
+  const searchTerm = search.trim().toLowerCase();
+
+  // Todos los filtros menos la categoría: sirve para contar cuántos platillos
+  // hay en cada chip de categoría con los demás filtros aplicados.
+  const baseFiltered = saucers.filter((d) =>
     (subcategoryFilter === 'all' || d.subcategory === subcategoryFilter) &&
-    (statusFilter === 'all' || d.status === statusFilter)
+    (statusFilter === 'all' || d.status === statusFilter) &&
+    (!onlyMissingImage || !d.image) &&
+    (!searchTerm || d.name?.toLowerCase().includes(searchTerm))
   );
 
-  const { page, totalPages, paginatedItems, goTo, next, prev } = usePagination(filteredDishes, 8);
+  const filteredDishes = baseFiltered.filter((d) => categoryFilter === 'all' || d.category === categoryFilter);
+
+  const categoryCount = (id) => (id === 'all' ? baseFiltered.length : baseFiltered.filter((d) => d.category === id).length);
+
+  const hasActiveFilters =
+    categoryFilter !== 'all' || subcategoryFilter !== 'all' || statusFilter !== 'all' || onlyMissingImage || Boolean(searchTerm);
+
+  const clearFilters = () => {
+    setCategoryFilter('all');
+    setSubcategoryFilter('all');
+    setStatusFilter('all');
+    setOnlyMissingImage(false);
+    setSearch('');
+  };
+
+  const { page, totalPages, paginatedItems, goTo, next, prev } = usePagination(filteredDishes, PAGE_SIZE);
 
   // Datos para las estadísticas
   const outOfStockDishes = saucers.filter(dish => dish.status !== 'Activo').length;
@@ -139,11 +163,8 @@ function DishesContent() {
   };
 
   const activeDishes = saucers.filter((d) => d.status === 'Activo').length;
-  const missingImage = saucers.filter((d) => !d.image);
-  const heroNote = [
-    outOfStockDishes > 0 && `${outOfStockDishes} platillo${outOfStockDishes === 1 ? ' está marcado' : 's están marcados'} como no disponible${outOfStockDishes === 1 ? '' : 's'}`,
-    missingImage.length > 0 && `${missingImage.length} no ${missingImage.length === 1 ? 'tiene' : 'tienen'} imagen cargada`,
-  ].filter(Boolean).join(' y ');
+  const missingImageCount = saucers.filter((d) => !d.image).length;
+  const activePct = saucers.length ? Math.round((activeDishes / saucers.length) * 100) : 0;
 
   const openCreate = () => { setEditingDish(null); setIsModalOpen(true); };
   const openEdit = (dish) => { setEditingDish(dish); setIsModalOpen(true); };
@@ -210,33 +231,55 @@ function DishesContent() {
         </div>
       )}
 
-      <MenuHero
+      <CatalogStats
         loading={loading}
-        primary={{
-          kick: 'Platillos activos',
-          value: activeDishes,
-          suffix: `de ${saucers.length} registrados`,
-          note: heroNote ? `${heroNote}.` : 'Todo el catálogo está disponible y completo.',
-          noteTone: heroNote ? 'ac' : 'ok',
-        }}
-        secondary={[
-          { kick: 'Platillo estrella', value: platoEstrella, label: 'Más vendido' },
+        cells={[
           {
-            kick: 'Platillos agotados',
+            kick: 'Platillos activos',
+            icon: 'utensils',
+            value: activeDishes,
+            suffix: `/ ${saucers.length}`,
+            progress: activePct,
+            label: `${activePct}% del catálogo disponible`,
+          },
+          {
+            kick: 'Platillo estrella',
+            icon: 'star',
+            value: platoEstrella,
+            isText: true,
+            label: bestSeller ? 'El más vendido' : 'Aún no hay ventas registradas',
+          },
+          {
+            kick: 'No disponibles',
+            icon: 'ban',
             value: outOfStockDishes,
-            label: outOfStockDishes > 0 ? 'Fuera de stock' : 'Todos disponibles',
             tone: outOfStockDishes > 0 ? 'ac' : undefined,
+            label: statusFilter === 'Inactivo' ? 'Mostrando solo estos · quitar' : outOfStockDishes > 0 ? 'Ver cuáles' : 'Todo disponible',
+            active: statusFilter === 'Inactivo',
+            onClick: outOfStockDishes > 0 || statusFilter === 'Inactivo'
+              ? () => setStatusFilter((s) => (s === 'Inactivo' ? 'all' : 'Inactivo'))
+              : undefined,
+          },
+          {
+            kick: 'Sin imagen',
+            icon: 'image',
+            value: missingImageCount,
+            tone: missingImageCount > 0 ? 'warn' : undefined,
+            label: onlyMissingImage ? 'Mostrando solo estos · quitar' : missingImageCount > 0 ? 'Ver cuáles' : 'Todos tienen imagen',
+            active: onlyMissingImage,
+            onClick: missingImageCount > 0 || onlyMissingImage ? () => setOnlyMissingImage((v) => !v) : undefined,
           },
         ]}
       />
 
-      <MenuFilterRow
-        chips={CATEGORY_FILTERS}
-        value={categoryFilter}
-        onChange={setCategoryFilter}
-        filters={[
+      <CatalogToolbar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Buscar platillo por nombre..."
+        selects={[
           {
             label: 'Subcategoría',
+            minWidth: 'min-w-[170px]',
             value: subcategoryFilter,
             onChange: setSubcategoryFilter,
             options: [{ value: 'all', label: 'Todas las subcategorías' }, ...subcategoryOptions.map((s) => ({ value: s, label: s }))],
@@ -252,14 +295,15 @@ function DishesContent() {
             ],
           },
         ]}
-      />
-
-      <MenuAttentionBanner
-        items={missingImage}
-        getKey={(d) => d._id}
-        getTitle={(d) => d.name}
-        onEdit={openEdit}
-        noun={['platillo', 'platillos']}
+        tabs={CATEGORY_FILTERS.map((c) => ({ ...c, count: categoryCount(c.id) }))}
+        tabValue={categoryFilter}
+        onTab={setCategoryFilter}
+        loading={loading}
+        shown={filteredDishes.length}
+        total={saucers.length}
+        noun="platillos"
+        hasActiveFilters={hasActiveFilters}
+        onClear={clearFilters}
       />
 
       {loading && (
@@ -272,11 +316,14 @@ function DishesContent() {
       {!loading && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-            {paginatedItems.map((dish) => (
+            {paginatedItems.map((dish, i) => (
               <DishCard
                 key={dish._id}
+                index={(page - 1) * PAGE_SIZE + i + 1}
                 image={dish.image}
                 name={dish.name}
+                description={dish.description}
+                recipeCount={dish.recipe?.length || 0}
                 category={dish.category}
                 subcategory={dish.subcategory}
                 quantity={dish.quantity}
@@ -294,12 +341,14 @@ function DishesContent() {
       )}
 
       {!loading && filteredDishes.length === 0 && !error && (
-        <div className="text-center py-14 border border-dashed border-line">
-          <p className="kick text-muted mb-2">Sin resultados</p>
-          <p className="text-sm text-inkalt">
-            No hay platillos {categoryFilter !== 'all' ? 'en esta categoría' : 'registrados'}.
-          </p>
-        </div>
+        <CatalogEmpty
+          hasActiveFilters={hasActiveFilters}
+          onClear={clearFilters}
+          onCreate={openCreate}
+          filteredText="Ningún platillo coincide con los filtros aplicados."
+          emptyText="Aún no hay platillos registrados."
+          createLabel="Nuevo platillo"
+        />
       )}
     </MenuPageShell>
   );

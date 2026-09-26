@@ -1,8 +1,9 @@
 // src/pages/Promotions.jsx
 import React, { useState } from 'react';
 import MenuPageShell, { MENU_PRIMARY_BUTTON } from '../components/menu/MenuPageShell';
-import MenuHero from '../components/menu/MenuHero';
-import MenuFilterRow from '../components/menu/MenuFilterRow';
+import CatalogStats from '../components/menu/CatalogStats';
+import CatalogToolbar from '../components/menu/CatalogToolbar';
+import CatalogEmpty from '../components/menu/CatalogEmpty';
 import PromotionCard from '../components/promotions/PromotionCard';
 import AddPromotionModal from '../components/promotions/AddPromotionModal';
 import ConfirmModal from '../components/commons/ConfirmModal';
@@ -21,6 +22,15 @@ const isRunning = (promotion) =>
   new Date(promotion.startsAt) <= new Date() &&
   new Date(promotion.endsAt) >= new Date();
 
+const PAGE_SIZE = 12;
+
+const STATUS_TABS = [
+  { id: 'all', label: 'Todas' },
+  { id: 'activa', label: 'Activas' },
+  { id: 'pausada', label: 'Pausadas' },
+  { id: 'expirada', label: 'Expiradas' },
+];
+
 function PromotionsContent() {
   const [activeMenu] = useState('promotions');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,6 +38,8 @@ function PromotionsContent() {
   const [viewingPromotion, setViewingPromotion] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState({ isOpen: false, promotionId: null });
   const [statusFilter, setStatusFilter] = useState('all');
+  const [onlyAi, setOnlyAi] = useState(false);
+  const [search, setSearch] = useState('');
 
   const {
     promotions,
@@ -42,13 +54,31 @@ function PromotionsContent() {
   } = usePromotions();
   const { addToast } = useToast();
 
-  const filteredPromotions = promotions.filter(
-    (promotion) => statusFilter === 'all' || promotion.status === statusFilter
+  const searchTerm = search.trim().toLowerCase();
+
+  // Todos los filtros menos el estado: sirve para contar cuántas promociones
+  // hay en cada pestaña con los demás filtros aplicados.
+  const baseFiltered = promotions.filter((p) =>
+    (!onlyAi || p.aiSuggested) &&
+    (!searchTerm || p.name?.toLowerCase().includes(searchTerm))
   );
 
-  const { page, totalPages, paginatedItems, goTo, next, prev } = usePagination(filteredPromotions, 8);
+  const filteredPromotions = baseFiltered.filter((p) => statusFilter === 'all' || p.status === statusFilter);
+
+  const statusCount = (id) => (id === 'all' ? baseFiltered.length : baseFiltered.filter((p) => p.status === id).length);
+
+  const hasActiveFilters = statusFilter !== 'all' || onlyAi || Boolean(searchTerm);
+
+  const clearFilters = () => {
+    setStatusFilter('all');
+    setOnlyAi(false);
+    setSearch('');
+  };
+
+  const { page, totalPages, paginatedItems, goTo, next, prev } = usePagination(filteredPromotions, PAGE_SIZE);
 
   const runningCount = promotions.filter(isRunning).length;
+  const runningPct = promotions.length ? Math.round((runningCount / promotions.length) * 100) : 0;
   const aiCount = promotions.filter((promotion) => promotion.aiSuggested).length;
   // Cuál se acaba primero, para que el admin sepa qué va a tener que renovar
   const endingSoon = promotions
@@ -191,37 +221,62 @@ function PromotionsContent() {
         <div className="mb-5 bg-acsoft border border-acline text-ac px-4 py-3 text-sm">Error: {error}</div>
       )}
 
-      <MenuHero
+      <CatalogStats
         loading={loading}
-        primary={{
-          kick: 'Corriendo ahora',
-          value: runningCount,
-          suffix: `de ${promotions.length} registradas`,
-          note: pausedCount > 0
-            ? `${pausedCount} promoción${pausedCount === 1 ? ' está pausada' : 'es están pausadas'} y no se ve${pausedCount === 1 ? '' : 'n'} en la app.`
-            : runningCount > 0 ? 'Visibles en la app ahora mismo.' : 'No hay promociones visibles en la app.',
-          noteTone: pausedCount > 0 || runningCount === 0 ? 'ac' : 'ok',
-        }}
-        secondary={[
+        cells={[
+          {
+            kick: 'Corriendo ahora',
+            icon: 'tag',
+            value: runningCount,
+            suffix: `/ ${promotions.length}`,
+            progress: runningPct,
+            label: runningCount > 0 ? 'Visibles en la app ahora mismo' : 'Ninguna visible en la app',
+          },
           {
             kick: 'Termina primero',
+            icon: 'clock',
             value: endingSoon?.name || 'Sin datos',
+            isText: true,
             label: endingSoon ? new Date(endingSoon.endsAt).toLocaleString('es-SV') : 'Nada por vencer',
           },
-          { kick: 'Sugeridas por IA', value: aiCount, label: 'Armadas con ayuda del asistente' },
+          {
+            kick: 'Pausadas',
+            icon: 'pause',
+            value: pausedCount,
+            tone: pausedCount > 0 ? 'ac' : undefined,
+            label: statusFilter === 'pausada'
+              ? 'Mostrando solo estas · quitar'
+              : pausedCount > 0 ? 'No se ven en la app · ver cuáles' : 'Ninguna pausada',
+            active: statusFilter === 'pausada',
+            onClick: pausedCount > 0 || statusFilter === 'pausada'
+              ? () => setStatusFilter((s) => (s === 'pausada' ? 'all' : 'pausada'))
+              : undefined,
+          },
+          {
+            kick: 'Sugeridas por IA',
+            icon: 'robot',
+            value: aiCount,
+            label: onlyAi ? 'Mostrando solo estas · quitar' : aiCount > 0 ? 'Armadas con el asistente · ver cuáles' : 'Armadas con el asistente',
+            active: onlyAi,
+            onClick: aiCount > 0 || onlyAi ? () => setOnlyAi((v) => !v) : undefined,
+          },
         ]}
       />
 
-      <MenuFilterRow
-        label="Estado"
-        chips={[
-          { id: 'all', label: 'Todas' },
-          { id: 'activa', label: 'Activas' },
-          { id: 'pausada', label: 'Pausadas' },
-          { id: 'expirada', label: 'Expiradas' },
-        ]}
-        value={statusFilter}
-        onChange={setStatusFilter}
+      <CatalogToolbar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Buscar promoción por nombre..."
+        tabs={STATUS_TABS.map((t) => ({ ...t, count: statusCount(t.id) }))}
+        tabsLabel="Estado"
+        tabValue={statusFilter}
+        onTab={setStatusFilter}
+        loading={loading}
+        shown={filteredPromotions.length}
+        total={promotions.length}
+        noun="promociones"
+        hasActiveFilters={hasActiveFilters}
+        onClear={clearFilters}
       />
 
       {loading && (
@@ -234,10 +289,11 @@ function PromotionsContent() {
       {!loading && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-            {paginatedItems.map((promotion) => (
+            {paginatedItems.map((promotion, i) => (
               <PromotionCard
                 key={promotion._id}
                 promotion={promotion}
+                index={(page - 1) * PAGE_SIZE + i + 1}
                 onView={() => setViewingPromotion(promotion)}
                 onEdit={() => {
                   setEditingPromotion(promotion);
@@ -253,15 +309,14 @@ function PromotionsContent() {
       )}
 
       {!loading && filteredPromotions.length === 0 && !error && (
-        <div className="text-center py-14 border border-dashed border-line">
-          <p className="kick text-muted mb-2">Sin promociones</p>
-          <p className="text-sm text-inkalt mb-4">
-            Arma la primera combinando platillos, bebidas o combos del menú.
-          </p>
-          <button type="button" onClick={openCreate} className={MENU_PRIMARY_BUTTON}>
-            Crear promoción
-          </button>
-        </div>
+        <CatalogEmpty
+          hasActiveFilters={hasActiveFilters}
+          onClear={clearFilters}
+          onCreate={openCreate}
+          filteredText="Ninguna promoción coincide con los filtros aplicados."
+          emptyText="Arma la primera combinando platillos, bebidas o combos del menú."
+          createLabel="Crear promoción"
+        />
       )}
     </MenuPageShell>
   );

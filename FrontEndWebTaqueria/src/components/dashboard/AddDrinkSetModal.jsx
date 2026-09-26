@@ -3,7 +3,7 @@
 // Fanta) para que el admin lo reutilice al armar combos sin elegir bebida
 // por bebida. No descuenta inventario: es solo una agrupación de conveniencia.
 import React, { useEffect, useState } from 'react';
-import FAIcon from '../commons/FAIcon';
+import FormModal, { FormSection, FORM_INPUT, FORM_LABEL, RequiredBadge, CountBadge } from '../commons/FormModal';
 import CardPicker from '../commons/CardPicker';
 import { useToast } from '../commons/ToastProvider';
 
@@ -62,57 +62,42 @@ const AddDrinkSetModal = ({ isOpen, onClose, onCreated, onUpdated, drinks, setTo
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-surfalt rounded-none w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden border border-line">
-        <div className="flex items-center justify-between p-4 sm:p-5 bg-warn text-white">
-          <h2 className="text-base sm:text-lg font-display font-bold">
-            {setToEdit ? 'Editar conjunto de bebidas' : 'Nuevo conjunto de bebidas'}
-          </h2>
-          <button type="button" onClick={handleClose} className="text-white/80 hover:text-white p-1.5 rounded-none hover:bg-surface/10 transition-all">
-            <FAIcon icon="times" size="lg" />
-          </button>
-        </div>
+    <FormModal
+      icon="layer-group"
+      title={setToEdit ? 'Editar conjunto' : 'Nuevo conjunto'}
+      badge={setToEdit ? 'Edición' : 'Nuevo'}
+      subtitle={setToEdit ? setToEdit.name : 'Agrupa bebidas para elegirlas rápido al armar un combo'}
+      onClose={handleClose}
+      onSubmit={handleSubmit}
+      footerNote="No descuenta inventario: es solo una agrupación"
+      submitLabel={setToEdit ? 'Guardar cambios' : 'Crear conjunto'}
+      submitting={saving}
+      zIndex="z-[60]"
+    >
+      {/* SECCIÓN 1: Información general */}
+      <FormSection icon="list" title="Información general">
+        <label className={FORM_LABEL}>Nombre del conjunto</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="ej. La clásica"
+          className={FORM_INPUT}
+        />
+      </FormSection>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
-          <div>
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
-              Nombre del conjunto
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ej: La clásica"
-              className="w-full px-4 py-2.5 bg-surface border border-line rounded-none focus:outline-none focus:ring-2 focus:ring-amber-500/30 text-inkalt text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5">
-              Bebidas incluidas ({selectedIds.length})
-            </label>
-            <CardPicker items={drinks} selectedIds={selectedIds} onToggle={toggleDrink} />
-          </div>
-
-          <div className="flex gap-3 pt-3 border-t border-line">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="flex-1 px-4 py-3 bg-line text-inkalt rounded-none hover:bg-linealt font-display font-semibold text-sm transition-all"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 px-4 py-3 bg-warn text-white rounded-none hover:bg-warn font-display font-semibold text-sm transition-all disabled:opacity-60"
-            >
-              {saving ? 'Guardando...' : setToEdit ? 'Guardar cambios' : 'Crear conjunto'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      {/* SECCIÓN 2: Bebidas */}
+      <FormSection
+        icon="wine-glass"
+        title="Bebidas incluidas"
+        badge={selectedIds.length > 0
+          ? <CountBadge>{selectedIds.length} seleccionada{selectedIds.length === 1 ? '' : 's'}</CountBadge>
+          : <RequiredBadge label="Elige al menos una" />}
+      >
+        <p className="text-xs text-muted mb-3">Solo se pueden agrupar bebidas de tercero.</p>
+        <CardPicker items={drinks} selectedIds={selectedIds} onToggle={toggleDrink} />
+      </FormSection>
+    </FormModal>
   );
 };
 

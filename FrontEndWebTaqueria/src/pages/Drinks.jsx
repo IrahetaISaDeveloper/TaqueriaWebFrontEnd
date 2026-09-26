@@ -1,9 +1,9 @@
 // src/pages/Drinks.jsx
 import React, { useState, useEffect } from 'react';
 import MenuPageShell, { MENU_PRIMARY_BUTTON } from '../components/menu/MenuPageShell';
-import MenuHero from '../components/menu/MenuHero';
-import MenuFilterRow from '../components/menu/MenuFilterRow';
-import MenuAttentionBanner from '../components/menu/MenuAttentionBanner';
+import CatalogStats from '../components/menu/CatalogStats';
+import CatalogToolbar from '../components/menu/CatalogToolbar';
+import CatalogEmpty from '../components/menu/CatalogEmpty';
 import DrinkCard from '../components/drinks/DrinkCard';
 import AddDrinkModal from '../components/drinks/AddDrinkModal';
 import ConfirmModal from '../components/commons/ConfirmModal';
@@ -17,6 +17,8 @@ import { ToastProvider, useToast } from '../components/commons/ToastProvider';
 import { UNIT_LABELS } from '../constants/units';
 import ReportButton from '../components/commons/ReportButton';
 import { drinksReportColumns } from '../constants/reportConfigs';
+
+const PAGE_SIZE = 12;
 
 const CATEGORY_FILTERS = [
   { id: 'all', label: 'Todas' },
@@ -33,6 +35,9 @@ function DrinksContent() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [subcategoryFilter, setSubcategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [onlyMissingImage, setOnlyMissingImage] = useState(false);
+  const [onlyLowStock, setOnlyLowStock] = useState(false);
+  const [search, setSearch] = useState('');
   const [bestSeller, setBestSeller] = useState(null);
 
   const { drinks, loading, error, addDrink, updateDrink, deleteDrink } = useDrinks();
@@ -48,18 +53,41 @@ function DrinksContent() {
 
   const subcategoryOptions = [...new Set(drinks.map((d) => d.subcategory).filter(Boolean))];
 
-  const filteredDrinks = drinks.filter((d) =>
-    (categoryFilter === 'all' || d.category === categoryFilter) &&
+  const lowStockThreshold = settings.operation.lowStockThresholds?.drinks ?? 10;
+  const isLowStock = (d) => d.category === 'tercero' && d.stock !== null && d.stock < lowStockThreshold;
+
+  const searchTerm = search.trim().toLowerCase();
+
+  // Todos los filtros menos la categoría: sirve para contar cuántas bebidas
+  // hay en cada pestaña con los demás filtros aplicados.
+  const baseFiltered = drinks.filter((d) =>
     (subcategoryFilter === 'all' || d.subcategory === subcategoryFilter) &&
-    (statusFilter === 'all' || d.status === statusFilter)
+    (statusFilter === 'all' || d.status === statusFilter) &&
+    (!onlyMissingImage || !d.image) &&
+    (!onlyLowStock || isLowStock(d)) &&
+    (!searchTerm || d.title?.toLowerCase().includes(searchTerm))
   );
 
-  const { page, totalPages, paginatedItems, goTo, next, prev } = usePagination(filteredDrinks, 8);
+  const filteredDrinks = baseFiltered.filter((d) => categoryFilter === 'all' || d.category === categoryFilter);
 
-  const lowStockThreshold = settings.operation.lowStockThresholds?.drinks ?? 10;
+  const categoryCount = (id) => (id === 'all' ? baseFiltered.length : baseFiltered.filter((d) => d.category === id).length);
 
-  // Datos para las tres tarjetas de estadísticas
-  const stockCritico = drinks.filter((d) => d.category === 'tercero' && d.stock < lowStockThreshold).length;
+  const hasActiveFilters =
+    categoryFilter !== 'all' || subcategoryFilter !== 'all' || statusFilter !== 'all' ||
+    onlyMissingImage || onlyLowStock || Boolean(searchTerm);
+
+  const clearFilters = () => {
+    setCategoryFilter('all');
+    setSubcategoryFilter('all');
+    setStatusFilter('all');
+    setOnlyMissingImage(false);
+    setOnlyLowStock(false);
+    setSearch('');
+  };
+
+  const { page, totalPages, paginatedItems, goTo, next, prev } = usePagination(filteredDrinks, PAGE_SIZE);
+
+  const stockCritico = drinks.filter(isLowStock).length;
   const bebidaEstrella = bestSeller?.drink?.name || 'Sin datos aún';
 
   const handleOpenCreateModal = () => {
@@ -150,12 +178,8 @@ function DrinksContent() {
   };
 
   const activeDrinks = drinks.filter((d) => d.status === 'disponible').length;
-  const missingImage = drinks.filter((d) => !d.image);
-  const unavailable = drinks.length - activeDrinks;
-  const heroNote = [
-    unavailable > 0 && `${unavailable} bebida${unavailable === 1 ? ' está marcada' : 's están marcadas'} como no disponible${unavailable === 1 ? '' : 's'}`,
-    missingImage.length > 0 && `${missingImage.length} no ${missingImage.length === 1 ? 'tiene' : 'tienen'} imagen cargada`,
-  ].filter(Boolean).join(' y ');
+  const missingImageCount = drinks.filter((d) => !d.image).length;
+  const activePct = drinks.length ? Math.round((activeDrinks / drinks.length) * 100) : 0;
 
   return (
     <MenuPageShell
@@ -223,33 +247,55 @@ function DrinksContent() {
         <div className="mb-5 bg-acsoft border border-acline text-ac px-4 py-3 text-sm">{error}</div>
       )}
 
-      <MenuHero
+      <CatalogStats
         loading={loading}
-        primary={{
-          kick: 'Bebidas activas',
-          value: activeDrinks,
-          suffix: `de ${drinks.length} registradas`,
-          note: heroNote ? `${heroNote}.` : 'Todas las bebidas están disponibles y completas.',
-          noteTone: heroNote ? 'ac' : 'ok',
-        }}
-        secondary={[
-          { kick: 'Bebida estrella', value: bebidaEstrella, label: 'Más vendida' },
+        cells={[
+          {
+            kick: 'Bebidas activas',
+            icon: 'wine-glass',
+            value: activeDrinks,
+            suffix: `/ ${drinks.length}`,
+            progress: activePct,
+            label: `${activePct}% del catálogo disponible`,
+          },
+          {
+            kick: 'Bebida estrella',
+            icon: 'star',
+            value: bebidaEstrella,
+            isText: true,
+            label: bestSeller ? 'La más vendida' : 'Aún no hay ventas registradas',
+          },
           {
             kick: 'Stock crítico',
+            icon: 'box',
             value: stockCritico,
-            label: stockCritico > 0 ? `Menos de ${lowStockThreshold} unidades` : 'Todo en orden',
             tone: stockCritico > 0 ? 'ac' : undefined,
+            label: onlyLowStock
+              ? 'Mostrando solo estas · quitar'
+              : stockCritico > 0 ? `Menos de ${lowStockThreshold} uds. · ver cuáles` : 'Todo en orden',
+            active: onlyLowStock,
+            onClick: stockCritico > 0 || onlyLowStock ? () => setOnlyLowStock((v) => !v) : undefined,
+          },
+          {
+            kick: 'Sin imagen',
+            icon: 'image',
+            value: missingImageCount,
+            tone: missingImageCount > 0 ? 'warn' : undefined,
+            label: onlyMissingImage ? 'Mostrando solo estas · quitar' : missingImageCount > 0 ? 'Ver cuáles' : 'Todas tienen imagen',
+            active: onlyMissingImage,
+            onClick: missingImageCount > 0 || onlyMissingImage ? () => setOnlyMissingImage((v) => !v) : undefined,
           },
         ]}
       />
 
-      <MenuFilterRow
-        chips={CATEGORY_FILTERS}
-        value={categoryFilter}
-        onChange={setCategoryFilter}
-        filters={[
+      <CatalogToolbar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Buscar bebida por nombre..."
+        selects={[
           {
             label: 'Subcategoría',
+            minWidth: 'min-w-[170px]',
             value: subcategoryFilter,
             onChange: setSubcategoryFilter,
             options: [{ value: 'all', label: 'Todas las subcategorías' }, ...subcategoryOptions.map((s) => ({ value: s, label: s }))],
@@ -265,14 +311,15 @@ function DrinksContent() {
             ],
           },
         ]}
-      />
-
-      <MenuAttentionBanner
-        items={missingImage}
-        getKey={(d) => d.id}
-        getTitle={(d) => d.title}
-        onEdit={handleOpenEditModal}
-        noun={['bebida', 'bebidas']}
+        tabs={CATEGORY_FILTERS.map((c) => ({ ...c, count: categoryCount(c.id) }))}
+        tabValue={categoryFilter}
+        onTab={setCategoryFilter}
+        loading={loading}
+        shown={filteredDrinks.length}
+        total={drinks.length}
+        noun="bebidas"
+        hasActiveFilters={hasActiveFilters}
+        onClear={clearFilters}
       />
 
       {loading && (
@@ -285,10 +332,11 @@ function DrinksContent() {
       {!loading && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-            {paginatedItems.map((drink) => (
+            {paginatedItems.map((drink, i) => (
               <DrinkCard
                 key={drink.id}
                 {...drink}
+                index={(page - 1) * PAGE_SIZE + i + 1}
                 lowStockThreshold={lowStockThreshold}
                 isMostSold={bestSeller?.drink?._id === drink.id}
                 onEdit={handleOpenEditModal}
@@ -302,12 +350,14 @@ function DrinksContent() {
       )}
 
       {!loading && filteredDrinks.length === 0 && !error && (
-        <div className="text-center py-14 border border-dashed border-line">
-          <p className="kick text-muted mb-2">Sin resultados</p>
-          <p className="text-sm text-inkalt">
-            No hay bebidas {categoryFilter !== 'all' ? 'en esta categoría' : 'agregadas'}.
-          </p>
-        </div>
+        <CatalogEmpty
+          hasActiveFilters={hasActiveFilters}
+          onClear={clearFilters}
+          onCreate={handleOpenCreateModal}
+          filteredText="Ninguna bebida coincide con los filtros aplicados."
+          emptyText="Aún no hay bebidas registradas."
+          createLabel="Nueva bebida"
+        />
       )}
     </MenuPageShell>
   );

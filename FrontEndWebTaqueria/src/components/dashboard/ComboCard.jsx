@@ -1,6 +1,6 @@
 // src/components/dashboard/ComboCard.jsx
 import React from 'react';
-import MenuItemCard from '../menu/MenuItemCard';
+import CatalogCard from '../menu/CatalogCard';
 
 const CATEGORY_LABELS = {
   familiar: 'Familiar',
@@ -11,38 +11,42 @@ const CATEGORY_LABELS = {
 const ComboCard = ({
   image,
   title,
+  description,
   price,
   category,
   selective = false,
+  selectiveMaxPicks,
   itemsCount = 0,
+  hasDrink = false,
   isMostSold = false,
   isAvailable = true,
+  index,
   onEdit,
   onDelete,
   onView,
 }) => {
-  // "FAMILIAR · 4 PLATILLOS" / "DUO · SELECTIVO"
   const meta = [
-    CATEGORY_LABELS[category] || category,
-    selective ? 'Selectivo' : itemsCount > 0 ? `${itemsCount} platillo${itemsCount === 1 ? '' : 's'}` : null,
-  ].filter(Boolean).join(' · ');
-
-  let tag = null;
-  let tagTone = 'muted';
-  if (isMostSold) { tag = 'Más vendido'; tagTone = 'ac'; }
-  else if (!image) { tag = 'Falta imagen'; tagTone = 'warn'; }
+    selective
+      ? { icon: 'layer-group', label: selectiveMaxPicks ? `Elige ${selectiveMaxPicks}` : 'Selectivo', title: 'El cliente elige sus platillos' }
+      : itemsCount > 0
+        ? { icon: 'utensils', label: `${itemsCount} plat.`, title: `${itemsCount} platillo${itemsCount === 1 ? '' : 's'} incluidos` }
+        : { icon: 'utensils', label: 'Sin platillos', tone: 'warn' },
+    hasDrink && { icon: 'wine-glass', label: 'Bebida', title: 'Incluye bebida' },
+  ].filter(Boolean);
 
   return (
-    <MenuItemCard
+    <CatalogCard
       image={image}
       name={title}
+      description={description}
+      category={CATEGORY_LABELS[category] || category}
+      eyebrow={selective ? 'Combo selectivo' : 'Platillos fijos'}
       price={price}
+      available={isAvailable}
+      index={index}
+      highlight={isMostSold}
+      flags={isMostSold ? [{ label: 'Más vendido', icon: 'star', tone: 'ac' }] : []}
       meta={meta}
-      status={isAvailable ? 'Disponible' : 'No disponible'}
-      statusTone={isAvailable ? 'ok' : 'muted'}
-      tag={tag}
-      tagTone={tagTone}
-      dimmed={!isAvailable}
       onView={onView}
       onEdit={onEdit}
       onDelete={onDelete}

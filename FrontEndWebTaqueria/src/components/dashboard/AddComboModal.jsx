@@ -6,6 +6,7 @@ import useDrinks from '../../hooks/useDrinks';
 import useDrinkSets from '../../hooks/useDrinkSets';
 import { useCombos } from '../../hooks/useCombos';
 import FAIcon from '../commons/FAIcon';
+import FormModal, { FormSection, FORM_INPUT, FORM_LABEL, FORM_ERROR, PillGroup, ImagePickerField, RequiredBadge, CountBadge, OptionalBadge } from '../commons/FormModal';
 import Select from '../commons/Select';
 import CardPicker from '../commons/CardPicker';
 import ImageCropModal from '../commons/ImageCropModal';
@@ -216,45 +217,44 @@ const AddComboModal = ({ isOpen, onClose, onSave, onEditExisting, loading, combo
 
   if (!isOpen) return null;
 
-  const inputClasses =
-    'w-full px-4 py-2.5 bg-surfalt border border-line rounded-none focus:outline-none focus:ring-2 focus:ring-acline focus:border-acline transition-all text-inkalt placeholder:text-muted text-sm';
-  const labelClasses = 'block text-xs font-display font-semibold text-muted uppercase tracking-wider mb-1.5';
+  const category = watch('category');
+  const saucerCount = selective ? selectedOptionIds.length : selectedSaucerIds.length;
+  const drinkCount = selectedDrinkSetIds.length + selectedDrinkIds.length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-surfalt rounded-none w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden border border-line">
-        <div className="flex items-center justify-between p-4 sm:p-5 bg-ac text-white">
-          <h2 className="text-base sm:text-lg font-display font-bold">
-            {comboToEdit ? 'Actualizar combo' : 'Nuevo Combo'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-white/80 hover:text-white p-1.5 rounded-none hover:bg-surface/10 transition-all"
-            disabled={loading}
-          >
-            <FAIcon icon="times" size="lg" />
-          </button>
-        </div>
+    <>
+      <FormModal
+        icon="layer-group"
+        title={comboToEdit ? 'Editar combo' : 'Nuevo combo'}
+        badge={comboToEdit ? 'Edición' : 'Nuevo'}
+        subtitle={comboToEdit ? comboToEdit.name : 'Arma un paquete con platillos y bebidas del menú'}
+        onClose={onClose}
+        onSubmit={handleSubmit(onSubmit)}
+        footerNote={comboToEdit ? 'Los cambios se aplican al guardar' : 'Se agregará al catálogo del menú'}
+        submitLabel={comboToEdit ? 'Guardar cambios' : 'Guardar combo'}
+        submitting={loading}
+        maxWidth="max-w-2xl"
+      >
+        {/* SECCIÓN 1: Información general */}
+        <FormSection icon="list" title="Información general">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3.5 gap-y-3">
+            <div className="sm:col-span-2">
+              <label className={FORM_LABEL}>Nombre del combo</label>
+              <input
+                type="text"
+                {...register('name', {
+                  required: 'El nombre es obligatorio',
+                  minLength: { value: 3, message: 'Mínimo 3 caracteres' },
+                })}
+                placeholder="ej. Combo almuerzo doble"
+                className={FORM_INPUT}
+                disabled={loading}
+              />
+              {errors.name && <span className={FORM_ERROR}>{errors.name.message}</span>}
+            </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto flex-1">
-          <div>
-            <label className={labelClasses}>Nombre del Combo</label>
-            <input
-              type="text"
-              {...register('name', {
-                required: 'El nombre es obligatorio',
-                minLength: { value: 3, message: 'Mínimo 3 caracteres' },
-              })}
-              placeholder="Ej: Combo almuerzo doble"
-              className={inputClasses}
-              disabled={loading}
-            />
-            {errors.name && <span className="text-ac text-xs mt-1 block font-medium">{errors.name.message}</span>}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className={labelClasses}>Precio ($)</label>
+              <label className={FORM_LABEL}>Precio ($)</label>
               <input
                 type="number"
                 step="0.01"
@@ -265,222 +265,183 @@ const AddComboModal = ({ isOpen, onClose, onSave, onEditExisting, loading, combo
                   valueAsNumber: true,
                 })}
                 placeholder="0.00"
-                className={inputClasses}
+                className={FORM_INPUT}
                 disabled={loading}
               />
-              {errors.price && <span className="text-ac text-xs mt-1 block font-medium">{errors.price.message}</span>}
+              {errors.price && <span className={FORM_ERROR}>{errors.price.message}</span>}
             </div>
-            <div>
-              <label className={labelClasses}>Categoría</label>
-              <Select {...register('category', { required: true })} disabled={loading}>
-                <option value="individual">Individual</option>
-                <option value="duo">Duo</option>
-                <option value="familiar">Familiar</option>
-              </Select>
-            </div>
-          </div>
 
-          {comboToEdit && (
-            <div>
-              <label className={labelClasses}>Estado</label>
-              <Select {...register('status', { required: true })} disabled={loading}>
-                <option value="disponible">Disponible</option>
-                <option value="no disponible">No disponible</option>
-              </Select>
-            </div>
-          )}
-
-          <div>
-            <label className={labelClasses}>Descripción</label>
-            <textarea
-              {...register('description', {
-                required: 'La descripción es obligatoria',
-                minLength: { value: 10, message: 'Mínimo 10 caracteres' },
-              })}
-              placeholder="Ej: Dos platillos especiales acompañados de una bebida fría..."
-              rows="2"
-              className={inputClasses + ' resize-none'}
-              disabled={loading}
-            />
-            {errors.description && <span className="text-ac text-xs mt-1 block font-medium">{errors.description.message}</span>}
-          </div>
-
-          {/* Modo selectivo */}
-          <div className="border-t border-line pt-4">
-            <label className="flex items-center gap-2 text-sm text-inkalt font-medium">
-              <input type="checkbox" {...register('selective')} className="accent-red-500" disabled={loading} />
-              Selectivo (opcional)
-            </label>
-            <p className="text-[11px] text-muted mt-1">
-              Si lo activas, en vez de platillos fijos defines varias opciones y cuántas puede elegir el cliente
-              (ej. "elige 1 taco entre: al pastor, de pollo, de carne").
-            </p>
-          </div>
-
-          {selective ? (
-            <div className="border-t border-line pt-4">
-              <label className={labelClasses}>Opciones de platillo ({selectedOptionIds.length})</label>
-              {loadingSaucers ? (
-                <p className="text-xs text-muted">Cargando platillos...</p>
-              ) : (
-                <CardPicker
-                  items={saucers}
-                  selectedIds={selectedOptionIds}
-                  onToggle={toggleOption}
-                  categories={SAUCER_CATEGORIES}
-                />
-              )}
-
-              <div className="mt-3">
-                <label className={labelClasses}>¿Cuántas opciones puede elegir el cliente?</label>
-                <input
-                  type="number"
-                  min="1"
-                  max={selectedOptionIds.length || undefined}
-                  {...register('selectiveMaxPicks', { required: true, min: 1, valueAsNumber: true })}
-                  className={inputClasses}
-                  disabled={loading}
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="border-t border-line pt-4">
-              <label className={labelClasses}>Platillos incluidos ({selectedSaucerIds.length})</label>
-              {loadingSaucers ? (
-                <p className="text-xs text-muted">Cargando platillos...</p>
-              ) : (
-                <CardPicker
-                  items={saucers}
-                  selectedIds={selectedSaucerIds}
-                  onToggle={toggleSaucer}
-                  categories={SAUCER_CATEGORIES}
-                />
-              )}
-            </div>
-          )}
-
-          <div className="border-t border-line pt-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-              <label className={labelClasses + ' mb-0'}>Conjuntos de bebidas permitidos ({selectedDrinkSetIds.length})</label>
-              <button
-                type="button"
-                onClick={() => setIsDrinkSetModalOpen(true)}
-                className="shrink-0 text-xs font-display font-semibold text-warn hover:text-warn flex items-center gap-1"
-              >
-                <FAIcon icon="plus" size="xs" /> Nuevo conjunto
-              </button>
-            </div>
-            <p className="text-[11px] text-muted mb-2">
-              El cliente elige entre las bebidas de los conjuntos que marques aquí; ya están incluidas en el precio.
-              Los conjuntos son solo de conveniencia y no descuentan inventario por sí mismos.
-            </p>
-
-            {drinkSets.length === 0 ? (
-              <p className="text-xs text-muted text-center py-3 bg-surface rounded-none">
-                Todavía no hay conjuntos creados. Usa "Nuevo conjunto" para armar el primero.
-              </p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {drinkSets.map((set) => {
-                  const isSelected = selectedDrinkSetIds.includes(set._id);
-                  return (
-                    <button
-                      type="button"
-                      key={set._id}
-                      onClick={() => toggleDrinkSet(set._id)}
-                      className={`text-left p-3 rounded-none border-2 transition-all ${
-                        isSelected ? 'border-ac bg-acsoft/50' : 'border-line bg-surface hover:border-line'
-                      }`}
-                    >
-                      <p className="text-sm font-display font-semibold text-ink">{set.name}</p>
-                      <p className="text-[11px] text-muted mt-0.5 line-clamp-1">
-                        {(set.drinkIds || []).map((d) => d.name).join(', ') || 'Sin bebidas'}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            <div className="mt-4">
-              <label className={labelClasses}>o bebidas individuales sueltas ({selectedDrinkIds.length})</label>
-              <p className="text-[11px] text-muted mb-2">
-                Se puede combinar con los conjuntos de arriba: ambas cosas quedan permitidas para el cliente.
-              </p>
-              <CardPicker items={thirdPartyDrinks} selectedIds={selectedDrinkIds} onToggle={toggleDrink} />
-            </div>
-          </div>
-
-          <div className="border-t border-line pt-4">
-            <label className={labelClasses}>Imagen (opcional)</label>
-
-            {comboToEdit?.image && !imageFile && (
-              <div className="mb-3 flex items-center gap-3 bg-surface p-2.5 rounded-none border border-line">
-                <img src={comboToEdit.image} alt="Actual" className="w-11 h-11 object-cover rounded-none shadow-inner shrink-0" />
-                <span className="text-xs text-muted">Conservar imagen actual</span>
-              </div>
-            )}
-
-            {imageFile ? (
-              <div className="flex flex-wrap items-center gap-3 bg-surface p-2.5 rounded-none border border-line">
-                <img src={URL.createObjectURL(imageFile)} alt="Vista previa" className="w-11 h-11 rounded-none object-cover ring-2 ring-red-400 shrink-0" />
-                <span className="text-xs text-inkalt flex-1 min-w-[80px] truncate">{imageFile.name}</span>
-                <div className="flex gap-3 shrink-0">
-                  <button type="button" onClick={() => setRawImageFile(imageFile)} className="text-xs font-medium text-ac hover:underline">Ajustar</button>
-                  <button type="button" onClick={() => setImageFile(null)} className="text-xs font-medium text-muted hover:text-ac">Quitar</button>
+            {comboToEdit ? (
+              <div>
+                <label className={FORM_LABEL}>Estado</label>
+                <div className="mt-1">
+                  <Select {...register('status', { required: true })} value={watch('status')} disabled={loading}>
+                    <option value="disponible">Disponible</option>
+                    <option value="no disponible">No disponible</option>
+                  </Select>
                 </div>
               </div>
-            ) : (
-              <label className={`flex flex-wrap items-center gap-3 bg-surfalt border border-dashed border-linealt px-4 py-3 transition-colors ${loading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:border-ac'}`}>
-                <span className="shrink-0 inline-flex items-center gap-2 px-3 py-1.5 bg-ac text-white text-xs font-display font-semibold">
-                  <FAIcon icon="image" size="xs" />
-                  Seleccionar imagen
-                </span>
-                <span className="text-xs text-muted truncate">
-                  {comboToEdit?.image ? 'Toca para reemplazarla' : 'Ningún archivo seleccionado'}
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const selected = e.target.files?.[0] || null;
-                    if (selected) setRawImageFile(selected);
-                    e.target.value = '';
-                  }}
-                  disabled={loading}
-                  className="hidden"
-                />
-              </label>
-            )}
+            ) : <div className="hidden sm:block" />}
 
-            {!comboToEdit?.image && !imageFile && (
-              <p className="text-[11px] text-muted mt-1.5">Si no seleccionas una imagen se usará un diseño por defecto</p>
-            )}
+            <div className="sm:col-span-2">
+              <label className={`${FORM_LABEL} block mb-1.5`}>Categoría</label>
+              <PillGroup
+                columns={3}
+                options={[
+                  { value: 'individual', label: 'Individual', icon: 'user' },
+                  { value: 'duo', label: 'Duo', icon: 'user-group' },
+                  { value: 'familiar', label: 'Familiar', icon: 'users' },
+                ]}
+                value={category}
+                onChange={(v) => setValue('category', v, { shouldDirty: true })}
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className={FORM_LABEL}>Descripción</label>
+              <textarea
+                {...register('description', {
+                  required: 'La descripción es obligatoria',
+                  minLength: { value: 10, message: 'Mínimo 10 caracteres' },
+                })}
+                placeholder="ej. Dos platillos especiales acompañados de una bebida fría..."
+                rows="2"
+                className={`${FORM_INPUT} resize-none`}
+                disabled={loading}
+              />
+              {errors.description && <span className={FORM_ERROR}>{errors.description.message}</span>}
+            </div>
           </div>
+        </FormSection>
 
-          <div className="flex gap-3 pt-4 border-t border-line">
+        {/* SECCIÓN 2: Platillos */}
+        <FormSection
+          icon="utensils"
+          title="Platillos"
+          badge={saucerCount > 0
+            ? <CountBadge>{saucerCount} {selective ? 'opción' : 'platillo'}{saucerCount === 1 ? '' : selective ? 'es' : 's'}</CountBadge>
+            : <RequiredBadge label="Elige al menos uno" />}
+        >
+          <label className={`${FORM_LABEL} block mb-1.5`}>Modo del combo</label>
+          <PillGroup
+            columns={2}
+            options={[
+              { value: false, label: 'Platillos fijos', icon: 'list' },
+              { value: true, label: 'Selectivo', icon: 'list-check' },
+            ]}
+            value={Boolean(selective)}
+            onChange={(v) => setValue('selective', v, { shouldDirty: true })}
+          />
+          <p className="text-[11px] text-muted mt-1.5 mb-4">
+            {selective
+              ? 'Defines varias opciones y cuántas puede elegir el cliente (ej. "elige 1 taco entre: al pastor, de pollo, de carne").'
+              : 'El combo siempre incluye los mismos platillos.'}
+          </p>
+
+          {loadingSaucers ? (
+            <p className="text-xs text-muted">Cargando platillos...</p>
+          ) : (
+            <CardPicker
+              items={saucers}
+              selectedIds={selective ? selectedOptionIds : selectedSaucerIds}
+              onToggle={selective ? toggleOption : toggleSaucer}
+              categories={SAUCER_CATEGORIES}
+            />
+          )}
+
+          {selective && (
+            <div className="mt-4 max-w-xs">
+              <label className={FORM_LABEL}>¿Cuántas opciones puede elegir el cliente?</label>
+              <input
+                type="number"
+                min="1"
+                max={selectedOptionIds.length || undefined}
+                {...register('selectiveMaxPicks', { required: true, min: 1, valueAsNumber: true })}
+                className={FORM_INPUT}
+                disabled={loading}
+              />
+            </div>
+          )}
+        </FormSection>
+
+        {/* SECCIÓN 3: Bebidas */}
+        <FormSection
+          icon="wine-glass"
+          title="Bebidas permitidas"
+          badge={drinkCount > 0
+            ? <CountBadge>{drinkCount} seleccionada{drinkCount === 1 ? '' : 's'}</CountBadge>
+            : <OptionalBadge />}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <label className={FORM_LABEL}>Conjuntos de bebidas</label>
             <button
               type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="flex-1 px-4 py-3 bg-line text-inkalt rounded-none hover:bg-linealt font-display font-semibold text-sm transition-all
-              "
+              onClick={() => setIsDrinkSetModalOpen(true)}
+              className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-display font-semibold text-ac border border-ac/30 bg-ac/5 hover:bg-ac hover:text-white transition-colors cursor-pointer"
             >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 px-4 py-3 bg-ac text-white rounded-none hover:bg-ac font-display font-semibold text-sm transition-all
-                active:
-                disabled:opacity-60 disabled:cursor-not-allowed
-              "
-            >
-              {loading ? 'Procesando...' : comboToEdit ? 'Guardar cambios' : 'Guardar combo'}
+              <FAIcon icon="plus" size="xs" /> Nuevo conjunto
             </button>
           </div>
-        </form>
-      </div>
+          <p className="text-[11px] text-muted mb-3">
+            El cliente elige entre las bebidas de los conjuntos que marques; ya están incluidas en el precio.
+          </p>
+
+          {drinkSets.length === 0 ? (
+            <p className="text-xs text-muted text-center py-4 rounded-lg border border-dashed border-line">
+              Todavía no hay conjuntos creados. Usa "Nuevo conjunto" para armar el primero.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {drinkSets.map((set) => {
+                const isSelected = selectedDrinkSetIds.includes(set._id);
+                return (
+                  <button
+                    type="button"
+                    key={set._id}
+                    onClick={() => toggleDrinkSet(set._id)}
+                    className={`text-left p-3 rounded-lg border transition-all cursor-pointer flex items-start gap-2.5 ${
+                      isSelected ? 'border-ac bg-ac/5 shadow-2xs' : 'border-line bg-white dark:bg-surface hover:border-ac/50'
+                    }`}
+                  >
+                    <span
+                      className={`w-4 h-4 mt-0.5 rounded-full border flex items-center justify-center shrink-0 ${
+                        isSelected ? 'bg-ac border-ac text-white' : 'border-linealt'
+                      }`}
+                    >
+                      {isSelected && <FAIcon icon="check" size="xs" />}
+                    </span>
+                    <span className="min-w-0">
+                      <span className={`block text-sm font-display font-semibold ${isSelected ? 'text-ac' : 'text-ink'}`}>{set.name}</span>
+                      <span className="block text-[11px] text-muted mt-0.5 line-clamp-1">
+                        {(set.drinkIds || []).map((d) => d.name).join(', ') || 'Sin bebidas'}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="mt-5 pt-4 border-t border-line">
+            <label className={FORM_LABEL}>Bebidas individuales</label>
+            <p className="text-[11px] text-muted mt-0.5 mb-3">
+              Se pueden combinar con los conjuntos: ambas quedan permitidas para el cliente.
+            </p>
+            <CardPicker items={thirdPartyDrinks} selectedIds={selectedDrinkIds} onToggle={toggleDrink} />
+          </div>
+        </FormSection>
+
+        {/* SECCIÓN 4: Imagen */}
+        <FormSection icon="image" title="Imagen" badge={<OptionalBadge />}>
+          <ImagePickerField
+            imageFile={imageFile}
+            currentImage={comboToEdit?.image}
+            onPick={setRawImageFile}
+            onAdjust={() => setRawImageFile(imageFile)}
+            onRemove={() => setImageFile(null)}
+          />
+        </FormSection>
+      </FormModal>
 
       <ImageCropModal
         file={rawImageFile}
@@ -519,7 +480,7 @@ const AddComboModal = ({ isOpen, onClose, onSave, onEditExisting, loading, combo
         confirmText="Sí, guardar así"
         variant="warning"
       />
-    </div>
+    </>
   );
 };
 

@@ -1,35 +1,47 @@
 // src/components/drinks/DrinkCard.jsx
 import React from 'react';
-import MenuItemCard from '../menu/MenuItemCard';
+import CatalogCard from '../menu/CatalogCard';
 
 const DrinkCard = (drink) => {
-  const { id, image, title, price, stock, category, subcategory, isMostSold, isAvailable, status, lowStockThreshold = 10, onEdit, onDelete, onView } = drink;
+  const {
+    id, image, title, description, price, stock, category, subcategory, recipe,
+    isMostSold, isAvailable, status, lowStockThreshold = 10, index, onEdit, onDelete, onView,
+  } = drink;
   const available = isAvailable !== undefined ? isAvailable : status === 'disponible';
-  const hasStock = category === 'tercero' && stock !== null && stock !== undefined;
+  const isHouse = category === 'casa';
+  const hasStock = !isHouse && stock !== null && stock !== undefined;
+  const lowStock = hasStock && stock < lowStockThreshold;
+  const recipeCount = (recipe || []).length;
 
-  // "DE TERCERO · 24 UDS." / "DE CASA · AGUAS FRESCAS"
-  const meta = [
-    category === 'casa' ? 'De casa' : 'De tercero',
-    hasStock ? `${stock} uds.` : subcategory,
-  ].filter(Boolean).join(' · ');
+  const flags = [
+    isMostSold && { label: 'Más vendida', icon: 'star', tone: 'ac' },
+    lowStock && { label: 'Stock bajo', icon: 'triangle-exclamation', tone: 'warn' },
+  ].filter(Boolean);
 
-  let tag = null;
-  let tagTone = 'muted';
-  if (isMostSold) { tag = 'Más vendida'; tagTone = 'ac'; }
-  else if (hasStock && stock < lowStockThreshold) { tag = 'Stock bajo'; tagTone = 'ac'; }
-  else if (!image) { tag = 'Falta imagen'; tagTone = 'warn'; }
+  // De casa: cuántos ingredientes lleva la receta. De tercero: unidades en stock.
+  const meta = isHouse
+    ? [
+        recipeCount > 0
+          ? { icon: 'list-check', label: `${recipeCount} ingr.`, title: `${recipeCount} ingredientes en la receta` }
+          : { icon: 'list-check', label: 'Sin receta', tone: 'warn', title: 'Sin receta registrada' },
+      ]
+    : hasStock
+      ? [{ icon: 'box', label: `${stock} uds.`, tone: lowStock ? 'warn' : 'muted', title: `${stock} unidades en inventario` }]
+      : [];
 
   return (
-    <MenuItemCard
+    <CatalogCard
       image={image}
       name={title}
+      description={description}
+      category={isHouse ? 'De casa' : 'De tercero'}
+      eyebrow={subcategory}
       price={`$${parseFloat(price).toFixed(2)}`}
+      available={available}
+      index={index}
+      highlight={isMostSold}
+      flags={flags}
       meta={meta}
-      status={available ? 'Disponible' : 'No disponible'}
-      statusTone={available ? 'ok' : 'muted'}
-      tag={tag}
-      tagTone={tagTone}
-      dimmed={!available}
       onView={onView ? () => onView(drink) : undefined}
       onEdit={() => onEdit(drink)}
       onDelete={() => onDelete(id)}

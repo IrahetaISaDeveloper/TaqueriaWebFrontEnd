@@ -2,9 +2,9 @@
 // src/pages/ComboManagement.jsx
 import React, { useState, useEffect } from 'react';
 import MenuPageShell, { MENU_PRIMARY_BUTTON } from '../components/menu/MenuPageShell';
-import MenuHero from '../components/menu/MenuHero';
-import MenuFilterRow from '../components/menu/MenuFilterRow';
-import MenuAttentionBanner from '../components/menu/MenuAttentionBanner';
+import CatalogStats from '../components/menu/CatalogStats';
+import CatalogToolbar from '../components/menu/CatalogToolbar';
+import CatalogEmpty from '../components/menu/CatalogEmpty';
 import ComboCard from '../components/dashboard/ComboCard';
 import AddComboModal from '../components/dashboard/AddComboModal';
 import ConfirmModal from '../components/commons/ConfirmModal';
@@ -16,6 +16,8 @@ import { usePagination } from '../hooks/usePagination';
 import { ToastProvider, useToast } from '../components/commons/ToastProvider';
 import ReportButton from '../components/commons/ReportButton';
 import { combosReportColumns } from '../constants/reportConfigs';
+
+const PAGE_SIZE = 12;
 
 const CATEGORY_FILTERS = [
   { id: 'all', label: 'Todos' },
@@ -32,6 +34,9 @@ function ComboManagementContent() {
   const [confirmDelete, setConfirmDelete] = useState({ isOpen: false, comboId: null });
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [modeFilter, setModeFilter] = useState('all');
+  const [onlyMissingImage, setOnlyMissingImage] = useState(false);
+  const [search, setSearch] = useState('');
   const [bestSellers, setBestSellers] = useState([]);
 
   const { combos, loading, error, addCombo, updateCombo, deleteCombo } = useCombos();
@@ -44,12 +49,33 @@ function ComboManagementContent() {
       .catch(() => setBestSellers([]));
   }, [combos.length]);
 
-  const filteredCombos = combos.filter((c) =>
-    (categoryFilter === 'all' || c.category === categoryFilter) &&
-    (statusFilter === 'all' || c.status === statusFilter)
+  const searchTerm = search.trim().toLowerCase();
+
+  // Todos los filtros menos la categoría: sirve para contar cuántos combos
+  // hay en cada pestaña con los demás filtros aplicados.
+  const baseFiltered = combos.filter((c) =>
+    (statusFilter === 'all' || c.status === statusFilter) &&
+    (modeFilter === 'all' || (modeFilter === 'selective' ? c.selective : !c.selective)) &&
+    (!onlyMissingImage || !c.image) &&
+    (!searchTerm || c.name?.toLowerCase().includes(searchTerm))
   );
 
-  const { page, totalPages, paginatedItems, goTo, next, prev } = usePagination(filteredCombos, 8);
+  const filteredCombos = baseFiltered.filter((c) => categoryFilter === 'all' || c.category === categoryFilter);
+
+  const categoryCount = (id) => (id === 'all' ? baseFiltered.length : baseFiltered.filter((c) => c.category === id).length);
+
+  const hasActiveFilters =
+    categoryFilter !== 'all' || statusFilter !== 'all' || modeFilter !== 'all' || onlyMissingImage || Boolean(searchTerm);
+
+  const clearFilters = () => {
+    setCategoryFilter('all');
+    setStatusFilter('all');
+    setModeFilter('all');
+    setOnlyMissingImage(false);
+    setSearch('');
+  };
+
+  const { page, totalPages, paginatedItems, goTo, next, prev } = usePagination(filteredCombos, PAGE_SIZE);
 
   const handleOpenAddModal = () => {
     setSelectedCombo(null);
@@ -152,21 +178,22 @@ function ComboManagementContent() {
     id: combo._id,
     image: combo.image,
     title: combo.name || 'Sin nombre',
+    description: combo.description,
     price: `$${(combo.price || 0).toFixed(2)}`,
     category: combo.category,
     selective: combo.selective,
+    selectiveMaxPicks: combo.selectiveMaxPicks,
     itemsCount: (combo.saucers || []).length,
+    hasDrink:
+      (combo.drinkPolicy?.drinkSetIds || []).length > 0 ||
+      (combo.drinkPolicy?.thirdPartyDrinkIds || []).length > 0,
     isMostSold: bestSellers[0]?.combo?._id === combo._id,
     isAvailable: combo.status === 'disponible',
   });
 
   const activeCombos = combos.filter((c) => c.status === 'disponible').length;
-  const missingImage = combos.filter((c) => !c.image);
-  const unavailable = combos.length - activeCombos;
-  const heroNote = [
-    unavailable > 0 && `${unavailable} combo${unavailable === 1 ? ' está marcado' : 's están marcados'} como no disponible${unavailable === 1 ? '' : 's'}`,
-    missingImage.length > 0 && `${missingImage.length} no ${missingImage.length === 1 ? 'tiene' : 'tienen'} imagen cargada`,
-  ].filter(Boolean).join(' y ');
+  const missingImageCount = combos.filter((c) => !c.image).length;
+  const activePct = combos.length ? Math.round((activeCombos / combos.length) * 100) : 0;
   const selectiveCount = combos.filter((c) => c.selective).length;
 
   return (
@@ -230,30 +257,63 @@ function ComboManagementContent() {
         <div className="mb-5 bg-acsoft border border-acline text-ac px-4 py-3 text-sm">{error}</div>
       )}
 
-      <MenuHero
+      <CatalogStats
         loading={loading}
-        primary={{
-          kick: 'Combos activos',
-          value: activeCombos,
-          suffix: `de ${combos.length} registrados`,
-          note: heroNote ? `${heroNote}.` : 'Todos los combos están disponibles y completos.',
-          noteTone: heroNote ? 'ac' : 'ok',
-        }}
-        secondary={[
+        cells={[
+          {
+            kick: 'Combos activos',
+            icon: 'layer-group',
+            value: activeCombos,
+            suffix: `/ ${combos.length}`,
+            progress: activePct,
+            label: `${activePct}% del catálogo disponible`,
+          },
           {
             kick: 'Combo estrella',
+            icon: 'star',
             value: bestSellers[0]?.combo?.name || 'Sin datos aún',
+            isText: true,
             label: bestSellers[0] ? `${bestSellers[0].totalSold} vendidos` : 'Aún no hay ventas registradas',
           },
-          { kick: 'Selectivos', value: selectiveCount, label: 'El cliente elige sus platillos' },
+          {
+            kick: 'Selectivos',
+            icon: 'list-check',
+            value: selectiveCount,
+            label: modeFilter === 'selective'
+              ? 'Mostrando solo estos · quitar'
+              : selectiveCount > 0 ? 'El cliente elige · ver cuáles' : 'El cliente elige sus platillos',
+            active: modeFilter === 'selective',
+            onClick: selectiveCount > 0 || modeFilter === 'selective'
+              ? () => setModeFilter((m) => (m === 'selective' ? 'all' : 'selective'))
+              : undefined,
+          },
+          {
+            kick: 'Sin imagen',
+            icon: 'image',
+            value: missingImageCount,
+            tone: missingImageCount > 0 ? 'warn' : undefined,
+            label: onlyMissingImage ? 'Mostrando solo estos · quitar' : missingImageCount > 0 ? 'Ver cuáles' : 'Todos tienen imagen',
+            active: onlyMissingImage,
+            onClick: missingImageCount > 0 || onlyMissingImage ? () => setOnlyMissingImage((v) => !v) : undefined,
+          },
         ]}
       />
 
-      <MenuFilterRow
-        chips={CATEGORY_FILTERS}
-        value={categoryFilter}
-        onChange={setCategoryFilter}
-        filters={[
+      <CatalogToolbar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Buscar combo por nombre..."
+        selects={[
+          {
+            label: 'Modo',
+            value: modeFilter,
+            onChange: setModeFilter,
+            options: [
+              { value: 'all', label: 'Todos los modos' },
+              { value: 'fixed', label: 'Platillos fijos' },
+              { value: 'selective', label: 'Selectivos' },
+            ],
+          },
           {
             label: 'Estado',
             value: statusFilter,
@@ -265,14 +325,15 @@ function ComboManagementContent() {
             ],
           },
         ]}
-      />
-
-      <MenuAttentionBanner
-        items={missingImage}
-        getKey={(c) => c._id}
-        getTitle={(c) => c.name}
-        onEdit={handleOpenEditModal}
-        noun={['combo', 'combos']}
+        tabs={CATEGORY_FILTERS.map((c) => ({ ...c, count: categoryCount(c.id) }))}
+        tabValue={categoryFilter}
+        onTab={setCategoryFilter}
+        loading={loading}
+        shown={filteredCombos.length}
+        total={combos.length}
+        noun="combos"
+        hasActiveFilters={hasActiveFilters}
+        onClear={clearFilters}
       />
 
       {loading && (
@@ -285,10 +346,11 @@ function ComboManagementContent() {
       {!loading && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-            {paginatedItems.map((combo) => (
+            {paginatedItems.map((combo, i) => (
               <ComboCard
                 key={combo._id}
                 {...formatComboForDisplay(combo)}
+                index={(page - 1) * PAGE_SIZE + i + 1}
                 onEdit={() => handleOpenEditModal(combo)}
                 onDelete={() => handleRequestDelete(combo._id)}
                 onView={() => setViewingCombo(combo)}
@@ -300,12 +362,14 @@ function ComboManagementContent() {
       )}
 
       {!loading && filteredCombos.length === 0 && !error && (
-        <div className="text-center py-14 border border-dashed border-line">
-          <p className="kick text-muted mb-2">Sin resultados</p>
-          <p className="text-sm text-inkalt">
-            No hay combos {categoryFilter !== 'all' ? 'en esta categoría' : 'agregados'}.
-          </p>
-        </div>
+        <CatalogEmpty
+          hasActiveFilters={hasActiveFilters}
+          onClear={clearFilters}
+          onCreate={handleOpenAddModal}
+          filteredText="Ningún combo coincide con los filtros aplicados."
+          emptyText="Aún no hay combos registrados."
+          createLabel="Nuevo combo"
+        />
       )}
     </MenuPageShell>
   );

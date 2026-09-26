@@ -1,6 +1,7 @@
 // src/components/promotions/AddPromotionModal.jsx
 import React, { useEffect, useMemo, useState } from 'react';
 import FAIcon from '../commons/FAIcon';
+import FormModal, { FormSection, FORM_INPUT, FORM_LABEL, PillGroup, ImagePickerField, RequiredBadge, CountBadge, OptionalBadge } from '../commons/FormModal';
 import Select from '../commons/Select';
 import { useToast } from '../commons/ToastProvider';
 import useSaucers from '../../hooks/useSaucers';
@@ -253,317 +254,276 @@ const AddPromotionModal = ({
 
   if (!isOpen) return null;
 
-  const inputClasses =
-    'w-full px-4 py-2.5 bg-surfalt border border-line rounded-none focus:outline-none focus:ring-2 focus:ring-acline focus:border-acline transition-all text-inkalt placeholder:text-muted text-sm';
+  const totalUnits = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-surfalt rounded-none w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden border border-line">
-        <div className="bg-ac px-5 py-4 flex items-center justify-between">
-          <h2 className="text-white font-display font-bold text-lg">
-            {editingPromotion ? 'Editar promoción' : 'Nueva promoción del día'}
-          </h2>
-          <button type="button" onClick={onClose} className="text-white/90 hover:text-white">
-            <FAIcon icon="xmark" />
+    <FormModal
+      icon="tag"
+      title={editingPromotion ? 'Editar promoción' : 'Nueva promoción'}
+      badge={editingPromotion ? 'Edición' : aiUsed ? 'Con IA' : 'Nueva'}
+      subtitle={editingPromotion ? editingPromotion.name : 'Combina productos del menú a un precio especial'}
+      onClose={onClose}
+      onSubmit={handleSubmit}
+      footerNote={`Vigencia máxima de ${MAX_DAYS} días`}
+      submitLabel={editingPromotion ? 'Guardar cambios' : 'Crear promoción'}
+      submitting={saving}
+      maxWidth="max-w-2xl"
+    >
+      {/* SECCIÓN 1: Asistente de IA */}
+      <FormSection icon="wand-magic-sparkles" title="Asistente de IA" badge={<OptionalBadge />}>
+        <p className="text-xs text-muted mb-2.5">¿No sabes qué combinar? Describe la idea y la IA te propone opciones.</p>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input
+            type="text"
+            value={idea}
+            onChange={(e) => setIdea(e.target.value)}
+            placeholder="ej. algo para levantar las ventas de los martes"
+            className={`${FORM_INPUT} sm:mt-0`}
+          />
+          <button
+            type="button"
+            onClick={handleSuggest}
+            disabled={suggesting}
+            className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-ink text-white text-xs font-display font-semibold whitespace-nowrap disabled:opacity-60 hover:bg-ink/90 transition-colors cursor-pointer"
+          >
+            <FAIcon icon={suggesting ? 'spinner' : 'wand-magic-sparkles'} size="xs" className={suggesting ? 'animate-spin' : ''} />
+            {suggesting ? 'Pensando...' : 'Sugerir'}
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 sm:space-y-5">
-          {/* ── ASISTENCIA DE IA ── */}
-          <div className="bg-surface border border-line rounded-none p-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <FAIcon icon="wand-magic-sparkles" className="text-ac" />
-              <span className="font-display font-semibold text-sm text-ink">
-                ¿No sabes qué combinar?
-              </span>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="text"
-                value={idea}
-                onChange={(e) => setIdea(e.target.value)}
-                placeholder="Ej. algo para levantar las ventas de los martes"
-                className={inputClasses}
-              />
+        {suggestions.length > 0 && (
+          <div className="space-y-2 mt-3">
+            {suggestions.map((suggestion, index) => (
               <button
                 type="button"
-                onClick={handleSuggest}
-                disabled={suggesting}
-                className="px-4 py-2.5 rounded-none bg-ink text-white text-sm font-semibold whitespace-nowrap disabled:opacity-60"
+                key={index}
+                onClick={() => applySuggestion(suggestion)}
+                className="group/sug w-full text-left rounded-lg p-3 border border-line bg-white dark:bg-surface hover:border-ac hover:bg-ac/5 transition-colors cursor-pointer"
               >
-                {suggesting ? 'Pensando...' : 'Sugerir'}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-display font-semibold text-sm text-ink group-hover/sug:text-ac transition-colors">{suggestion.name}</span>
+                  <span className="text-sm font-bold text-ac shrink-0">${Number(suggestion.price).toFixed(2)}</span>
+                </div>
+                <p className="text-xs text-muted mt-1">{suggestion.description}</p>
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                  {(suggestion.items || []).map((item, i) => (
+                    <span key={i} className="px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-surfalt border border-line text-inkalt">
+                      {item.quantity} {item.name}
+                    </span>
+                  ))}
+                  {suggestion.discountPercent > 0 && (
+                    <span className="px-2 py-0.5 rounded-full text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 bg-emerald-500/10">
+                      Ahorra {suggestion.discountPercent}%
+                    </span>
+                  )}
+                </div>
               </button>
-            </div>
-
-            {suggestions.length > 0 && (
-              <div className="space-y-2">
-                {suggestions.map((suggestion, index) => (
-                  <button
-                    type="button"
-                    key={index}
-                    onClick={() => applySuggestion(suggestion)}
-                    className="w-full text-left bg-surface rounded-none p-3 border border-line hover:border-acline transition-colors"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-semibold text-sm text-ink">{suggestion.name}</span>
-                      <span className="text-sm font-bold text-ac">
-                        ${Number(suggestion.price).toFixed(2)}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted mt-1">{suggestion.description}</p>
-                    <p className="text-[11px] text-muted mt-1">
-                      {(suggestion.items || []).map((item) => `${item.quantity} ${item.name}`).join(' · ')}
-                      {suggestion.discountPercent > 0 && ` — ahorra ${suggestion.discountPercent}%`}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            )}
+            ))}
           </div>
+        )}
+      </FormSection>
 
-          {/* ── DATOS BÁSICOS ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-inkalt mb-1">Nombre</label>
-              <input
-                type="text"
-                required
-                value={form.name}
-                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                placeholder="Ej. Martes de pastor"
-                className={inputClasses}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-inkalt mb-1">
-                Precio de la promoción
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                required
-                value={form.price}
-                onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
-                placeholder="0.00"
-                className={inputClasses}
-              />
-            </div>
+      {/* SECCIÓN 2: Información general */}
+      <FormSection icon="list" title="Información general">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3.5 gap-y-3">
+          <div>
+            <label className={FORM_LABEL}>Nombre</label>
+            <input
+              type="text"
+              required
+              value={form.name}
+              onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+              placeholder="ej. Martes de pastor"
+              className={FORM_INPUT}
+            />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-inkalt mb-1">Descripción</label>
+            <label className={FORM_LABEL}>Precio de la promoción ($)</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0.01"
+              required
+              value={form.price}
+              onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
+              placeholder="0.00"
+              className={FORM_INPUT}
+            />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className={FORM_LABEL}>Descripción</label>
             <textarea
               required
               rows={2}
               value={form.description}
               onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
               placeholder="Lo que ve el cliente en la app"
-              className={inputClasses}
+              className={`${FORM_INPUT} resize-none`}
             />
           </div>
+        </div>
+      </FormSection>
 
-          {/* ── QUÉ INCLUYE ── */}
-          <div className="space-y-3">
-            <span className="font-display font-semibold text-sm text-ink">
-              ¿Qué incluye la promoción?
-            </span>
+      {/* SECCIÓN 3: Productos incluidos */}
+      <FormSection
+        icon="shopping-bag"
+        title="¿Qué incluye?"
+        badge={items.length > 0
+          ? <CountBadge>{totalUnits} producto{totalUnits === 1 ? '' : 's'}</CountBadge>
+          : <RequiredBadge label="Agrega al menos uno" />}
+      >
+        <label className={`${FORM_LABEL} block mb-1.5`}>Tipo de producto</label>
+        <PillGroup
+          columns={4}
+          options={Object.entries(TYPE_LABELS).map(([value, label]) => ({ value, label }))}
+          value={pickerType}
+          onChange={(v) => { setPickerType(v); setPickerId(''); }}
+        />
 
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Select
-                className="sm:w-36"
-                value={pickerType}
-                onChange={(e) => {
-                  setPickerType(e.target.value);
-                  setPickerId('');
-                }}
-              >
-                {Object.entries(TYPE_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </Select>
-
-              <Select className="flex-1" value={pickerId} onChange={(e) => setPickerId(e.target.value)}>
-                <option value="">Selecciona un producto...</option>
-                {catalog[pickerType].map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.name} — ${Number(product.price || 0).toFixed(2)}
-                  </option>
-                ))}
-              </Select>
-
-              <button
-                type="button"
-                onClick={handleAddItem}
-                className="px-4 py-2.5 rounded-none bg-ac text-white text-sm font-semibold whitespace-nowrap"
-              >
-                Agregar
-              </button>
-            </div>
-
-            {items.length === 0 ? (
-              <p className="text-xs text-muted text-center py-3">
-                Todavía no has agregado productos. Puedes combinar platillos, bebidas, combos y extras.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {items.map((item, index) => {
-                  const product = findInCatalog(item.itemType, item.refId);
-
-                  return (
-                    <div
-                      key={`${item.itemType}-${item.refId}`}
-                      className="bg-surface rounded-none p-3 border border-line space-y-2"
-                    >
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          min="1"
-                          value={item.quantity}
-                          onChange={(e) =>
-                            updateItem(index, { quantity: Math.max(1, Number(e.target.value) || 1) })
-                          }
-                          className="w-16 px-2 py-1.5 bg-surfalt border border-line rounded-none text-sm text-center"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-ink truncate">{item.name}</p>
-                          <p className="text-[11px] text-muted">
-                            {TYPE_LABELS[item.itemType]} · ${Number(product?.price || 0).toFixed(2)} c/u
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeItem(index)}
-                          className="px-2 py-1.5 rounded-none bg-acsoft text-ac"
-                        >
-                          <FAIcon icon="trash" size="xs" />
-                        </button>
-                      </div>
-
-                      {/* Ingredientes de la receta original: se pueden desmarcar
-                          para que esta promo salga sin ellos */}
-                      {product?.recipe?.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 pt-1">
-                          {product.recipe.map((ingredient) => {
-                            const isRemoved = item.removedIngredients.includes(ingredient.name);
-                            return (
-                              <button
-                                type="button"
-                                key={ingredient.name}
-                                onClick={() => toggleIngredient(index, ingredient.name)}
-                                className={`px-2 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
-                                  isRemoved
-                                    ? 'bg-line text-muted line-through'
-                                    : 'bg-oksoft text-ok'
-                                }`}
-                              >
-                                {ingredient.name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Ahorro en vivo, calculado por el backend */}
-            {pricing && (
-              <div className="bg-surface border border-line rounded-none p-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                <span className="text-muted">
-                  Por separado: <strong className="text-inkalt">${pricing.originalPrice.toFixed(2)}</strong>
-                </span>
-                {pricing.price !== null && (
-                  <>
-                    <span className="text-muted">
-                      En promoción: <strong className="text-ac">${pricing.price.toFixed(2)}</strong>
-                    </span>
-                    <span
-                      className={`font-semibold ${
-                        pricing.savings > 0 ? 'text-ok' : 'text-warn'
-                      }`}
-                    >
-                      {pricing.savings > 0
-                        ? `El cliente ahorra $${pricing.savings.toFixed(2)} (${pricing.discountPercent}%)`
-                        : 'El precio no representa un descuento'}
-                    </span>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* ── VIGENCIA E IMAGEN ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-inkalt mb-1">
-                Duración (máximo {MAX_DAYS} días)
-              </label>
-              <Select
-                value={form.durationDays}
-                onChange={(e) => setForm((prev) => ({ ...prev, durationDays: Number(e.target.value) }))}
-              >
-                {Array.from({ length: MAX_DAYS }, (_, i) => i + 1).map((days) => (
-                  <option key={days} value={days}>
-                    {days} {days === 1 ? 'día' : 'días'}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-inkalt mb-1">Imagen (opcional)</label>
-              {imageFile ? (
-                <div className="flex flex-wrap items-center gap-2 bg-surface border border-line px-3 py-2">
-                  <span className="text-xs text-inkalt flex-1 min-w-0 truncate">{imageFile.name}</span>
-                  <button type="button" onClick={() => setImageFile(null)} className="shrink-0 text-xs font-medium text-ac hover:underline">
-                    Quitar
-                  </button>
-                </div>
-              ) : (
-                <label className="flex flex-wrap items-center gap-2 bg-surfalt border border-dashed border-linealt px-3 py-2 cursor-pointer hover:border-ac transition-colors">
-                  <span className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 bg-ac text-white text-xs font-display font-semibold">
-                    <FAIcon icon="image" size="xs" />
-                    Elegir
-                  </span>
-                  <span className="text-xs text-muted truncate">Ningún archivo seleccionado</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                    className="hidden"
-                  />
-                </label>
-              )}
-            </div>
-          </div>
-        </form>
-
-        <div className="p-5 pt-0 flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 mt-3">
+          <Select className="flex-1" value={pickerId} onChange={(e) => setPickerId(e.target.value)}>
+            <option value="">Selecciona un producto...</option>
+            {catalog[pickerType].map((product) => (
+              <option key={product.id} value={product.id}>
+                {product.name} — ${Number(product.price || 0).toFixed(2)}
+              </option>
+            ))}
+          </Select>
           <button
             type="button"
-            onClick={onClose}
-            className="flex-1 px-4 py-2.5 rounded-none bg-surface text-inkalt text-sm font-semibold border border-line"
+            onClick={handleAddItem}
+            className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-ac text-white text-xs font-display font-semibold whitespace-nowrap hover:bg-ac/90 transition-colors cursor-pointer shadow-2xs"
           >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={saving}
-            className="flex-1 px-4 py-2.5 rounded-none bg-ac text-white text-sm font-semibold hover:bg-ac transition-all disabled:opacity-60"
-          >
-            {saving ? 'Guardando...' : editingPromotion ? 'Guardar cambios' : 'Crear promoción'}
+            <FAIcon icon="plus" size="xs" />
+            Agregar
           </button>
         </div>
-      </div>
-    </div>
+
+        {items.length === 0 ? (
+          <p className="text-xs text-muted text-center py-4 mt-3 rounded-lg border border-dashed border-line">
+            Todavía no has agregado productos. Puedes combinar platillos, bebidas, combos y extras.
+          </p>
+        ) : (
+          <div className="space-y-2 mt-3">
+            {items.map((item, index) => {
+              const product = findInCatalog(item.itemType, item.refId);
+
+              return (
+                <div
+                  key={`${item.itemType}-${item.refId}`}
+                  className="rounded-lg p-3 border border-line bg-surfalt/30 space-y-2"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <input
+                      type="number"
+                      min="1"
+                      value={item.quantity}
+                      onChange={(e) => updateItem(index, { quantity: Math.max(1, Number(e.target.value) || 1) })}
+                      className="w-14 px-2 py-1.5 rounded-lg bg-white dark:bg-surface border border-line focus:border-ac focus:outline-none text-sm text-center text-ink"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-display font-semibold text-ink truncate">{item.name}</p>
+                      <p className="text-[11px] text-muted">
+                        <span className="text-ac font-semibold">{TYPE_LABELS[item.itemType]}</span> · ${Number(product?.price || 0).toFixed(2)} c/u
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeItem(index)}
+                      title="Quitar producto"
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-ac border border-ac/30 bg-ac/5 hover:bg-ac hover:text-white transition-colors cursor-pointer"
+                    >
+                      <FAIcon icon="trash" size="xs" />
+                    </button>
+                  </div>
+
+                  {/* Ingredientes de la receta original: se pueden desmarcar
+                      para que esta promo salga sin ellos */}
+                  {product?.recipe?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {product.recipe.map((ingredient) => {
+                        const isRemoved = item.removedIngredients.includes(ingredient.name);
+                        return (
+                          <button
+                            type="button"
+                            key={ingredient.name}
+                            onClick={() => toggleIngredient(index, ingredient.name)}
+                            title={isRemoved ? 'Volver a incluir' : 'Quitar de esta promoción'}
+                            className={`px-2 py-0.5 rounded-full text-[11px] font-semibold border transition-colors cursor-pointer ${
+                              isRemoved
+                                ? 'bg-surfalt text-muted border-line line-through'
+                                : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                            }`}
+                          >
+                            {ingredient.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Ahorro en vivo, calculado por el backend */}
+        {pricing && (
+          <div className="mt-3 rounded-lg border border-line bg-white dark:bg-surface p-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+            <div>
+              <p className={FORM_LABEL}>Por separado</p>
+              <p className="font-display font-semibold text-inkalt">${pricing.originalPrice.toFixed(2)}</p>
+            </div>
+            {pricing.price !== null && (
+              <>
+                <div>
+                  <p className={FORM_LABEL}>En promoción</p>
+                  <p className="font-display font-bold text-ac">${pricing.price.toFixed(2)}</p>
+                </div>
+                <div className="self-center">
+                  {pricing.savings > 0 ? (
+                    <span className="inline-flex px-2 py-1 rounded-full text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 bg-emerald-500/10">
+                      Ahorra ${pricing.savings.toFixed(2)} ({pricing.discountPercent}%)
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/40">
+                      <span className="w-1 h-1 rounded-full bg-amber-500" />
+                      No representa descuento
+                    </span>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </FormSection>
+
+      {/* SECCIÓN 4: Vigencia */}
+      <FormSection icon="clock" title="Vigencia">
+        <label className={`${FORM_LABEL} block mb-1.5`}>Duración (máximo {MAX_DAYS} días)</label>
+        <PillGroup
+          columns={MAX_DAYS}
+          options={Array.from({ length: MAX_DAYS }, (_, i) => i + 1).map((days) => ({
+            value: days,
+            label: `${days} ${days === 1 ? 'día' : 'días'}`,
+          }))}
+          value={Number(form.durationDays)}
+          onChange={(v) => setForm((prev) => ({ ...prev, durationDays: v }))}
+        />
+      </FormSection>
+
+      {/* SECCIÓN 5: Imagen */}
+      <FormSection icon="image" title="Imagen" badge={<OptionalBadge />}>
+        <ImagePickerField
+          imageFile={imageFile}
+          currentImage={editingPromotion?.image}
+          onPick={setImageFile}
+          onRemove={() => setImageFile(null)}
+        />
+      </FormSection>
+    </FormModal>
   );
 };
 
