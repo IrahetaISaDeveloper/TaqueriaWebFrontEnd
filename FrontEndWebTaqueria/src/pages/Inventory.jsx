@@ -1,6 +1,5 @@
 // src/pages/Inventory.jsx
-// Módulo de gestión y visualización de inventario (productos y activos fijos)
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopBar from '../components/dashboard/TopBar';
 import FAIcon from '../components/commons/FAIcon';
@@ -30,7 +29,7 @@ function InventoryContent() {
   const { addToast } = useToast();
 
   const insumos = allInsumos.filter((i) => (i.itemType || 'producto') === itemType);
-  const { page, totalPages, paginatedItems, goTo, next, prev } = usePagination(insumos, 6);
+  const { page, totalPages, paginatedItems, next, prev } = usePagination(insumos, 6);
 
   const isAssetTab = itemType === 'activo_fijo';
 
@@ -113,7 +112,7 @@ function InventoryContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-surfalt">
+    <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -123,10 +122,10 @@ function InventoryContent() {
 
       <Sidebar activeMenu={activeMenu} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="flex-1">
+        <main className="flex-1 min-h-0 overflow-y-auto">
           <div className="p-4 sm:p-6 lg:p-8">
 
             {/* ── Encabezado con título y botones ── */}
@@ -322,12 +321,22 @@ function InventoryContent() {
                             </span>
                           </td>
                           <td className="py-3.5 px-4 text-right">
-                            <button
-                              onClick={() => handleEdit(item)}
-                              className="text-muted hover:text-inkalt p-1.5 rounded-none hover:bg-surfalt transition-colors"
-                            >
-                              <FAIcon icon="edit" />
-                            </button>
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => handleEdit(item)}
+                                className="text-muted hover:text-inkalt p-1.5 rounded-none hover:bg-surfalt transition-colors"
+                                title="Editar"
+                              >
+                                <FAIcon icon="edit" />
+                              </button>
+                              <button
+                                onClick={() => handleRequestDelete(item._id || item.id)}
+                                className="text-muted hover:text-ac p-1.5 rounded-none hover:bg-surfalt transition-colors"
+                                title="Eliminar"
+                              >
+                                <FAIcon icon="trash" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );

@@ -1,10 +1,9 @@
 // src/pages/Payroll.jsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/dashboard/Sidebar';
 import TopBar from '../components/dashboard/TopBar';
 import FAIcon from '../components/commons/FAIcon';
-import Select from '../components/commons/Select';
-import ComboStats from '../components/dashboard/ComboStats';
 import PaginationControls from '../components/commons/PaginationControls';
 import usePayroll, { formatPeriodLabel, getCurrentPeriod } from '../hooks/usePayroll';
 import useBonusPayroll from '../hooks/useBonusPayroll';
@@ -30,26 +29,30 @@ const buildPeriodOptions = () => {
   return options;
 };
 
-const BADGE_BY_TYPE = {
-  Gerente: 'bg-surfalt text-inkalt border border-line',
-  Cocina: 'bg-infosoft text-info border border-info',
-  Cajero: 'bg-infosoft text-info border border-info',
+const getInitials = (name) => {
+  if (!name) return 'E';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
 };
 
-// Las dos planillas del apartado. Van separadas porque el bono es un pago
-// discrecional del dueño (una gratificación puntual, no una comisión ni
-// bonificación pactada), así que no forma parte del salario cotizable: no
-// debe arrastrar renta, AFP ni ISSS a nadie solo por recibirlo.
-const TABS = [
-  { id: 'general', label: 'Planilla general', icon: 'money-bill' },
-  { id: 'bonuses', label: 'Planilla de bonos', icon: 'gift' },
+const PERSONAL_TABS = [
+  { id: 'employees', label: 'EMPLEADOS', path: '/employees' },
+  { id: 'invitations', label: 'INVITACIONES', path: '/InviteStaff' },
+  { id: 'payroll_general', label: 'PLANILLA GENERAL', path: '/payroll' },
+  { id: 'payroll_bonuses', label: 'PLANILLA DE BONOS', path: '/payroll?tab=bonuses' },
 ];
 
 function PayrollContent() {
   const [activeMenu] = useState('payroll');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [tab, setTab] = useState('general');
+  const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Identificar pestaña activa según query param
+  const tabQuery = searchParams.get('tab');
+  const tab = tabQuery === 'bonuses' ? 'bonuses' : 'general';
+  const currentTabId = tab === 'bonuses' ? 'payroll_bonuses' : 'payroll_general';
 
   const general = usePayroll(getCurrentPeriod());
   const bonuses = useBonusPayroll(general.period);
@@ -60,9 +63,13 @@ function PayrollContent() {
 
   const periodOptions = useMemo(() => buildPeriodOptions(), []);
 
+  // Al cambiar de pestaña se limpia el término de búsqueda
+  useEffect(() => {
+    setSearchTerm('');
+  }, [tab]);
+
   // Cada pestaña filtra sobre su propia fuente de datos, pero comparten
-  // período y estado: cambiarlos en una pestaña afecta a ambas, para que no
-  // se puedan desincronizar (ej. ver septiembre en una y agosto en la otra).
+  // período y estado: cambiarlos en una pestaña afecta a ambas.
   const active = tab === 'general' ? general : bonuses;
 
   const filteredRows = useMemo(() => {
@@ -71,14 +78,29 @@ function PayrollContent() {
     return active.rows.filter((row) => row.name.toLowerCase().includes(term));
   }, [active.rows, searchTerm]);
 
-  const { page, totalPages, paginatedItems, goTo, next, prev } = usePagination(filteredRows, 8);
+  const { page, totalPages, paginatedItems, goTo, next, prev } = usePagination(filteredRows, 10);
 
-  // Al cambiar de pestaña se limpia la búsqueda; usePagination ya reajusta
-  // la página sola si la nueva lista es más corta que la página actual.
-  const handleTabChange = (nextTab) => {
-    setTab(nextTab);
-    setSearchTerm('');
-  };
+  // Formato para el Hero Stat de Planilla General
+  const [netSalaryInt, netSalaryDec] = useMemo(() => {
+    const val = Number(general.totals?.netSalary || 0);
+    const formatted = val.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    const parts = formatted.split('.');
+    return [parts[0], parts[1] || '00'];
+  }, [general.totals?.netSalary]);
+
+  // Formato para el Hero Stat de Planilla de Bonos
+  const [totalBonusInt, totalBonusDec] = useMemo(() => {
+    const val = Number(bonuses.totals?.totalBonus || 0);
+    const formatted = val.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    const parts = formatted.split('.');
+    return [parts[0], parts[1] || '00'];
+  }, [bonuses.totals?.totalBonus]);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
@@ -87,167 +109,206 @@ function PayrollContent() {
       )}
       <Sidebar activeMenu={activeMenu} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto min-h-0">
           <div className="p-4 sm:p-6 lg:p-8">
-            {/* Encabezado */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1">
-                  Planilla
-                </h1>
-                <p className="text-sm sm:text-base text-inkalt">
-                  {tab === 'general'
-                    ? 'Salarios y descuentos de ley del personal por período.'
-                    : 'Bonos asignados al personal por período, sin descuentos de ley.'}
-                </p>
+            <div className="bg-surface border border-line p-5 sm:p-7 lg:p-8">
+              {/* Encabezado */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1">
+                    Personal
+                  </h1>
+                  <p className="text-sm text-muted">
+                    {tab === 'general'
+                      ? 'Salarios, retenciones de ley y liquidaciones del personal por período.'
+                      : 'Bonificaciones extraordinarias y reconocimientos monetarios asignados.'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {tab === 'general' ? (
+                    <ReportButton
+                      title={`Planilla ${formatPeriodLabel(general.period)}`}
+                      columns={payrollReportColumns}
+                      rows={filteredRows}
+                      getImageUrl={(r) => r.image}
+                      itemTag="empleado"
+                      summary={general.totals ? [
+                        { label: 'Empleados', value: general.rows.length },
+                        { label: 'Salario bruto', value: money(general.totals.grossSalary) },
+                        { label: 'Descuentos', value: money(general.totals.totalDeductions) },
+                        { label: 'Total a pagar', value: money(general.totals.netSalary) },
+                      ] : undefined}
+                    />
+                  ) : (
+                    <ReportButton
+                      title={`Planilla de bonos ${formatPeriodLabel(bonuses.period)}`}
+                      columns={bonusPayrollReportColumns}
+                      rows={filteredRows}
+                      getImageUrl={(r) => r.image}
+                      itemTag="empleado"
+                      summary={bonuses.totals ? [
+                        { label: 'Empleados', value: bonuses.totals.employeeCount },
+                        { label: 'Con bono asignado', value: bonuses.totals.employeesWithBonus },
+                        { label: 'Total en bonos', value: money(bonuses.totals.totalBonus) },
+                      ] : undefined}
+                    />
+                  )}
+                </div>
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                {tab === 'general' ? (
-                  <ReportButton
-                    title={`Planilla ${formatPeriodLabel(general.period)}`}
-                    columns={payrollReportColumns}
-                    rows={general.rows}
-                    itemTag="empleado"
-                    summary={general.totals ? [
-                      { label: 'Empleados', value: general.rows.length },
-                      { label: 'Salario bruto', value: money(general.totals.grossSalary) },
-                      { label: 'Descuentos', value: money(general.totals.totalDeductions) },
-                      { label: 'Total a pagar', value: money(general.totals.netSalary) },
-                    ] : undefined}
-                  />
-                ) : (
-                  <ReportButton
-                    title={`Planilla de bonos ${formatPeriodLabel(bonuses.period)}`}
-                    columns={bonusPayrollReportColumns}
-                    rows={bonuses.rows}
-                    itemTag="empleado"
-                    summary={bonuses.totals ? [
-                      { label: 'Empleados', value: bonuses.totals.employeeCount },
-                      { label: 'Con bono asignado', value: bonuses.totals.employeesWithBonus },
-                      { label: 'Total en bonos', value: money(bonuses.totals.totalBonus) },
-                    ] : undefined}
-                  />
-                )}
+              {/* Pestañas de navegación de Personal */}
+              <div className="flex items-center gap-6 sm:gap-8 border-b border-line mb-8 text-[11px] font-mono tracking-wider font-semibold">
+                {PERSONAL_TABS.map((t) => {
+                  const isActive = t.id === currentTabId;
+                  return (
+                    <Link
+                      key={t.id}
+                      to={t.path}
+                      className={`pb-3 transition-colors ${
+                        isActive
+                          ? 'text-ink border-b-2 border-ac -mb-[1px]'
+                          : 'text-muted hover:text-ink'
+                      }`}
+                    >
+                      {t.label}
+                    </Link>
+                  );
+                })}
               </div>
-            </div>
 
-            {/* Selector de planilla */}
-            <div className="flex gap-2 mb-6 sm:mb-8">
-              {TABS.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => handleTabChange(t.id)}
-                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-none text-sm font-display font-semibold transition-colors ${
-                    tab === t.id
-                      ? 'bg-ac text-white'
-                      : 'bg-surface text-inkalt border border-line hover:bg-surfalt'
-                  }`}
-                >
-                  <FAIcon icon={t.icon} size="sm" />
-                  {t.label}
-                </button>
-              ))}
-            </div>
+              {/* Resumen Hero de cifras principales */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 pb-2">
+                <div className="min-w-0">
+                  <p className="kick text-[10.5px] font-bold text-ac tracking-wider mb-2">
+                    {tab === 'general'
+                      ? `TOTAL A PAGAR · ${formatPeriodLabel(general.period).toUpperCase()}`
+                      : `TOTAL EN BONOS · ${formatPeriodLabel(bonuses.period).toUpperCase()}`}
+                  </p>
+                  <div className="text-4xl sm:text-5xl font-light text-ink tracking-tight mb-2 flex items-baseline">
+                    <span>${tab === 'general' ? netSalaryInt : totalBonusInt}</span>
+                    <span className="text-2xl text-muted font-normal ml-0.5">
+                      .{tab === 'general' ? netSalaryDec : totalBonusDec}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted max-w-md leading-relaxed">
+                    {tab === 'general'
+                      ? 'Suma de salarios netos a desembolsar tras aplicar deducciones de ley (AFP, ISSS y Renta). Los bonos no afectan estos cálculos.'
+                      : 'Gratificaciones y estímulos económicos extraordinarios otorgados al personal durante el período, exentos de retenciones de ley.'}
+                  </p>
+                </div>
 
-            {/* Resumen del período */}
-            {tab === 'general' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
-                <ComboStats
-                  icon="users"
-                  title="EMPLEADOS"
-                  value={general.loading ? '—' : String(general.rows.length)}
-                  label={`En la planilla de ${formatPeriodLabel(general.period)}`}
-                />
-                <ComboStats
-                  icon="money-bill"
-                  title="SALARIO BRUTO"
-                  value={general.loading ? '—' : money(general.totals?.grossSalary)}
-                  label="Suma de los salarios base"
-                />
-                <ComboStats
-                  icon="scissors"
-                  title="DESCUENTOS"
-                  value={general.loading ? '—' : money(general.totals?.totalDeductions)}
-                  label="AFP + ISSS + Renta"
-                />
-                <ComboStats
-                  icon="hand-holding-dollar"
-                  title="TOTAL A PAGAR"
-                  value={general.loading ? '—' : money(general.totals?.netSalary)}
-                  label="Salario neto, sin bonos"
-                  highlighted={true}
-                />
+                <div className="flex flex-wrap sm:flex-nowrap gap-8 sm:gap-12 shrink-0">
+                  {tab === 'general' ? (
+                    <>
+                      <div className="border-t border-line pt-2.5 min-w-[120px] sm:min-w-[140px]">
+                        <p className="kick text-[10px] font-bold text-muted tracking-wider mb-1.5">
+                          EMPLEADOS EN PLANILLA
+                        </p>
+                        <p className="text-2xl sm:text-3xl font-light text-ink">
+                          {general.loading ? '—' : general.rows.length}
+                        </p>
+                      </div>
+
+                      <div className="border-t border-line pt-2.5 min-w-[120px] sm:min-w-[140px]">
+                        <p className="kick text-[10px] font-bold text-muted tracking-wider mb-1.5">
+                          SALARIO BRUTO
+                        </p>
+                        <p className="text-2xl sm:text-3xl font-light text-ink">
+                          {general.loading ? '—' : money(general.totals?.grossSalary)}
+                        </p>
+                      </div>
+
+                      <div className="border-t border-line pt-2.5 min-w-[120px] sm:min-w-[140px]">
+                        <p className="kick text-[10px] font-bold text-muted tracking-wider mb-1.5">
+                          TOTAL RETENCIONES
+                        </p>
+                        <p className="text-2xl sm:text-3xl font-light text-ink">
+                          {general.loading ? '—' : money(general.totals?.totalDeductions)}
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="border-t border-line pt-2.5 min-w-[120px] sm:min-w-[140px]">
+                        <p className="kick text-[10px] font-bold text-muted tracking-wider mb-1.5">
+                          EMPLEADOS EN LISTA
+                        </p>
+                        <p className="text-2xl sm:text-3xl font-light text-ink">
+                          {bonuses.loading ? '—' : (bonuses.totals?.employeeCount ?? bonuses.rows.length)}
+                        </p>
+                      </div>
+
+                      <div className="border-t border-line pt-2.5 min-w-[120px] sm:min-w-[140px]">
+                        <p className="kick text-[10px] font-bold text-muted tracking-wider mb-1.5">
+                          CON BONO ASIGNADO
+                        </p>
+                        <p className="text-2xl sm:text-3xl font-light text-ink">
+                          {bonuses.loading ? '—' : (bonuses.totals?.employeesWithBonus ?? 0)}
+                        </p>
+                      </div>
+
+                      <div className="border-t border-line pt-2.5 min-w-[120px] sm:min-w-[140px]">
+                        <p className="kick text-[10px] font-bold text-muted tracking-wider mb-1.5">
+                          PROMEDIO POR BONO
+                        </p>
+                        <p className="text-2xl sm:text-3xl font-light text-ink">
+                          {bonuses.loading || !bonuses.totals?.employeesWithBonus
+                            ? '—'
+                            : money(bonuses.totals.totalBonus / bonuses.totals.employeesWithBonus)}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 sm:mb-8">
-                <ComboStats
-                  icon="users"
-                  title="EMPLEADOS"
-                  value={bonuses.loading ? '—' : String(bonuses.totals?.employeeCount ?? bonuses.rows.length)}
-                  label={`En la planilla de ${formatPeriodLabel(bonuses.period)}`}
-                />
-                <ComboStats
-                  icon="gift"
-                  title="CON BONO ASIGNADO"
-                  value={bonuses.loading ? '—' : String(bonuses.totals?.employeesWithBonus ?? 0)}
-                  label="Empleados que reciben bono este período"
-                />
-                <ComboStats
-                  icon="hand-holding-dollar"
-                  title="TOTAL EN BONOS"
-                  value={bonuses.loading ? '—' : money(bonuses.totals?.totalBonus)}
-                  label="Sin descuentos de ley"
-                  highlighted={true}
-                />
-              </div>
-            )}
 
-            {/* Tabla de planilla */}
-            <div className="bg-surface rounded-none border border-line overflow-hidden">
-              <div className="p-4 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-line">
-                <h2 className="text-lg font-display font-bold text-ink">
-                  {tab === 'general' ? 'Detalle de' : 'Bonos de'} {formatPeriodLabel(active.period)}
+              {/* Cabecera de la tabla */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                <h2 className="text-base font-bold text-ink">
+                  {tab === 'general' ? 'Detalle de planilla' : 'Detalle de bonos'} · {formatPeriodLabel(active.period)}
                 </h2>
 
-                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
                   <input
                     type="text"
                     placeholder="Buscar empleado..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="px-4 py-2 bg-surfalt border border-line rounded-none focus:outline-none focus:ring-2 focus:ring-acline text-sm text-inkalt placeholder:text-muted"
+                    className="px-3 py-1.5 bg-surfalt/40 border border-line rounded-none focus:outline-none focus:border-ac text-xs text-ink placeholder:text-muted w-full sm:w-56"
                   />
 
-                  <Select
+                  <select
                     value={general.period}
                     onChange={(e) => {
                       general.setPeriod(e.target.value);
                       bonuses.setPeriod(e.target.value);
                     }}
+                    className="px-3 py-1.5 bg-surfalt/40 border border-line rounded-none focus:outline-none focus:border-ac text-xs text-ink cursor-pointer"
                   >
                     {periodOptions.map((option) => (
                       <option key={option.value} value={option.value}>{option.label}</option>
                     ))}
-                  </Select>
+                  </select>
 
-                  <Select
+                  <select
                     value={general.status}
                     onChange={(e) => {
                       general.setStatus(e.target.value);
                       bonuses.setStatus(e.target.value);
                     }}
+                    className="px-3 py-1.5 bg-surfalt/40 border border-line rounded-none focus:outline-none focus:border-ac text-xs text-ink cursor-pointer"
                   >
                     <option value="active">Solo activos</option>
                     <option value="all">Todos</option>
-                  </Select>
+                  </select>
                 </div>
               </div>
 
+              {/* Tabla de planilla */}
               <div className="overflow-x-auto">
                 {active.loading ? (
                   <div className="p-8 text-center text-muted text-sm">Calculando planilla...</div>
@@ -264,70 +325,86 @@ function PayrollContent() {
                 ) : tab === 'general' ? (
                   <table className="w-full text-left border-collapse min-w-[860px]">
                     <thead>
-                      <tr className="bg-surfalt/80 text-xs font-display font-semibold text-muted uppercase tracking-wider border-b border-line">
-                        <th className="p-3 sm:p-4 pl-4 sm:pl-6">Empleado</th>
-                        <th className="p-3 sm:p-4">Puesto</th>
-                        <th className="p-3 sm:p-4 text-right">Salario base</th>
-                        <th className="p-3 sm:p-4 text-right">AFP</th>
-                        <th className="p-3 sm:p-4 text-right">ISSS</th>
-                        <th className="p-3 sm:p-4 text-right">Renta</th>
-                        <th className="p-3 sm:p-4 text-right">Neto a pagar</th>
-                        <th className="p-3 sm:p-4 pr-4 sm:pr-6 text-center">Boleta</th>
+                      <tr className="text-[10.5px] kick font-bold text-muted tracking-wider border-b border-line">
+                        <th className="py-3 pr-4">EMPLEADO</th>
+                        <th className="py-3 px-4">PUESTO</th>
+                        <th className="py-3 px-4 text-right">SALARIO BASE</th>
+                        <th className="py-3 px-4 text-right">AFP (7.25%)</th>
+                        <th className="py-3 px-4 text-right">ISSS (3%)</th>
+                        <th className="py-3 px-4 text-right">RENTA</th>
+                        <th className="py-3 px-4 text-right">NETO A PAGAR</th>
+                        <th className="py-3 pl-4 text-center">BOLETA</th>
                       </tr>
                     </thead>
 
-                    <tbody className="divide-y divide-line text-sm text-inkalt">
+                    <tbody className="divide-y divide-line/60 text-sm">
                       {paginatedItems.map((row) => {
                         const isInactive = row.status !== 'active';
+                        const initials = getInitials(row.name);
 
                         return (
                           <tr
                             key={row.employeeId}
-                            className={`hover:bg-surfalt/80 transition-colors ${isInactive ? 'opacity-60 bg-surfalt/30' : ''}`}
+                            className={`hover:bg-surfalt/40 transition-colors ${isInactive ? 'opacity-50' : ''}`}
                           >
-                            <td className="p-3 sm:p-4 pl-4 sm:pl-6">
+                            <td className="py-3.5 pr-4">
                               <div className="flex items-center gap-3">
                                 {row.image ? (
-                                  <img src={row.image} alt={row.name} className="w-9 h-9 rounded-none object-cover" />
-                                ) : (
-                                  <div className="w-9 h-9 rounded-none bg-surfalt flex items-center justify-center text-muted">
-                                    <FAIcon icon="user" />
-                                  </div>
-                                )}
+                                  <img
+                                    src={row.image}
+                                    alt={row.name}
+                                    className="w-7 h-7 object-cover border border-line shrink-0"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      if (e.currentTarget.nextElementSibling) {
+                                        e.currentTarget.nextElementSibling.style.display = 'flex';
+                                      }
+                                    }}
+                                  />
+                                ) : null}
+                                <div
+                                  className="w-7 h-7 bg-surfalt border border-line flex items-center justify-center text-[10px] font-bold text-muted shrink-0"
+                                  style={{ display: row.image ? 'none' : 'flex' }}
+                                >
+                                  {initials}
+                                </div>
                                 <div>
-                                  <div className="font-display font-bold text-ink">{row.name}</div>
+                                  <div className="font-medium text-ink text-[13.5px]">{row.name}</div>
                                   {isInactive && (
-                                    <div className="text-xs text-ac font-medium">Inactivo</div>
+                                    <div className="text-[11px] text-ac font-medium">Inactivo</div>
                                   )}
                                 </div>
                               </div>
                             </td>
 
-                            <td className="p-3 sm:p-4">
-                              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-display font-semibold ${BADGE_BY_TYPE[row.typeLabel] || 'bg-warnsoft text-warn border border-warn'}`}>
-                                {row.typeLabel}
-                              </span>
+                            <td className="py-3.5 px-4 text-[13px] text-inkalt">
+                              {row.typeLabel || 'Empleado'}
                             </td>
 
-                            <td className="p-3 sm:p-4 text-right font-medium">{money(row.grossSalary)}</td>
-                            <td className="p-3 sm:p-4 text-right text-muted">-{money(row.afp)}</td>
-                            <td className="p-3 sm:p-4 text-right text-muted">-{money(row.isss)}</td>
-                            {/* Siempre se muestra el monto, aunque sea $0: un
-                                "—" aquí se podía confundir con que la renta no
-                                se estaba calculando en absoluto. */}
-                            <td className="p-3 sm:p-4 text-right text-muted">-{money(row.isr)}</td>
-                            <td className="p-3 sm:p-4 text-right font-display font-bold text-ink">
+                            <td className="py-3.5 px-4 text-right font-medium text-ink num text-[13.5px]">
+                              {money(row.grossSalary)}
+                            </td>
+                            <td className="py-3.5 px-4 text-right text-muted num text-[13px]">
+                              -{money(row.afp)}
+                            </td>
+                            <td className="py-3.5 px-4 text-right text-muted num text-[13px]">
+                              -{money(row.isss)}
+                            </td>
+                            <td className="py-3.5 px-4 text-right text-muted num text-[13px]">
+                              -{money(row.isr)}
+                            </td>
+                            <td className="py-3.5 px-4 text-right font-medium text-ink num text-[13.5px] font-bold">
                               {money(row.netSalary)}
                             </td>
-                            <td className="p-3 sm:p-4 pr-4 sm:pr-6 text-center">
+                            <td className="py-3.5 pl-4 text-center">
                               <button
                                 type="button"
                                 onClick={() => setPayslipTarget({ id: row.employeeId, name: row.name })}
                                 title={`Ver boleta de pago de ${row.name}`}
                                 aria-label={`Ver boleta de pago de ${row.name}`}
-                                className="inline-flex items-center justify-center w-9 h-9 rounded-none border border-line text-muted hover:bg-surfalt hover:text-ac transition-colors"
+                                className="inline-flex items-center justify-center w-7 h-7 border border-line text-muted hover:border-ac hover:text-ac transition-colors"
                               >
-                                <FAIcon icon="receipt" size="sm" />
+                                <FAIcon icon="receipt" size="xs" />
                               </button>
                             </td>
                           </tr>
@@ -335,71 +412,101 @@ function PayrollContent() {
                       })}
                     </tbody>
 
-                    {/* Totales del período: siempre sobre la planilla completa,
-                        no sobre lo que quedó visible tras filtrar o paginar. */}
+                    {/* Totales del período */}
                     {general.totals && (
                       <tfoot>
-                        <tr className="bg-surfalt/80 border-t-2 border-line text-sm font-display font-bold text-ink">
-                          <td className="p-3 sm:p-4 pl-4 sm:pl-6" colSpan={2}>
-                            TOTALES ({general.rows.length})
+                        <tr className="border-t-2 border-line text-sm font-display font-bold text-ink">
+                          <td className="py-3.5 pr-4 kick text-[10.5px] tracking-wider" colSpan={2}>
+                            TOTALES DEL PERÍODO ({general.rows.length})
                           </td>
-                          <td className="p-3 sm:p-4 text-right">{money(general.totals.grossSalary)}</td>
-                          <td className="p-3 sm:p-4 text-right">-{money(general.totals.afp)}</td>
-                          <td className="p-3 sm:p-4 text-right">-{money(general.totals.isss)}</td>
-                          <td className="p-3 sm:p-4 text-right">-{money(general.totals.isr)}</td>
-                          <td className="p-3 sm:p-4 text-right text-ac">
+                          <td className="py-3.5 px-4 text-right num text-ink font-bold">
+                            {money(general.totals.grossSalary)}
+                          </td>
+                          <td className="py-3.5 px-4 text-right num text-muted font-normal">
+                            -{money(general.totals.afp)}
+                          </td>
+                          <td className="py-3.5 px-4 text-right num text-muted font-normal">
+                            -{money(general.totals.isss)}
+                          </td>
+                          <td className="py-3.5 px-4 text-right num text-muted font-normal">
+                            -{money(general.totals.isr)}
+                          </td>
+                          <td className="py-3.5 px-4 text-right text-ac num font-bold">
                             {money(general.totals.netSalary)}
                           </td>
-                          <td className="p-3 sm:p-4 pr-4 sm:pr-6" />
+                          <td className="py-3.5 pl-4" />
                         </tr>
                       </tfoot>
                     )}
                   </table>
                 ) : (
-                  <table className="w-full text-left border-collapse min-w-[560px]">
+                  <table className="w-full text-left border-collapse min-w-[620px]">
                     <thead>
-                      <tr className="bg-surfalt/80 text-xs font-display font-semibold text-muted uppercase tracking-wider border-b border-line">
-                        <th className="p-3 sm:p-4 pl-4 sm:pl-6">Empleado</th>
-                        <th className="p-3 sm:p-4">Puesto</th>
-                        <th className="p-3 sm:p-4 pr-4 sm:pr-6 text-right">Bono asignado</th>
+                      <tr className="text-[10.5px] kick font-bold text-muted tracking-wider border-b border-line">
+                        <th className="py-3 pr-4">EMPLEADO</th>
+                        <th className="py-3 px-4">PUESTO</th>
+                        <th className="py-3 px-4">ESTADO</th>
+                        <th className="py-3 pl-4 text-right">BONO ASIGNADO</th>
                       </tr>
                     </thead>
 
-                    <tbody className="divide-y divide-line text-sm text-inkalt">
+                    <tbody className="divide-y divide-line/60 text-sm">
                       {paginatedItems.map((row) => {
                         const isInactive = row.status !== 'active';
+                        const initials = getInitials(row.name);
 
                         return (
                           <tr
                             key={row.employeeId}
-                            className={`hover:bg-surfalt/80 transition-colors ${isInactive ? 'opacity-60 bg-surfalt/30' : ''}`}
+                            className={`hover:bg-surfalt/40 transition-colors ${isInactive ? 'opacity-50' : ''}`}
                           >
-                            <td className="p-3 sm:p-4 pl-4 sm:pl-6">
+                            <td className="py-3.5 pr-4">
                               <div className="flex items-center gap-3">
                                 {row.image ? (
-                                  <img src={row.image} alt={row.name} className="w-9 h-9 rounded-none object-cover" />
-                                ) : (
-                                  <div className="w-9 h-9 rounded-none bg-surfalt flex items-center justify-center text-muted">
-                                    <FAIcon icon="user" />
-                                  </div>
-                                )}
+                                  <img
+                                    src={row.image}
+                                    alt={row.name}
+                                    className="w-7 h-7 object-cover border border-line shrink-0"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      if (e.currentTarget.nextElementSibling) {
+                                        e.currentTarget.nextElementSibling.style.display = 'flex';
+                                      }
+                                    }}
+                                  />
+                                ) : null}
+                                <div
+                                  className="w-7 h-7 bg-surfalt border border-line flex items-center justify-center text-[10px] font-bold text-muted shrink-0"
+                                  style={{ display: row.image ? 'none' : 'flex' }}
+                                >
+                                  {initials}
+                                </div>
                                 <div>
-                                  <div className="font-display font-bold text-ink">{row.name}</div>
+                                  <div className="font-medium text-ink text-[13.5px]">{row.name}</div>
                                   {isInactive && (
-                                    <div className="text-xs text-ac font-medium">Inactivo</div>
+                                    <div className="text-[11px] text-ac font-medium">Inactivo</div>
                                   )}
                                 </div>
                               </div>
                             </td>
 
-                            <td className="p-3 sm:p-4">
-                              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-display font-semibold ${BADGE_BY_TYPE[row.typeLabel] || 'bg-warnsoft text-warn border border-warn'}`}>
-                                {row.typeLabel}
+                            <td className="py-3.5 px-4 text-[13px] text-inkalt">
+                              {row.typeLabel || 'Empleado'}
+                            </td>
+
+                            <td className="py-3.5 px-4">
+                              <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${!isInactive ? 'text-ok' : 'text-muted'}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${!isInactive ? 'bg-ok' : 'bg-muted'}`} />
+                                {!isInactive ? 'Activo' : 'Inactivo'}
                               </span>
                             </td>
 
-                            <td className="p-3 sm:p-4 pr-4 sm:pr-6 text-right font-display font-bold text-ink">
-                              {row.bonus > 0 ? money(row.bonus) : <span className="text-muted font-normal">Sin bono</span>}
+                            <td className="py-3.5 pl-4 text-right font-medium text-ink num text-[13.5px]">
+                              {row.bonus > 0 ? (
+                                <span className="font-bold text-ink">{money(row.bonus)}</span>
+                              ) : (
+                                <span className="text-muted text-xs">Sin bono</span>
+                              )}
                             </td>
                           </tr>
                         );
@@ -408,11 +515,11 @@ function PayrollContent() {
 
                     {bonuses.totals && (
                       <tfoot>
-                        <tr className="bg-surfalt/80 border-t-2 border-line text-sm font-display font-bold text-ink">
-                          <td className="p-3 sm:p-4 pl-4 sm:pl-6" colSpan={2}>
-                            TOTALES ({bonuses.totals.employeeCount})
+                        <tr className="border-t-2 border-line text-sm font-display font-bold text-ink">
+                          <td className="py-3.5 pr-4 kick text-[10.5px] tracking-wider" colSpan={3}>
+                            TOTALES DEL PERÍODO ({bonuses.totals.employeeCount ?? bonuses.rows.length})
                           </td>
-                          <td className="p-3 sm:p-4 pr-4 sm:pr-6 text-right text-ac">
+                          <td className="py-3.5 pl-4 text-right text-ac num font-bold">
                             {money(bonuses.totals.totalBonus)}
                           </td>
                         </tr>
@@ -422,32 +529,32 @@ function PayrollContent() {
                 )}
               </div>
 
-              {totalPages > 1 && (
-                <PaginationControls
-                  page={page}
-                  totalPages={totalPages}
-                  onPrev={prev}
-                  onNext={next}
-                  onGoTo={goTo}
-                />
+              {/* Paginación */}
+              {filteredRows.length > 0 && totalPages > 1 && (
+                <div className="pt-4 mt-2">
+                  <PaginationControls
+                    page={page}
+                    totalPages={totalPages}
+                    onPrev={prev}
+                    onNext={next}
+                    onGoTo={goTo}
+                  />
+                </div>
               )}
-            </div>
 
-            <p className="mt-4 text-xs text-muted">
-              {tab === 'general' ? (
-                <>
-                  AFP (7.25%), ISSS (3%, con tope de $30) y renta se calculan solo sobre el salario base
-                  del empleado. Los bonos no afectan esta planilla ni sus descuentos: se documentan
-                  aparte, en la Planilla de bonos.
-                </>
-              ) : (
-                <>
-                  El bono es un pago discrecional del dueño (una gratificación puntual, no una comisión
-                  ni una bonificación pactada como parte regular del contrato), así que no forma parte
-                  del salario cotizable: no lleva AFP, ISSS ni renta.
-                </>
-              )}
-            </p>
+              {/* Nota institucional al pie */}
+              <p className="text-xs text-muted mt-6 leading-relaxed">
+                {tab === 'general' ? (
+                  <>
+                    AFP (7.25%), ISSS (3%, con tope de $30) y Renta de ley se calculan sobre el salario base de cada empleado en Taquería El Corral. Las asignaciones de bonos no sufren retenciones y se administran en la pestaña de Planilla de Bonos.
+                  </>
+                ) : (
+                  <>
+                    El bono es una gratificación discrecional mensual que no forma parte del salario ordinario ni devenga retenciones legales (AFP, ISSS, Renta). Para consultar el salario y deducciones de ley, diríjase a Planilla General.
+                  </>
+                )}
+              </p>
+            </div>
           </div>
         </main>
       </div>

@@ -15,16 +15,17 @@ const ViewDetailsModal = ({ isOpen, onClose, title, subtitle, image, sections = 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-surfalt rounded-none w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden border border-line">
-        <div className="flex items-center justify-between p-4 sm:p-5 bg-ac text-white">
+      <div className="bg-surface rounded-none w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden border border-line">
+        <div className="flex items-center justify-between gap-3 p-4 sm:p-5 border-b-2 border-ac">
           <div className="min-w-0">
-            <h2 className="text-base sm:text-lg font-display font-bold truncate">{title}</h2>
-            {subtitle && <p className="text-xs text-white/80 truncate">{subtitle}</p>}
+            <p className="kick text-ac mb-1">Detalle</p>
+            <h2 className="text-base sm:text-lg font-display font-bold text-ink truncate">{title}</h2>
+            {subtitle && <p className="text-xs text-muted truncate">{subtitle}</p>}
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-white/80 hover:text-white p-1.5 rounded-none hover:bg-surface/10 transition-all shrink-0"
+            className="text-muted hover:text-ac p-1.5 rounded-none hover:bg-surfalt transition-all shrink-0"
             aria-label="Cerrar"
           >
             <FAIcon icon="times" size="lg" />
@@ -42,10 +43,10 @@ const ViewDetailsModal = ({ isOpen, onClose, title, subtitle, image, sections = 
                 key={s.title || i}
                 type="button"
                 onClick={() => setActiveSection(i)}
-                className={`px-3 py-1.5 rounded-none text-xs font-display font-semibold transition-all ${
+                className={`px-3 py-1.5 rounded-none text-xs font-display font-semibold border transition-colors ${
                   activeSection === i
-                    ? 'bg-ac text-white'
-                    : 'bg-surface text-muted hover:bg-surfalt border border-line'
+                    ? 'border-ac text-ac bg-acsoft'
+                    : 'border-line text-muted hover:border-ac bg-surfalt'
                 }`}
               >
                 Sección {i + 1}

@@ -1,16 +1,14 @@
 // src/pages/Promotions.jsx
 import React, { useState } from 'react';
-import Sidebar from '../components/dashboard/Sidebar';
-import TopBar from '../components/dashboard/TopBar';
-import ComboStats from '../components/dashboard/ComboStats';
+import MenuPageShell, { MENU_PRIMARY_BUTTON } from '../components/menu/MenuPageShell';
+import MenuHero from '../components/menu/MenuHero';
+import MenuFilterRow from '../components/menu/MenuFilterRow';
 import PromotionCard from '../components/promotions/PromotionCard';
 import AddPromotionModal from '../components/promotions/AddPromotionModal';
 import ConfirmModal from '../components/commons/ConfirmModal';
 import PaginationControls from '../components/commons/PaginationControls';
-import FilterBar from '../components/commons/FilterBar';
 import ViewDetailsModal from '../components/commons/ViewDetailsModal';
 import DetailRow from '../components/commons/DetailRow';
-import FAIcon from '../components/commons/FAIcon';
 import usePromotions from '../hooks/usePromotions';
 import { usePagination } from '../hooks/usePagination';
 import { ToastProvider, useToast } from '../components/commons/ToastProvider';
@@ -25,7 +23,6 @@ const isRunning = (promotion) =>
 
 function PromotionsContent() {
   const [activeMenu] = useState('promotions');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState(null);
   const [viewingPromotion, setViewingPromotion] = useState(null);
@@ -143,174 +140,130 @@ function PromotionsContent() {
     },
   ];
 
+  const pausedCount = promotions.filter((p) => p.status === 'pausada').length;
+  const openCreate = () => { setEditingPromotion(null); setIsModalOpen(true); };
+
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-surfalt">
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+    <MenuPageShell
+      activeMenu={activeMenu}
+      subtitle="Combina productos del menú a un precio especial, por un máximo de 3 días"
+      actions={
+        <button type="button" onClick={openCreate} disabled={loading} className={MENU_PRIMARY_BUTTON}>
+          Nueva promoción
+        </button>
+      }
+      modals={
+        <>
+          <AddPromotionModal
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setEditingPromotion(null);
+            }}
+            onSave={handleSave}
+            editingPromotion={editingPromotion}
+            previewPricing={previewPricing}
+            suggestPromotions={suggestPromotions}
+          />
+
+          <ConfirmModal
+            isOpen={confirmDelete.isOpen}
+            onClose={() => setConfirmDelete({ isOpen: false, promotionId: null })}
+            onConfirm={handleDeleteConfirm}
+            title="Eliminar promoción"
+            message="¿Seguro que deseas eliminar esta promoción? Los productos del menú que incluía no se tocan."
+            confirmText="Eliminar"
+            loading={loading}
+          />
+
+          <ViewDetailsModal
+            key={viewingPromotion?._id}
+            isOpen={Boolean(viewingPromotion)}
+            onClose={() => setViewingPromotion(null)}
+            title={viewingPromotion?.name}
+            image={viewingPromotion?.image}
+            sections={viewingPromotion ? buildSections(viewingPromotion) : []}
+          />
+        </>
+      }
+    >
+      {error && (
+        <div className="mb-5 bg-acsoft border border-acline text-ac px-4 py-3 text-sm">Error: {error}</div>
       )}
 
-      <Sidebar activeMenu={activeMenu} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <MenuHero
+        loading={loading}
+        primary={{
+          kick: 'Corriendo ahora',
+          value: runningCount,
+          suffix: `de ${promotions.length} registradas`,
+          note: pausedCount > 0
+            ? `${pausedCount} promoción${pausedCount === 1 ? ' está pausada' : 'es están pausadas'} y no se ve${pausedCount === 1 ? '' : 'n'} en la app.`
+            : runningCount > 0 ? 'Visibles en la app ahora mismo.' : 'No hay promociones visibles en la app.',
+          noteTone: pausedCount > 0 || runningCount === 0 ? 'ac' : 'ok',
+        }}
+        secondary={[
+          {
+            kick: 'Termina primero',
+            value: endingSoon?.name || 'Sin datos',
+            label: endingSoon ? new Date(endingSoon.endsAt).toLocaleString('es-SV') : 'Nada por vencer',
+          },
+          { kick: 'Sugeridas por IA', value: aiCount, label: 'Armadas con ayuda del asistente' },
+        ]}
+      />
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <TopBar onMenuClick={() => setSidebarOpen(true)} />
+      <MenuFilterRow
+        label="Estado"
+        chips={[
+          { id: 'all', label: 'Todas' },
+          { id: 'activa', label: 'Activas' },
+          { id: 'pausada', label: 'Pausadas' },
+          { id: 'expirada', label: 'Expiradas' },
+        ]}
+        value={statusFilter}
+        onChange={setStatusFilter}
+      />
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 sm:p-6 lg:p-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink mb-1 sm:mb-2">
-                  Promociones de hoy
-                </h1>
-                <p className="text-sm sm:text-base text-inkalt">
-                  Combina productos del menú a un precio especial, por un máximo de 3 días.
-                </p>
-              </div>
+      {loading && (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-ac"></div>
+          <span className="ml-3 text-sm text-muted">Cargando promociones...</span>
+        </div>
+      )}
 
-              <button
-                onClick={() => {
-                  setEditingPromotion(null);
+      {!loading && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+            {paginatedItems.map((promotion) => (
+              <PromotionCard
+                key={promotion._id}
+                promotion={promotion}
+                onView={() => setViewingPromotion(promotion)}
+                onEdit={() => {
+                  setEditingPromotion(promotion);
                   setIsModalOpen(true);
                 }}
-                className="flex items-center gap-2 px-4 py-2.5 bg-ac text-white rounded-none font-display font-semibold text-sm
-                  hover:bg-ac hover:
-                  transition-all disabled:opacity-60"
-                disabled={loading}
-              >
-                <FAIcon icon="plus" />
-                Nueva promoción
-              </button>
-            </div>
-
-            {error && (
-              <div className="mb-4 bg-acsoft border border-acline text-ac px-4 py-3 rounded-none text-sm">
-                Error: {error}
-              </div>
-            )}
-
-            <FilterBar
-              filters={[
-                {
-                  label: 'Estado',
-                  value: statusFilter,
-                  onChange: setStatusFilter,
-                  options: [
-                    { value: 'all', label: 'Todos los estados' },
-                    { value: 'activa', label: 'Activas' },
-                    { value: 'pausada', label: 'Pausadas' },
-                    { value: 'expirada', label: 'Expiradas' },
-                  ],
-                },
-              ]}
-            />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-              <ComboStats
-                icon="tag"
-                title="CORRIENDO AHORA"
-                value={loading ? '...' : runningCount}
-                label={runningCount > 0 ? 'Visibles en la app' : 'Sin promociones activas'}
-                highlighted={true}
+                onToggleStatus={() => handleToggleStatus(promotion)}
+                onDelete={() => setConfirmDelete({ isOpen: true, promotionId: promotion._id })}
               />
-              <ComboStats
-                icon="clock"
-                title="TERMINA PRIMERO"
-                value={endingSoon?.name || 'Sin datos'}
-                label={endingSoon ? new Date(endingSoon.endsAt).toLocaleString('es-SV') : 'Nada por vencer'}
-                highlighted={true}
-              />
-              <ComboStats
-                icon="wand-magic-sparkles"
-                title="SUGERIDAS POR IA"
-                value={loading ? '...' : aiCount}
-                label="Armadas con ayuda del asistente"
-                highlighted={true}
-              />
-            </div>
-
-            {loading && (
-              <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ac"></div>
-                <span className="ml-3 text-inkalt font-medium">Cargando promociones...</span>
-              </div>
-            )}
-
-            {!loading && (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                  {paginatedItems.map((promotion) => (
-                    <PromotionCard
-                      key={promotion._id}
-                      promotion={promotion}
-                      onView={() => setViewingPromotion(promotion)}
-                      onEdit={() => {
-                        setEditingPromotion(promotion);
-                        setIsModalOpen(true);
-                      }}
-                      onToggleStatus={() => handleToggleStatus(promotion)}
-                      onDelete={() => setConfirmDelete({ isOpen: true, promotionId: promotion._id })}
-                    />
-                  ))}
-                </div>
-                <PaginationControls page={page} totalPages={totalPages} onPrev={prev} onNext={next} onGoTo={goTo} />
-              </>
-            )}
-
-            {!loading && filteredPromotions.length === 0 && !error && (
-              <div className="text-center py-12">
-                <FAIcon icon="tag" size="3x" className="text-muted mx-auto mb-3" />
-                <p className="text-muted text-base sm:text-lg font-display font-semibold">
-                  No hay promociones
-                </p>
-                <p className="text-muted text-xs sm:text-sm mb-4">
-                  Arma la primera combinando platillos, bebidas o combos del menú
-                </p>
-                <button
-                  onClick={() => {
-                    setEditingPromotion(null);
-                    setIsModalOpen(true);
-                  }}
-                  className="px-6 py-2.5 bg-ac text-white rounded-none font-display font-semibold text-sm
-                    hover:bg-ac transition-all"
-                >
-                  Crear promoción
-                </button>
-              </div>
-            )}
+            ))}
           </div>
-        </main>
-      </div>
+          <PaginationControls compact page={page} totalPages={totalPages} onPrev={prev} onNext={next} onGoTo={goTo} />
+        </>
+      )}
 
-      <AddPromotionModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingPromotion(null);
-        }}
-        onSave={handleSave}
-        editingPromotion={editingPromotion}
-        previewPricing={previewPricing}
-        suggestPromotions={suggestPromotions}
-      />
-
-      <ConfirmModal
-        isOpen={confirmDelete.isOpen}
-        onClose={() => setConfirmDelete({ isOpen: false, promotionId: null })}
-        onConfirm={handleDeleteConfirm}
-        title="Eliminar promoción"
-        message="¿Seguro que deseas eliminar esta promoción? Los productos del menú que incluía no se tocan."
-        confirmText="Eliminar"
-        loading={loading}
-      />
-
-      <ViewDetailsModal
-        key={viewingPromotion?._id}
-        isOpen={Boolean(viewingPromotion)}
-        onClose={() => setViewingPromotion(null)}
-        title={viewingPromotion?.name}
-        image={viewingPromotion?.image}
-        sections={viewingPromotion ? buildSections(viewingPromotion) : []}
-      />
-    </div>
+      {!loading && filteredPromotions.length === 0 && !error && (
+        <div className="text-center py-14 border border-dashed border-line">
+          <p className="kick text-muted mb-2">Sin promociones</p>
+          <p className="text-sm text-inkalt mb-4">
+            Arma la primera combinando platillos, bebidas o combos del menú.
+          </p>
+          <button type="button" onClick={openCreate} className={MENU_PRIMARY_BUTTON}>
+            Crear promoción
+          </button>
+        </div>
+      )}
+    </MenuPageShell>
   );
 }
 

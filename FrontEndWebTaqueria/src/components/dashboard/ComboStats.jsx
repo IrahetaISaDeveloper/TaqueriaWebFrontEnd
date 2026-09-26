@@ -26,7 +26,7 @@ const ComboStats = ({ icon, title, value, label, highlighted = false, onClick, a
           <FAIcon icon={icon} size="lg" />
         </div>
       </div>
-      <h3 className={`text-3xl sm:text-4xl font-display font-bold mb-1 ${highlighted ? 'text-ac' : 'text-ink'}`}>
+      <h3 className={`text-2xl sm:text-4xl font-display font-bold mb-1 break-words line-clamp-2 ${highlighted ? 'text-ac' : 'text-ink'}`}>
         {value}
       </h3>
       <p className="text-xs sm:text-sm font-medium text-muted">

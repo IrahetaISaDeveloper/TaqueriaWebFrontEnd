@@ -28,6 +28,10 @@ export default function useRecoveryPassword({ onStep, onExit } = {}) {
   // pantallas, cambiando de ruta.
   const goToStep = (step, route) => {
     if (onStep) {
+      // En el panel el hook no se desmonta entre pasos: si `success` del
+      // paso anterior sigue en true, el paso 3 se da por terminado apenas
+      // aparece y el formulario de nueva contraseña nunca se ve.
+      setSuccess(false);
       onStep(step);
       return;
     }

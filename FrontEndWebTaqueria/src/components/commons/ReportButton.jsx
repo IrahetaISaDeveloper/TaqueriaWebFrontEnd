@@ -44,6 +44,8 @@ const ReportButton = ({
   summary,
   itemTag = 'registro',
   className = '',
+  label = 'Generar reporte',
+  compact = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -114,14 +116,18 @@ const ReportButton = ({
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         disabled={generating}
-        className="inline-flex items-center gap-2 px-4 py-2.5 bg-surface text-inkalt rounded-none text-sm font-display font-semibold border border-line hover:bg-surfalt transition-colors disabled:opacity-60 disabled:cursor-wait"
+        className={compact
+          ? 'inline-flex items-center gap-2 px-4 py-2 bg-surface text-inkalt rounded-none text-[13px] font-medium border border-line hover:border-ac hover:text-ac transition-colors disabled:opacity-60 disabled:cursor-wait cursor-pointer'
+          : 'inline-flex items-center gap-2 px-4 py-2.5 bg-surface text-inkalt rounded-none text-sm font-display font-semibold border border-line hover:bg-surfalt transition-colors disabled:opacity-60 disabled:cursor-wait'}
       >
-        <FAIcon icon={generating ? 'spinner' : 'file-arrow-down'} className={generating ? 'animate-spin' : ''} />
-        {generating ? 'Generando...' : 'Generar reporte'}
+        {(generating || !compact) && (
+          <FAIcon icon={generating ? 'spinner' : 'file-arrow-down'} className={generating ? 'animate-spin' : ''} />
+        )}
+        {generating ? 'Generando...' : label}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 bg-surface rounded-none border border-line z-50 overflow-hidden">
+        <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-surface rounded-none border border-line z-50 overflow-hidden">
           <div className="px-4 py-3 border-b border-line">
             <p className="text-xs font-display font-bold text-inkalt uppercase tracking-wider">
               Reporte de {title}

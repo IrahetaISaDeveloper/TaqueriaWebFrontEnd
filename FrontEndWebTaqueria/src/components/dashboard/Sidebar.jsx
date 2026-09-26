@@ -111,9 +111,13 @@ const Sidebar = ({ activeMenu, isOpen, onClose }) => {
           ya no se monta. Aquí se conserva como cajón deslizante porque cuatro
           menús desplegables no caben en un teléfono. */}
       {/* Móvil */}
+      {/* La utilidad "-translate-x-full" de Tailwind no está generando CSS en
+          este proyecto (Tailwind v4): el cajón quedaba siempre visible,
+          empujando el contenido en vez de deslizarse fuera de pantalla. Con
+          un transform inline el cierre no depende de esa clase. */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-bg backdrop-blur-sm transform transition-transform duration-300 ease-in-out lg:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+        className="fixed inset-y-0 left-0 z-50 w-64 bg-bg backdrop-blur-sm transition-transform duration-300 ease-in-out lg:hidden"
+        style={{ transform: isOpen ? 'translateX(0)' : 'translateX(-100%)' }}
       >
         <div className="flex flex-col h-full relative overflow-hidden">
           <div className="relative flex items-center justify-between p-4 border-b border-line shrink-0">

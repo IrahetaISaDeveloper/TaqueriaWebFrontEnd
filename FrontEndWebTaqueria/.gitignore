@@ -27,3 +27,4 @@ src/App.jsx
 *.sln
 *.sw?
 .env
+.claude/
