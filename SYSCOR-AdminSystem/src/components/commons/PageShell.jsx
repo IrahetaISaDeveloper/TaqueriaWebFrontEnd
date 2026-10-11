@@ -39,8 +39,11 @@ const PageShell = ({
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // h-dvh: el alto que de verdad se ve. En el celular, h-screen (100vh)
+  // incluye la zona que tapa la barra del navegador y el final de la página
+  // quedaba fuera de alcance.
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-surface">
+    <div className="flex flex-col h-dvh overflow-hidden bg-surface">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}

@@ -9,9 +9,9 @@
 // escucha no se reinicia cada vez que llega una comanda, y la respuesta usa
 // siempre el tablero tal como está en el instante en que se habló.
 import { useState, useRef, useEffect, useCallback } from 'react';
-import useSpeech, { runOnFirstGesture } from './useSpeech';
+import useSpeech, { runOnFirstGesture } from '@syscor/web-shared/src/hooks/useSpeech';
 import { parseKitchenCommand } from '../utils/voice/kitchenCommands';
-import { normalizeSpeech } from '../utils/voice/normalizeSpeech';
+import { normalizeSpeech } from '@syscor/web-shared/src/utils/normalizeSpeech';
 import { smallTalkReply } from '../utils/voice/smallTalk';
 import { findDishes, spokenRecipe } from '../utils/voice/recipeLookup';
 import { findOrdersByRef, spokenOrder, spokenContents, spokenCode } from '../utils/voice/orderMatching';
@@ -19,6 +19,7 @@ import { orderWorkload } from '../utils/orderContent';
 import { spokenDuration } from '../utils/timeFormat';
 import { TIMED_PHASES } from '../utils/orderPhase';
 import { DETAIL_MODES } from '../constants/kitchenStatus';
+import { orderCode } from '@syscor/web-shared/src/utils/orderCode';
 
 const MAX_LOG = 6;
 
@@ -85,10 +86,33 @@ const buildWelcome = (kitchen, continuous) =>
 
 const HELP_TEXT =
   'Puedo marcar una orden como lista, decirte cuánto tiempo lleva una orden, cuál es la más pesada, ' +
-  'cuál lleva más tiempo, cuál sigue, leerte una orden o mostrar los detalles. ' +
+  'cuál lleva más tiempo, cuál sigue, leerte una orden, mostrar los detalles ' +
+  'o decirte con qué repartidor sale una orden a domicilio. ' +
   'Por ejemplo: Panchita, marca la orden tres como lista.';
 
 const plural = (count, singular, pluralForm) => `${count} ${count === 1 ? singular : pluralForm}`;
+
+// "12", "12 y 15", "12, 15 y 17"
+const joinNumbers = (numbers) => {
+  const list = numbers.map(String);
+  return list.length <= 1 ? list.join('') : `${list.slice(0, -1).join(', ')} y ${list[list.length - 1]}`;
+};
+
+/**
+ * Lo que dice Panchita cuando arma (o completa) un paquete de reparto: qué
+ * órdenes van juntas y con quién, para que la cocina empaque juntas esas
+ * bolsas.
+ */
+export const spokenPackage = (pkg) => {
+  const driver = pkg.driverName || 'el repartidor';
+  const all = pkg.packageKitchenNumbers?.length ? pkg.packageKitchenNumbers : pkg.kitchenNumbers;
+  if (pkg.added) {
+    return `A ${driver} le sumé ${pkg.kitchenNumbers.length === 1 ? 'la orden' : 'las órdenes'} ${joinNumbers(pkg.kitchenNumbers)}, `
+      + `que le queda de camino. Ahora se lleva las órdenes ${joinNumbers(all)}: empáquenlas juntas.`;
+  }
+  if (all.length === 1) return `La orden ${all[0]} sale a domicilio con ${driver}.`;
+  return `Armé un paquete para ${driver}: las órdenes ${joinNumbers(all)} van a domicilios cercanos. Empáquenlas juntas.`;
+};
 
 const describeWorkload = ({ dishes, drinks, extras }) =>
   [
@@ -128,7 +152,7 @@ const resolveOne = (ref, pool, missingText) => {
  * @returns {Promise<{ text: string, tone?: 'ok'|'warn'|'error' }>}
  */
 const runKitchenCommand = async (command, ctx) => {
-  const { entries, recentReady, catalog, kitchen, actions, setDetailMode, stopListening, lastReadyRef } = ctx;
+  const { entries, recentReady, catalog, kitchen, actions, setDetailMode, stopListening, lastReadyRef, packageOf } = ctx;
   const now = Date.now();
   const pool = entries.map((entry) => entry.order);
   const timed = entries.filter((entry) => TIMED_PHASES.includes(entry.phase));
@@ -254,6 +278,28 @@ const runKitchenCommand = async (command, ctx) => {
       return { text: `Listo. Marqué ${spokenOrder(order)} como lista.`, tone: 'ok' };
     }
 
+    case 'driver': {
+      // Las de reparto suelen estar ya listas: se buscan en ambas listas
+      const searchable = [...pool, ...recentReady.filter((o) => !pool.some((p) => p._id === o._id))];
+      const { order, error, ask } = resolveOne(command.ref, searchable);
+      if (error) return { text: error, tone: 'warn', awaitRef: ask };
+      if (!order.isDelivery && order.fulfillment !== 'delivery') {
+        return { text: `${spokenOrder(order)} no es a domicilio, no lleva repartidor.` };
+      }
+      const pkg = packageOf?.(orderCode(order));
+      if (!pkg) {
+        return order.status === 'ready'
+          ? { text: `${spokenOrder(order)} todavía espera repartidor: no hay nadie libre en este momento.`, tone: 'warn' }
+          : { text: `${spokenOrder(order)} todavía no está lista; cuando la marquen, le busco repartidor.` };
+      }
+      const others = pkg.numbers.filter((n) => n !== order.kitchenNumber);
+      return {
+        text: others.length
+          ? `${spokenOrder(order)} sale con ${pkg.driverName}, junto con ${others.length === 1 ? 'la orden' : 'las órdenes'} ${joinNumbers(others)}.`
+          : `${spokenOrder(order)} sale sola con ${pkg.driverName}.`,
+      };
+    }
+
     case 'start': {
       const { order, error, ask } = resolveOne(command.ref, pool);
       if (error) return { text: error, tone: 'warn', awaitRef: ask };
@@ -306,7 +352,7 @@ const runKitchenCommand = async (command, ctx) => {
  * @param {object} params.actions      { markReady, startOrder, undoReady }
  * @param {Function} params.setDetailMode
  */
-export default function useChefPanchita({ entries, recentReady, catalog, kitchen, actions, setDetailMode }) {
+export default function useChefPanchita({ entries, recentReady, catalog, kitchen, actions, setDetailMode, packageOf }) {
   const [log, setLog] = useState([]);
   const contextRef = useRef(null);
   const speechRef = useRef(null);
@@ -318,7 +364,7 @@ export default function useChefPanchita({ entries, recentReady, catalog, kitchen
   const [continuous, setContinuousState] = useState(readContinuousPreference);
 
   useEffect(() => {
-    contextRef.current = { entries, recentReady, catalog, kitchen, actions, setDetailMode };
+    contextRef.current = { entries, recentReady, catalog, kitchen, actions, setDetailMode, packageOf };
   });
 
   // heard = lo que se le dijo (null si habló ella sola, como la bienvenida)
@@ -450,5 +496,12 @@ export default function useChefPanchita({ entries, recentReady, catalog, kitchen
     speak(text);
   }, [addLog, continuous, speak]);
 
-  return { ...speech, log, continuous, setContinuous, welcome };
+  // Avisos que Panchita da sola (ej. un paquete de reparto que acaba de
+  // armar): quedan escritos en el panel y los dice en voz alta.
+  const announce = useCallback((text, tone = 'ok') => {
+    addLog(null, { text, tone });
+    speak(text);
+  }, [addLog, speak]);
+
+  return { ...speech, log, continuous, setContinuous, welcome, announce };
 }

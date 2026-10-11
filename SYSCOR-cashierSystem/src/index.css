@@ -1,0 +1,51 @@
+/* ============================================================
+   SYSCOR · caja (POS)
+   ------------------------------------------------------------
+   Mismo sistema de diseño que el panel y la pantalla de cocina: tokens,
+   tipografía y estilos base vienen del paquete compartido. Aquí solo vive
+   lo propio de la caja.
+   ============================================================ */
+@import "tailwindcss";
+@import "@syscor/web-shared/src/styles/tokens.css";
+
+/* Las clases de los componentes compartidos también deben generarse */
+@source "../../packages/web-shared/src";
+
+/* Entrada del punto de venta al salir del lobby */
+@keyframes posEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.pos-enter {
+  animation: posEnter 0.35s ease-out;
+}
+
+/* Lobby de espera: tres puntos que "respiran" mientras llega la señal */
+@keyframes lobbyDot {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+.lobby-dot {
+  animation: lobbyDot 1.4s ease-in-out infinite;
+}
+
+/* Teclado numérico del cobro en efectivo: sin flechas del input number */
+input.no-spin::-webkit-outer-spin-button,
+input.no-spin::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input.no-spin {
+  -moz-appearance: textfield;
+}
+
+/* Filas deslizables en el teléfono (pestañas, secciones): sin barra visible */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pos-enter,
+  .lobby-dot {
+    animation: none;
+  }
+}

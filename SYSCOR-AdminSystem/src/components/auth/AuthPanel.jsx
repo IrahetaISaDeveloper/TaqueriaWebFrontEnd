@@ -15,7 +15,7 @@ const AuthPanel = ({ step, route, title, description, children }) => {
     : '/backgrounds/login-fondo-v2-claro.svg';
 
   return (
-    <div className="relative isolate min-h-screen flex items-center justify-center px-4 py-10">
+    <div className="relative isolate min-h-dvh flex items-center justify-center px-4 py-10">
       <img
         src={backgroundSrc}
         alt=""

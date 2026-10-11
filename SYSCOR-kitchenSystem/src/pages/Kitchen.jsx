@@ -17,7 +17,7 @@ function PairedKitchen() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-bg">
+      <div className="h-dvh flex items-center justify-center bg-bg">
         <LoadingSpinner size="lg" color="gray" text="Conectando con la cocina..." />
       </div>
     );

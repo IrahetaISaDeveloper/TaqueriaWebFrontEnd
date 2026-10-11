@@ -5,7 +5,7 @@
 // hay nada que descargar y suenan al instante. Los navegadores no dejan
 // sonar a una página que nadie ha tocado: el audio se desbloquea en el
 // primer toque y, mientras tanto, los sonidos simplemente no suenan.
-import { runOnFirstGesture } from '../hooks/useSpeech';
+import { runOnFirstGesture } from '@syscor/web-shared/src/hooks/useSpeech';
 
 // Cada sonido: notas [frecuencia Hz, inicio s, duración s], forma de onda y volumen
 const SOUNDS = {

@@ -108,6 +108,10 @@ html[data-theme="dark"] {
   will-change: transform, opacity;
 }
 
+/* Filas deslizables en el teléfono (filtros, leyenda): sin barra visible */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 @media (prefers-reduced-motion: reduce) {
   .ticket-late::after,
   .kds-enter,

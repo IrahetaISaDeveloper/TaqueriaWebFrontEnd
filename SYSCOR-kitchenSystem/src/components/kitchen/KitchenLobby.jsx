@@ -68,7 +68,7 @@ export default function KitchenLobby({ error, onRetry }) {
   const { theme } = useTheme();
 
   return (
-    <div className="h-screen flex flex-col bg-bg">
+    <div className="h-dvh flex flex-col bg-bg">
       <KitchenTopBar />
 
       <main className="flex-1 min-h-0 overflow-y-auto flex items-center justify-center px-4 py-10">

@@ -21,7 +21,7 @@ const DAY_ABBR = {
 export const exportPayslipToPdf = (payslip) => {
   if (!payslip) return;
 
-  const { employee, earnings, deductions, netSalary, period } = payslip;
+  const { employee, earnings, deductions, netPay, period } = payslip;
 
   // Vertical: es un comprobante de una sola persona, no un listado.
   const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter' });
@@ -85,9 +85,11 @@ export const exportPayslipToPdf = (payslip) => {
     head: [['Concepto', 'Monto']],
     body: [
       [{ content: 'INGRESOS', colSpan: 2, styles: { fontStyle: 'bold', fillColor: [240, 253, 244], textColor: [22, 101, 52] } }],
+      ['Salario base', money(earnings.salary)],
+      ['Bono (exento de descuentos de ley)', money(earnings.bonus)],
       [
-        { content: 'Salario base', styles: { fontStyle: 'bold' } },
-        { content: money(earnings.salary), styles: { fontStyle: 'bold' } },
+        { content: 'Total devengado', styles: { fontStyle: 'bold' } },
+        { content: money(earnings.total), styles: { fontStyle: 'bold' } },
       ],
 
       [{ content: 'DEDUCCIONES DE LEY', colSpan: 2, styles: { fontStyle: 'bold', fillColor: [254, 242, 242], textColor: [153, 27, 27] } }],
@@ -107,7 +109,7 @@ export const exportPayslipToPdf = (payslip) => {
     },
   });
 
-  // --- Neto a pagar, destacado ---
+  // --- Total a pagar (salario neto + bono), destacado ---
   const netY = doc.lastAutoTable.finalY + 20;
   doc.setFillColor(243, 240, 235);
   doc.rect(40, netY, pageWidth - 80, 44, 'F');
@@ -115,11 +117,11 @@ export const exportPayslipToPdf = (payslip) => {
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(60);
-  doc.text('NETO A PAGAR', 56, netY + 27);
+  doc.text('TOTAL A PAGAR', 56, netY + 27);
 
   doc.setFontSize(18);
   doc.setTextColor(220, 38, 38);
-  doc.text(money(netSalary), pageWidth - 56, netY + 28, { align: 'right' });
+  doc.text(money(netPay), pageWidth - 56, netY + 28, { align: 'right' });
   doc.setTextColor(0);
 
   // --- Firmas ---
@@ -140,8 +142,8 @@ export const exportPayslipToPdf = (payslip) => {
   doc.setFontSize(7);
   doc.setTextColor(140);
   doc.text(
-    'AFP, ISSS e ISR se calculan solo sobre el salario base. Los bonos son un pago discrecional del '
-    + 'patrono y se documentan aparte, en la Planilla de bonos, sin descuentos de ley.',
+    'AFP, ISSS e ISR se calculan solo sobre el salario base. El bono es un pago discrecional del '
+    + 'patrono y se suma íntegro al total a pagar, sin descuentos de ley.',
     40,
     signY + 50,
     { maxWidth: pageWidth - 80 }

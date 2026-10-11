@@ -61,8 +61,7 @@ const NavMenu = () => {
     .map((cat) => {
       const items = cat.items.filter((i) => !i.permission || hasPermission(user, i.permission));
       if (items.length === 0) return null;
-      // Las rutas se comparan sin el query string (Planilla de bonos es
-      // /payroll?tab=bonuses y debe marcar Administración igual).
+      // Las rutas se comparan sin el query string.
       const matchPaths = items.map((i) => i.path.split('?')[0].toLowerCase());
       return { id: cat.id, label: cat.label, path: items[0].path, matchPaths };
     })

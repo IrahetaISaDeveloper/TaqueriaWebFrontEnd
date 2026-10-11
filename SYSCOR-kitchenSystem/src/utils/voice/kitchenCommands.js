@@ -6,7 +6,7 @@
 //
 // parseKitchenCommand("Panchita, marca la orden 3 como lista", { requireWakeWord: true })
 //   -> { intent: 'ready', ref: { seq: 3 } }
-import { normalizeSpeech } from './normalizeSpeech';
+import { normalizeSpeech } from '@syscor/web-shared/src/utils/normalizeSpeech';
 
 // "Panchita" y cómo suele confundirla el reconocimiento de voz
 const WAKE_RE = /\b(?:chef\s+)?(?:panchita|pancita|panchito|pachita|panshita|panchi ta|pan chita)\b/;
@@ -64,6 +64,9 @@ const INTENTS = [
   { intent: 'help', re: /\b(?:ayuda|ayudame|que puedes hacer|que sabes hacer|comandos|que te puedo (?:pedir|decir))\b/ },
   { intent: 'details', re: /\bdetalle/ },
   { intent: 'undo', re: /\b(?:regresa|regresala|regresar|devuelve|devuelvela|deshaz|deshacer|vuelve a cocina|no estaba list|todavia no esta list|aun no esta list|reabre)/ },
+  // Reparto: con qué repartidor sale una orden a domicilio. Va antes que
+  // "leer" y "lista" ("¿con quién va la que ya está lista?").
+  { intent: 'driver', re: /\b(?:quien (?:se )?(?:la )?(?:lleva|llevara|va a llevar|reparte|sale con)|que repartidor|cual repartidor|repartidor (?:de|del|para|lleva)|con quien (?:va|van|sale|salen)|en que paquete|que paquete)\b/, needsRef: true },
   { intent: 'elapsed', re: /\b(?:cuanto tiempo|cuanto lleva|cuantos minutos|hace cuanto|cuanto va|que tiempo lleva|cuanto tarda)\b/, needsRef: true },
   { intent: 'heaviest', re: /\bmas (?:pesad|grande|cargad|larg|trabajo|platillos|complicad|llena)/ },
   { intent: 'oldest', re: /\b(?:mas (?:tiempo|atrasad|antigu|viej|tardad|esperando)|lleva mas|primera en entrar)/ },

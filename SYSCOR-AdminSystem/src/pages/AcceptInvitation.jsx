@@ -26,7 +26,7 @@ const roleLabel = (role, type) => (role === 'admin' ? 'Administrador' : translat
 
 // Contenedor de las vistas simples (verificando, enlace inválido, éxito).
 const CenteredCard = ({ logoSrc, children }) => (
-  <div className="min-h-screen flex items-center justify-center bg-surfalt p-4">
+  <div className="min-h-dvh flex items-center justify-center bg-surfalt p-4">
     <div className="bg-surface rounded-2xl border border-line shadow-2xl p-8 max-w-md w-full text-center">
       <img src={logoSrc} alt="SYSCOR" className="h-9 w-auto object-contain mx-auto mb-6" />
       {children}
@@ -216,8 +216,8 @@ export default function AcceptInvitation() {
 
   // --- Formulario de registro ---
   return (
-    <div className="min-h-screen bg-surface">
-      <div className="min-h-screen grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(460px,42%)]">
+    <div className="min-h-dvh bg-surface">
+      <div className="min-h-dvh grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(460px,42%)]">
         {/* Panel ilustrado (solo escritorio), igual que el login */}
         <div className="hidden lg:flex relative isolate overflow-hidden px-12 py-14 flex-col justify-between gap-9">
           <img src={backgroundSrc} alt="" aria-hidden="true" className="absolute inset-0 -z-10 w-full h-full object-cover" />

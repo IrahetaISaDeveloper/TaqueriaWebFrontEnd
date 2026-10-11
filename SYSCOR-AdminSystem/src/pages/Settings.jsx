@@ -12,6 +12,7 @@ import { useSettings } from '../hooks/useSettings';
 import useKitchenDevices from '../hooks/useKitchenDevices';
 import PairKitchenModal from '../components/kitchen/PairKitchenModal';
 import KitchenDevicesList from '../components/kitchen/KitchenDevicesList';
+import CashierSettingsPanel from '../components/cashier/CashierSettingsPanel';
 import { useProfile } from '../hooks/useProfile';
 import { useTheme } from '@syscor/web-shared/src/context/themeContext';
 import { hasPermission } from '../constants/permissions';
@@ -25,6 +26,7 @@ const TABS = [
   { id: 'appearance', label: 'APARIENCIA' },
   { id: 'operation', label: 'OPERACIÓN', adminOnly: true },
   { id: 'kitchen', label: 'SISTEMA DE COCINA', adminOnly: true },
+  { id: 'cashier', label: 'SISTEMA DE CAJA', adminOnly: true },
   { id: 'notifications', label: 'NOTIFICACIONES', adminOnly: true },
 ];
 
@@ -901,6 +903,9 @@ function SettingsContent() {
       )}
 
       {/* --- Pestaña: Notificaciones --- */}
+      {/* --- Pestaña: Sistema de caja --- */}
+      {activeTab === 'cashier' && canSeeSystemSettings && <CashierSettingsPanel isAdmin={isAdmin} />}
+
       {activeTab === 'notifications' && canSeeSystemSettings && (
         <div className="max-w-2xl border border-line bg-surface p-6 sm:p-7 border-l-2 border-l-ac space-y-6">
           <div>

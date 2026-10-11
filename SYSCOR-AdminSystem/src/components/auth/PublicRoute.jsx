@@ -15,7 +15,7 @@ export default function PublicRoute({ children }) {
   // del login antes de ser redirigido al dashboard.
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surfalt">
+      <div className="min-h-dvh flex items-center justify-center bg-surfalt">
         <p className="text-muted text-sm">Verificando sesión...</p>
       </div>
     );

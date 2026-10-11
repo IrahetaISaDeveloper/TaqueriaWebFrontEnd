@@ -38,7 +38,7 @@ export default function ErrorScreen({ variant = 404 }) {
   };
 
   return (
-    <div className="min-h-screen bg-surfalt flex items-center justify-center relative overflow-hidden p-4">
+    <div className="min-h-dvh bg-surfalt flex items-center justify-center relative overflow-hidden p-4">
       <div className="absolute -left-32 -top-32 w-96 h-96 rounded-full bg-acsoft/40 blur-3xl" />
       <div className="absolute -right-32 -bottom-32 w-96 h-96 rounded-full bg-oksoft/20 blur-3xl" />
 

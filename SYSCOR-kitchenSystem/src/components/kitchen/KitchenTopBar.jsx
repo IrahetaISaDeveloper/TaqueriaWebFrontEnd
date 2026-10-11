@@ -20,7 +20,8 @@ const ConnectionStatus = () => {
       title={isConnected ? 'Conectado en tiempo real' : 'Sin conexión en tiempo real: reintentando'}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-ac' : 'bg-warn animate-pulse'}`} />
-      {isConnected ? 'EN VIVO' : 'RECONECTANDO'}
+      {/* En el teléfono basta el punto (el texto queda para lectores de pantalla) */}
+      <span className="sr-only sm:not-sr-only">{isConnected ? 'EN VIVO' : 'RECONECTANDO'}</span>
     </span>
   );
 };
@@ -39,9 +40,9 @@ export default function KitchenTopBar({ children }) {
 
   return (
     <header className="shrink-0 border-b border-line bg-surface">
-      <div className="flex flex-wrap items-center gap-x-10 gap-y-3 px-4 sm:px-7 py-4">
+      <div className="flex flex-wrap items-center gap-x-4 sm:gap-x-10 gap-y-3 px-4 sm:px-7 py-3 sm:py-4">
         <div className="flex items-center gap-3 min-w-0">
-          <img src={theme === 'dark' ? '/logos/nav-dark-plain.png' : '/logos/nav-light-plain.png'} alt="SYSCOR - Taquería El Corral" draggable={false} className="h-[36px] w-auto object-contain select-none" />
+          <img src={theme === 'dark' ? '/logos/nav-dark-plain.png' : '/logos/nav-light-plain.png'} alt="SYSCOR - Taquería El Corral" draggable={false} className="h-[30px] sm:h-[36px] w-auto object-contain select-none" />
           <div className="min-w-0">
             <p className="kick text-ac leading-none">SISTEMA DE COCINA</p>
             <p className="font-display font-semibold text-ink text-lg leading-tight mt-1">Comandas</p>
@@ -50,12 +51,12 @@ export default function KitchenTopBar({ children }) {
 
         {/* En pantallas chicas los contadores bajan a su propia fila */}
         {children && (
-          <div className="order-3 basis-full lg:order-none lg:basis-auto lg:flex-1 min-w-0 flex flex-wrap items-center gap-x-8 gap-y-2">
+          <div className="order-3 basis-full lg:order-none lg:basis-auto lg:flex-1 min-w-0 flex flex-wrap items-center gap-x-6 sm:gap-x-8 gap-y-2">
             {children}
           </div>
         )}
 
-        <div className="order-2 lg:order-none ml-auto flex items-center gap-5 shrink-0">
+        <div className="order-2 lg:order-none ml-auto flex items-center gap-3 sm:gap-5 shrink-0">
           <ConnectionStatus />
           <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
           <div className="hidden md:flex items-center gap-2" title="Identificador de esta pantalla">

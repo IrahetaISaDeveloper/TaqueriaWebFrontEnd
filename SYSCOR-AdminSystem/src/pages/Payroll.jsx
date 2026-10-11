@@ -1,19 +1,19 @@
 // src/pages/Payroll.jsx
-import React, { useState, useMemo, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
 import PageShell from '../components/commons/PageShell';
 import { useAdminTabs } from '../hooks/useSectionTabs';
 import FAIcon from '@syscor/web-shared/src/components/FAIcon';
 import PaginationControls from '../components/commons/PaginationControls';
 import usePayroll, { formatPeriodLabel, getCurrentPeriod } from '../hooks/usePayroll';
-import useBonusPayroll from '../hooks/useBonusPayroll';
 import { usePagination } from '../hooks/usePagination';
 import { ToastProvider } from '@syscor/web-shared/src/components/ToastProvider';
 import ReportButton from '../components/commons/ReportButton';
-import { payrollReportColumns, bonusPayrollReportColumns } from '../constants/reportConfigs';
+import { payrollReportColumns } from '../constants/reportConfigs';
 import PayslipModal from '../components/payroll/PayslipModal';
 
 const money = (n) => `$${Number(n || 0).toFixed(2)}`;
+
+const formatDate = (d) => new Date(d).toLocaleDateString('es-SV', { day: 'numeric', month: 'short' });
 
 // Los últimos 12 meses como opciones del selector de período. Se generan
 // desde la fecha actual en vez de tener una lista fija, para que la pantalla
@@ -36,115 +36,71 @@ const getInitials = (name) => {
   return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
 };
 
+// Cifra secundaria del resumen superior.
+const Stat = ({ label, value }) => (
+  <div className="border-t border-line pt-2.5 min-w-[120px] sm:min-w-[140px]">
+    <p className="kick text-muted mb-1.5">{label}</p>
+    <p className="num text-2xl sm:text-3xl text-ink font-light">{value}</p>
+  </div>
+);
 
 function PayrollContent() {
   const [activeMenu] = useState('payroll');
-  // Sin id: la pestaña (general o bonos) se deduce del ?tab= de la URL.
-  const adminTabs = useAdminTabs();
-  const [searchParams] = useSearchParams();
+  const adminTabs = useAdminTabs('payroll');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Identificar pestaña activa según query param
-  const tabQuery = searchParams.get('tab');
-  const tab = tabQuery === 'bonuses' ? 'bonuses' : 'general';
+  // Una sola planilla: salario, descuentos de ley, bono y total a pagar.
+  const payroll = usePayroll(getCurrentPeriod());
+  const { rows, totals, loading, error, period } = payroll;
 
-  const general = usePayroll(getCurrentPeriod());
-  const bonuses = useBonusPayroll(general.period);
-
-  // Boleta individual: se abre desde la fila del empleado, solo en la
-  // planilla general (la de bonos no lleva descuentos que documentar).
+  // Boleta individual: se abre desde la fila del empleado.
   const [payslipTarget, setPayslipTarget] = useState(null);
 
   const periodOptions = useMemo(() => buildPeriodOptions(), []);
 
-  // Al cambiar de pestaña se limpia el término de búsqueda
-  useEffect(() => {
-    setSearchTerm('');
-  }, [tab]);
-
-  // Cada pestaña filtra sobre su propia fuente de datos, pero comparten
-  // período y estado: cambiarlos en una pestaña afecta a ambas.
-  const active = tab === 'general' ? general : bonuses;
-
   const filteredRows = useMemo(() => {
-    if (!searchTerm.trim()) return active.rows;
+    if (!searchTerm.trim()) return rows;
     const term = searchTerm.toLowerCase();
-    return active.rows.filter((row) => row.name.toLowerCase().includes(term));
-  }, [active.rows, searchTerm]);
+    return rows.filter((row) => row.name.toLowerCase().includes(term));
+  }, [rows, searchTerm]);
 
   const { page, totalPages, paginatedItems, goTo, next, prev } = usePagination(filteredRows, 10);
 
-  // Formato para el Hero Stat de Planilla General
-  const [netSalaryInt, netSalaryDec] = useMemo(() => {
-    const val = Number(general.totals?.netSalary || 0);
-    const formatted = val.toLocaleString('en-US', {
+  // Formato para el Hero Stat: entero y centavos por separado.
+  const [netPayInt, netPayDec] = useMemo(() => {
+    const formatted = Number(totals?.netPay || 0).toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
     const parts = formatted.split('.');
     return [parts[0], parts[1] || '00'];
-  }, [general.totals?.netSalary]);
-
-  // Formato para el Hero Stat de Planilla de Bonos
-  const [totalBonusInt, totalBonusDec] = useMemo(() => {
-    const val = Number(bonuses.totals?.totalBonus || 0);
-    const formatted = val.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-    const parts = formatted.split('.');
-    return [parts[0], parts[1] || '00'];
-  }, [bonuses.totals?.totalBonus]);
+  }, [totals?.netPay]);
 
   return (
     <>
       <PageShell
         activeMenu={activeMenu}
         title="Administración"
-        subtitle={
-          <>
-            {tab === 'general'
-            ? 'Salarios, retenciones de ley y liquidaciones del personal por período.'
-            : 'Bonificaciones extraordinarias y reconocimientos monetarios asignados.'}
-          </>
-        }
+        subtitle="Salarios, bonos, retenciones de ley y liquidaciones del personal por período."
         tabs={adminTabs}
         tabsLabel="Secciones de administración"
         actions={
-          <>
-            {tab === 'general' ? (
-              <ReportButton
-                compact
-                label="Exportar"
-                title={`Planilla ${formatPeriodLabel(general.period)}`}
-                columns={payrollReportColumns}
-                rows={filteredRows}
-                getImageUrl={(r) => r.image}
-                itemTag="empleado"
-                summary={general.totals ? [
-                  { label: 'Empleados', value: general.rows.length },
-                  { label: 'Salario bruto', value: money(general.totals.grossSalary) },
-                  { label: 'Descuentos', value: money(general.totals.totalDeductions) },
-                  { label: 'Total a pagar', value: money(general.totals.netSalary) },
-                ] : undefined}
-              />
-            ) : (
-              <ReportButton
-                compact
-                label="Exportar"
-                title={`Planilla de bonos ${formatPeriodLabel(bonuses.period)}`}
-                columns={bonusPayrollReportColumns}
-                rows={filteredRows}
-                getImageUrl={(r) => r.image}
-                itemTag="empleado"
-                summary={bonuses.totals ? [
-                  { label: 'Empleados', value: bonuses.totals.employeeCount },
-                  { label: 'Con bono asignado', value: bonuses.totals.employeesWithBonus },
-                  { label: 'Total en bonos', value: money(bonuses.totals.totalBonus) },
-                ] : undefined}
-              />
-            )}
-          </>
+          <ReportButton
+            compact
+            label="Exportar"
+            title={`Planilla ${formatPeriodLabel(period)}`}
+            columns={payrollReportColumns}
+            rows={filteredRows}
+            getImageUrl={(r) => r.image}
+            itemTag="empleado"
+            summary={totals ? [
+              { label: 'Empleados', value: rows.length },
+              { label: 'Salario bruto', value: money(totals.grossSalary) },
+              { label: 'Bonos', value: money(totals.bonus) },
+              { label: 'Descuentos', value: money(totals.totalDeductions) },
+              { label: 'Total a pagar', value: money(totals.netPay) },
+            ] : undefined}
+          />
         }
       >
 
@@ -152,92 +108,32 @@ function PayrollContent() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 pb-2">
           <div className="min-w-0">
             <p className="kick text-ac mb-2">
-              {tab === 'general'
-                ? `TOTAL A PAGAR · ${formatPeriodLabel(general.period).toUpperCase()}`
-                : `TOTAL EN BONOS · ${formatPeriodLabel(bonuses.period).toUpperCase()}`}
+              {`TOTAL A PAGAR · ${formatPeriodLabel(period).toUpperCase()}`}
             </p>
             <div className="num text-4xl sm:text-5xl text-ink mb-2 flex items-baseline font-light">
-              <span>${tab === 'general' ? netSalaryInt : totalBonusInt}</span>
-              <span className="num text-2xl text-muted ml-0.5 font-light">
-                .{tab === 'general' ? netSalaryDec : totalBonusDec}
-              </span>
+              <span>${netPayInt}</span>
+              <span className="num text-2xl text-muted ml-0.5 font-light">.{netPayDec}</span>
             </div>
             <p className="text-xs text-muted max-w-md leading-relaxed">
-              {tab === 'general'
-                ? 'Suma de salarios netos a desembolsar tras aplicar deducciones de ley (AFP, ISSS y Renta). Los bonos no afectan estos cálculos.'
-                : 'Gratificaciones y estímulos económicos extraordinarios otorgados al personal durante el período, exentos de retenciones de ley.'}
+              Salarios netos tras las deducciones de ley (AFP, ISSS y Renta), más los bonos vigentes del período, que se pagan íntegros.
             </p>
           </div>
 
           <div className="flex flex-wrap sm:flex-nowrap gap-8 sm:gap-12 shrink-0">
-            {tab === 'general' ? (
-              <>
-                <div className="border-t border-line pt-2.5 min-w-[120px] sm:min-w-[140px]">
-                  <p className="kick text-muted mb-1.5">
-                    EMPLEADOS EN PLANILLA
-                  </p>
-                  <p className="num text-2xl sm:text-3xl text-ink font-light">
-                    {general.loading ? '—' : general.rows.length}
-                  </p>
-                </div>
-
-                <div className="border-t border-line pt-2.5 min-w-[120px] sm:min-w-[140px]">
-                  <p className="kick text-muted mb-1.5">
-                    SALARIO BRUTO
-                  </p>
-                  <p className="num text-2xl sm:text-3xl text-ink font-light">
-                    {general.loading ? '—' : money(general.totals?.grossSalary)}
-                  </p>
-                </div>
-
-                <div className="border-t border-line pt-2.5 min-w-[120px] sm:min-w-[140px]">
-                  <p className="kick text-muted mb-1.5">
-                    TOTAL RETENCIONES
-                  </p>
-                  <p className="num text-2xl sm:text-3xl text-ink font-light">
-                    {general.loading ? '—' : money(general.totals?.totalDeductions)}
-                  </p>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="border-t border-line pt-2.5 min-w-[120px] sm:min-w-[140px]">
-                  <p className="kick text-muted mb-1.5">
-                    EMPLEADOS EN LISTA
-                  </p>
-                  <p className="num text-2xl sm:text-3xl text-ink font-light">
-                    {bonuses.loading ? '—' : (bonuses.totals?.employeeCount ?? bonuses.rows.length)}
-                  </p>
-                </div>
-
-                <div className="border-t border-line pt-2.5 min-w-[120px] sm:min-w-[140px]">
-                  <p className="kick text-muted mb-1.5">
-                    CON BONO ASIGNADO
-                  </p>
-                  <p className="num text-2xl sm:text-3xl text-ink font-light">
-                    {bonuses.loading ? '—' : (bonuses.totals?.employeesWithBonus ?? 0)}
-                  </p>
-                </div>
-
-                <div className="border-t border-line pt-2.5 min-w-[120px] sm:min-w-[140px]">
-                  <p className="kick text-muted mb-1.5">
-                    PROMEDIO POR BONO
-                  </p>
-                  <p className="num text-2xl sm:text-3xl text-ink font-light">
-                    {bonuses.loading || !bonuses.totals?.employeesWithBonus
-                      ? '—'
-                      : money(bonuses.totals.totalBonus / bonuses.totals.employeesWithBonus)}
-                  </p>
-                </div>
-              </>
-            )}
+            <Stat label="EMPLEADOS EN PLANILLA" value={loading ? '—' : rows.length} />
+            <Stat label="SALARIO BRUTO" value={loading ? '—' : money(totals?.grossSalary)} />
+            <Stat
+              label={`BONOS (${loading ? '—' : (totals?.employeesWithBonus ?? 0)})`}
+              value={loading ? '—' : money(totals?.bonus)}
+            />
+            <Stat label="TOTAL RETENCIONES" value={loading ? '—' : money(totals?.totalDeductions)} />
           </div>
         </div>
 
         {/* Cabecera de la tabla */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <h2 className="text-base font-bold text-ink">
-            {tab === 'general' ? 'Detalle de planilla' : 'Detalle de bonos'} · {formatPeriodLabel(active.period)}
+            Detalle de planilla · {formatPeriodLabel(period)}
           </h2>
 
           <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
@@ -250,11 +146,8 @@ function PayrollContent() {
             />
 
             <select
-              value={general.period}
-              onChange={(e) => {
-                general.setPeriod(e.target.value);
-                bonuses.setPeriod(e.target.value);
-              }}
+              value={period}
+              onChange={(e) => payroll.setPeriod(e.target.value)}
               className="px-3 py-1.5 bg-surfalt/40 border border-line rounded-none focus:outline-none focus:border-ac text-xs text-ink cursor-pointer"
             >
               {periodOptions.map((option) => (
@@ -263,11 +156,8 @@ function PayrollContent() {
             </select>
 
             <select
-              value={general.status}
-              onChange={(e) => {
-                general.setStatus(e.target.value);
-                bonuses.setStatus(e.target.value);
-              }}
+              value={payroll.status}
+              onChange={(e) => payroll.setStatus(e.target.value)}
               className="px-3 py-1.5 bg-surfalt/40 border border-line rounded-none focus:outline-none focus:border-ac text-xs text-ink cursor-pointer"
             >
               <option value="active">Solo activos</option>
@@ -278,11 +168,11 @@ function PayrollContent() {
 
         {/* Tabla de planilla */}
         <div className="overflow-x-auto">
-          {active.loading ? (
+          {loading ? (
             <div className="p-8 text-center text-muted text-sm">Calculando planilla...</div>
-          ) : active.error ? (
-            <div className="p-8 text-center text-ac text-sm">{active.error}</div>
-          ) : active.rows.length === 0 ? (
+          ) : error ? (
+            <div className="p-8 text-center text-ac text-sm">{error}</div>
+          ) : rows.length === 0 ? (
             <div className="p-8 text-center text-muted text-sm">
               No hay empleados en la planilla de este período.
             </div>
@@ -290,17 +180,18 @@ function PayrollContent() {
             <div className="p-8 text-center text-muted text-sm">
               Ningún empleado coincide con la búsqueda.
             </div>
-          ) : tab === 'general' ? (
-            <table className="w-full text-left border-collapse min-w-[860px]">
+          ) : (
+            <table className="w-full text-left border-collapse min-w-[960px]">
               <thead>
                 <tr className="kick text-muted border-b border-line">
                   <th className="py-3 pr-4">EMPLEADO</th>
                   <th className="py-3 px-4">PUESTO</th>
                   <th className="py-3 px-4 text-right">SALARIO BASE</th>
+                  <th className="py-3 px-4 text-right">BONO</th>
                   <th className="py-3 px-4 text-right">AFP (7.25%)</th>
                   <th className="py-3 px-4 text-right">ISSS (3%)</th>
                   <th className="py-3 px-4 text-right">RENTA</th>
-                  <th className="py-3 px-4 text-right">NETO A PAGAR</th>
+                  <th className="py-3 px-4 text-right">TOTAL A PAGAR</th>
                   <th className="py-3 pl-4 text-center">BOLETA</th>
                 </tr>
               </thead>
@@ -352,6 +243,18 @@ function PayrollContent() {
                       <td className="py-3.5 px-4 text-right font-medium text-ink num text-[13.5px]">
                         {money(row.grossSalary)}
                       </td>
+                      <td className="py-3.5 px-4 text-right num text-[13px]">
+                        {row.bonus > 0 ? (
+                          <>
+                            <div className="text-ok font-medium">+{money(row.bonus)}</div>
+                            {row.bonusEndsAt && (
+                              <div className="text-[10.5px] text-muted">hasta {formatDate(row.bonusEndsAt)}</div>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-muted text-xs">—</span>
+                        )}
+                      </td>
                       <td className="py-3.5 px-4 text-right text-muted num text-[13px]">
                         -{money(row.afp)}
                       </td>
@@ -361,8 +264,8 @@ function PayrollContent() {
                       <td className="py-3.5 px-4 text-right text-muted num text-[13px]">
                         -{money(row.isr)}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-medium text-ink num text-[13.5px] font-bold">
-                        {money(row.netSalary)}
+                      <td className="py-3.5 px-4 text-right text-ink num text-[13.5px] font-bold">
+                        {money(row.netPay)}
                       </td>
                       <td className="py-3.5 pl-4 text-center">
                         <button
@@ -381,115 +284,31 @@ function PayrollContent() {
               </tbody>
 
               {/* Totales del período */}
-              {general.totals && (
+              {totals && (
                 <tfoot>
                   <tr className="border-t-2 border-line text-sm font-display font-bold text-ink">
                     <td className="py-3.5 pr-4 kick" colSpan={2}>
-                      TOTALES DEL PERÍODO ({general.rows.length})
+                      TOTALES DEL PERÍODO ({rows.length})
                     </td>
                     <td className="py-3.5 px-4 text-right num text-ink font-bold">
-                      {money(general.totals.grossSalary)}
+                      {money(totals.grossSalary)}
+                    </td>
+                    <td className="py-3.5 px-4 text-right num text-ok font-bold">
+                      +{money(totals.bonus)}
                     </td>
                     <td className="py-3.5 px-4 text-right num text-muted font-normal">
-                      -{money(general.totals.afp)}
+                      -{money(totals.afp)}
                     </td>
                     <td className="py-3.5 px-4 text-right num text-muted font-normal">
-                      -{money(general.totals.isss)}
+                      -{money(totals.isss)}
                     </td>
                     <td className="py-3.5 px-4 text-right num text-muted font-normal">
-                      -{money(general.totals.isr)}
+                      -{money(totals.isr)}
                     </td>
                     <td className="py-3.5 px-4 text-right text-ac num font-bold">
-                      {money(general.totals.netSalary)}
+                      {money(totals.netPay)}
                     </td>
                     <td className="py-3.5 pl-4" />
-                  </tr>
-                </tfoot>
-              )}
-            </table>
-          ) : (
-            <table className="w-full text-left border-collapse min-w-[620px]">
-              <thead>
-                <tr className="kick text-muted border-b border-line">
-                  <th className="py-3 pr-4">EMPLEADO</th>
-                  <th className="py-3 px-4">PUESTO</th>
-                  <th className="py-3 px-4">ESTADO</th>
-                  <th className="py-3 pl-4 text-right">BONO ASIGNADO</th>
-                </tr>
-              </thead>
-
-              <tbody className="divide-y divide-line/60 text-sm">
-                {paginatedItems.map((row) => {
-                  const isInactive = row.status !== 'active';
-                  const initials = getInitials(row.name);
-
-                  return (
-                    <tr
-                      key={row.employeeId}
-                      className={`hover:bg-surfalt/40 transition-colors ${isInactive ? 'opacity-50' : ''}`}
-                    >
-                      <td className="py-3.5 pr-4">
-                        <div className="flex items-center gap-3">
-                          {row.image ? (
-                            <img
-                              src={row.image}
-                              alt={row.name}
-                              className="w-7 h-7 object-cover border border-line shrink-0"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                if (e.currentTarget.nextElementSibling) {
-                                  e.currentTarget.nextElementSibling.style.display = 'flex';
-                                }
-                              }}
-                            />
-                          ) : null}
-                          <div
-                            className="w-7 h-7 bg-surfalt border border-line flex items-center justify-center text-[10px] font-bold text-muted shrink-0"
-                            style={{ display: row.image ? 'none' : 'flex' }}
-                          >
-                            {initials}
-                          </div>
-                          <div>
-                            <div className="font-medium text-ink text-[13.5px]">{row.name}</div>
-                            {isInactive && (
-                              <div className="text-[11px] text-ac font-medium">Inactivo</div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-[13px] text-inkalt">
-                        {row.typeLabel || 'Empleado'}
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${!isInactive ? 'text-ok' : 'text-muted'}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${!isInactive ? 'bg-ok' : 'bg-muted'}`} />
-                          {!isInactive ? 'Activo' : 'Inactivo'}
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 pl-4 text-right font-medium text-ink num text-[13.5px]">
-                        {row.bonus > 0 ? (
-                          <span className="font-bold text-ink">{money(row.bonus)}</span>
-                        ) : (
-                          <span className="text-muted text-xs">Sin bono</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-
-              {bonuses.totals && (
-                <tfoot>
-                  <tr className="border-t-2 border-line text-sm font-display font-bold text-ink">
-                    <td className="py-3.5 pr-4 kick" colSpan={3}>
-                      TOTALES DEL PERÍODO ({bonuses.totals.employeeCount ?? bonuses.rows.length})
-                    </td>
-                    <td className="py-3.5 pl-4 text-right text-ac num font-bold">
-                      {money(bonuses.totals.totalBonus)}
-                    </td>
                   </tr>
                 </tfoot>
               )}
@@ -512,15 +331,7 @@ function PayrollContent() {
 
         {/* Nota institucional al pie */}
         <p className="text-xs text-muted mt-6 leading-relaxed">
-          {tab === 'general' ? (
-            <>
-              AFP (7.25%), ISSS (3%, con tope de $30) y Renta de ley se calculan sobre el salario base de cada empleado en Taquería El Corral. Las asignaciones de bonos no sufren retenciones y se administran en la pestaña de Planilla de Bonos.
-            </>
-          ) : (
-            <>
-              El bono es una gratificación discrecional mensual que no forma parte del salario ordinario ni devenga retenciones legales (AFP, ISSS, Renta). Para consultar el salario y deducciones de ley, diríjase a Planilla General.
-            </>
-          )}
+          AFP (7.25%), ISSS (3%, con tope de $30) y Renta de ley se calculan solo sobre el salario base de cada empleado en Taquería El Corral. El bono es una gratificación discrecional que no forma parte del salario ordinario: se suma íntegro al total a pagar mientras esté vigente, sin retenciones de ley.
         </p>
       </PageShell>
 
@@ -529,8 +340,8 @@ function PayrollContent() {
         onClose={() => setPayslipTarget(null)}
         employeeId={payslipTarget?.id}
         employeeName={payslipTarget?.name}
-        period={general.period}
-        fetchPayslip={general.fetchPayslip}
+        period={period}
+        fetchPayslip={payroll.fetchPayslip}
       />
     </>
   );

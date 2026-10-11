@@ -31,6 +31,7 @@ import Settings from './pages/Settings'
 import Recipes from './pages/Recipes'
 import Payroll from './pages/Payroll'
 import Reports from './pages/Reports'
+import PurchaseBook from './pages/PurchaseBook'
 import ErrorScreen from './pages/ErrorScreen'
 import AssistantChatWidget from './components/chat/AssistantChatWidget'
 
@@ -98,6 +99,7 @@ export default function App() {
 					<Route path="/recetas" element={<ProtectedRoute requiredPermission="recipes"><Recipes /></ProtectedRoute>} />
 					<Route path="/payroll" element={<ProtectedRoute requiredPermission="payroll"><Payroll /></ProtectedRoute>} />
 					<Route path="/reports" element={<ProtectedRoute requiredPermission="reports"><Reports /></ProtectedRoute>} />
+					<Route path="/libro-compras" element={<ProtectedRoute requiredPermission="reports"><PurchaseBook /></ProtectedRoute>} />
 
 					{/* Catch-all: cualquier URL que no coincida con ninguna ruta
 					    de arriba cae aquí y muestra la pantalla de 404. */}

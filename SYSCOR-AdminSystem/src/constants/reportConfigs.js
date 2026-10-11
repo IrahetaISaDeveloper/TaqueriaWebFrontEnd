@@ -209,18 +209,12 @@ export const payrollReportColumns = [
   { header: 'Empleado', value: (r) => r.name, width: 130 },
   { header: 'Puesto', value: (r) => r.typeLabel },
   { header: 'Salario base', value: (r) => money(r.grossSalary), align: 'right' },
+  // El bono no lleva descuentos de ley: se suma íntegro al total a pagar.
+  { header: 'Bono', value: (r) => money(r.bonus), align: 'right' },
   { header: 'AFP', value: (r) => money(r.afp), align: 'right' },
   { header: 'ISSS', value: (r) => money(r.isss), align: 'right' },
   { header: 'Renta', value: (r) => money(r.isr), align: 'right' },
-  { header: 'Neto a pagar', value: (r) => money(r.netSalary), align: 'right' },
-];
-
-// Planilla de bonos: aparte de la general porque el bono no lleva
-// descuentos de ley (es un pago discrecional, no salario cotizable).
-export const bonusPayrollReportColumns = [
-  { header: 'Empleado', value: (r) => r.name, width: 130 },
-  { header: 'Puesto', value: (r) => r.typeLabel },
-  { header: 'Bono asignado', value: (r) => money(r.bonus), align: 'right' },
+  { header: 'Total a pagar', value: (r) => money(r.netPay), align: 'right' },
 ];
 
 // --- Contabilidad (facturas de compra) ---
@@ -266,7 +260,6 @@ export default {
   employeesReportColumns,
   clientsReportColumns,
   payrollReportColumns,
-  bonusPayrollReportColumns,
   purchaseInvoicesReportColumns,
   recipesReportColumns,
 };

@@ -22,7 +22,8 @@ export default function DetailModeSwitch({ mode, onChange }) {
       }`}
     >
       <FAIcon icon={detailed ? 'list-check' : 'list'} size="sm" />
-      {detailed ? 'Con detalles' : 'Sin detalles'}
+      {/* En el teléfono solo el ícono: el rótulo no cabe junto a los filtros */}
+      <span className="sr-only sm:not-sr-only">{detailed ? 'Con detalles' : 'Sin detalles'}</span>
     </button>
   );
 }

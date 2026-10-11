@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Sistema de diseño, componentes, contextos y configuración de Vite compartidos por SYSCOR-AdminSystem y SYSCOR-kitchenSystem",
+  "description": "Sistema de diseño, componentes, contextos y configuración de Vite compartidos por SYSCOR-AdminSystem, SYSCOR-kitchenSystem y SYSCOR-cashierSystem",
   "peerDependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^6.0.1",
     "axios": "^1.18.1",
+    "qrcode": "^1.5.4",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.15.1",

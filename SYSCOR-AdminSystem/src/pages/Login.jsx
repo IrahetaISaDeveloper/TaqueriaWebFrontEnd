@@ -160,9 +160,9 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-dvh bg-surface">
       <div
-        className={`min-h-screen grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(420px,38%)]
+        className={`min-h-dvh grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(420px,38%)]
           transition-[filter] duration-200 ${panel ? 'blur-sm pointer-events-none select-none' : ''}`}
         // Con el panel abierto el login queda detrás y fuera de alcance: se
         // desenfoca y deja de recibir clics y foco, para que no se pueda

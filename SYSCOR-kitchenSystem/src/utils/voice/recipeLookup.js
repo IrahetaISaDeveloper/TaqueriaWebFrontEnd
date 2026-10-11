@@ -3,7 +3,7 @@
 // Busca un producto del menú por cómo lo dice el cocinero y arma la receta
 // para decirla en voz alta. Usa el mismo catálogo que el modo "con detalles"
 // de los tickets (hooks/useMenuCatalog.js).
-import { normalizeSpeech } from './normalizeSpeech';
+import { normalizeSpeech } from '@syscor/web-shared/src/utils/normalizeSpeech';
 import { formatAmount } from '../orderContent';
 
 // Palabras que no ayudan a reconocer un platillo

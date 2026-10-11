@@ -177,7 +177,7 @@ export default function ChefPanchitaPanel({ panchita }) {
         )}
         {open && (
           <section
-            className="fixed bottom-4 right-4 z-40 w-[min(360px,calc(100vw-2rem))] max-h-[calc(100vh-2rem)] flex flex-col rounded-lg border border-line bg-surface shadow-2xl"
+            className="fixed bottom-4 right-4 z-40 w-[min(360px,calc(100vw-2rem))] max-h-[calc(100dvh-2rem)] flex flex-col rounded-lg border border-line bg-surface shadow-2xl"
             aria-label="Chef Panchita"
           >
             <PanchitaConsole

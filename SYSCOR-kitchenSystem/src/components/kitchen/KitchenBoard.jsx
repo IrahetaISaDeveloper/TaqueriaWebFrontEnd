@@ -6,7 +6,7 @@
 // arma de nuevo solo cuando cambia alguna comanda o pasa un minuto (para los
 // pedidos programados que entran a la cola). El segundero de cada ticket no
 // pasa por aquí: lo maneja el reloj único de cocina en cada <TicketTimer>.
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import FAIcon from '@syscor/web-shared/src/components/FAIcon';
 import LoadingSpinner from '@syscor/web-shared/src/components/LoadingSpinner';
 import { useToast } from '@syscor/web-shared/src/components/ToastProvider';
@@ -20,7 +20,8 @@ import ChefPanchitaPanel from '../voice/ChefPanchitaPanel';
 import useKitchenOrders from '../../hooks/useKitchenOrders';
 import useMenuCatalog from '../../hooks/useMenuCatalog';
 import useDetailMode from '../../hooks/useDetailMode';
-import useChefPanchita from '../../hooks/useChefPanchita';
+import useChefPanchita, { spokenPackage } from '../../hooks/useChefPanchita';
+import useDeliveryPackages from '../../hooks/useDeliveryPackages';
 import useKitchenDevice from '../../hooks/useKitchenDevice';
 import { useClockMinute } from '../../hooks/useKitchenClock';
 import { buildBoard, readyAt } from '../../utils/orderPhase';
@@ -40,7 +41,7 @@ const FilterPill = ({ label, count, active, onClick }) => (
     type="button"
     onClick={onClick}
     aria-pressed={active}
-    className={`kick inline-flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
+    className={`kick inline-flex items-center gap-2 px-3 py-1.5 rounded-md whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
       active ? 'bg-acsoft text-ink ring-1 ring-acline' : 'text-inkalt hover:text-ink'
     }`}
   >
@@ -102,6 +103,15 @@ export default function KitchenBoard({ kitchen }) {
     else addToast(result.message, 'error');
   }, [undoReady, addToast]);
 
+  // Reparto: cuando Panchita arma un paquete lo anuncia en voz alta (y en
+  // su panel) para que empaquen juntas esas órdenes. El anuncio va por una
+  // ref porque Panchita, a su vez, consulta los paquetes para contestar
+  // "¿quién se lleva la 12?".
+  const announceRef = useRef(null);
+  const { packageOf } = useDeliveryPackages({
+    onAssigned: (pkg) => announceRef.current?.(spokenPackage(pkg)),
+  });
+
   const panchita = useChefPanchita({
     entries,
     recentReady,
@@ -109,7 +119,13 @@ export default function KitchenBoard({ kitchen }) {
     kitchen,
     actions: { markReady, startOrder, undoReady },
     setDetailMode,
+    packageOf,
   });
+
+  const { announce } = panchita;
+  useEffect(() => {
+    announceRef.current = announce;
+  }, [announce]);
 
   // Inicio de turno: un admin acaba de habilitar esta pantalla. Panchita da
   // la bienvenida una sola vez (recargar la página no la repite).
@@ -127,7 +143,7 @@ export default function KitchenBoard({ kitchen }) {
   }, [welcomePending, welcome, consumeWelcome]);
 
   return (
-    <div className="h-screen flex flex-col bg-bg kds-enter">
+    <div className="h-dvh flex flex-col bg-bg kds-enter">
       <KitchenTopBar>
         <TopBarCounter value={counts.cooking} label="EN COCINA" />
         <TopBarCounter value={counts.queued} label="PENDIENTES" />
@@ -138,8 +154,8 @@ export default function KitchenBoard({ kitchen }) {
         <div className="flex-1 min-w-0 flex flex-col">
           {/* Filtros (botones) y leyenda de colores (solo informa) separados
               por aire: las píldoras de estación llevan borde y los filtros no. */}
-          <div className="shrink-0 px-4 sm:px-7 py-3 flex flex-wrap lg:flex-nowrap items-center gap-x-8 gap-y-3">
-            <nav className="flex items-center gap-1 shrink-0" aria-label="Filtrar comandas">
+          <div className="shrink-0 px-4 sm:px-7 py-3 flex flex-nowrap items-center gap-x-3 sm:gap-x-8">
+            <nav className="flex items-center gap-1 min-w-0 overflow-x-auto no-scrollbar" aria-label="Filtrar comandas">
               {BOARD_FILTERS.map((option) => (
                 <FilterPill
                   key={option.key}
@@ -159,8 +175,8 @@ export default function KitchenBoard({ kitchen }) {
           </div>
 
           <main className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-7 pb-6 pt-1">
-            <div className="lg:hidden mb-4">
-              <CategoryLegend />
+            <div className="lg:hidden mb-4 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto no-scrollbar">
+              <CategoryLegend nowrap />
             </div>
 
             {error && (
@@ -228,7 +244,7 @@ export default function KitchenBoard({ kitchen }) {
         <ChefPanchitaPanel panchita={panchita} />
       </div>
 
-      <RecentReadyBar orders={recentReady} busyIds={busyIds} onUndo={handleUndo} />
+      <RecentReadyBar orders={recentReady} busyIds={busyIds} onUndo={handleUndo} packageOf={packageOf} />
     </div>
   );
 }

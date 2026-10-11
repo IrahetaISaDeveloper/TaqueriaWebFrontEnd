@@ -16,8 +16,8 @@ const ISR_BRACKETS = [
 
 const round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
 
-// SOLO sobre el salario base. Los bonos viven aparte, en la Planilla de
-// bonos: son un pago discrecional del dueño, no salario cotizable (ver el
+// SOLO sobre el salario base. Los bonos se suman después, íntegros, en la
+// planilla: son un pago discrecional del dueño, no salario cotizable (ver el
 // mismo comentario en backEnd/src/utils/users/payrollUtils.js).
 export const calculatePayrollDeductions = (grossSalary) => {
   const salary = Number(grossSalary);

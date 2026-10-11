@@ -1,4 +1,4 @@
-// hooks/useSpeech.js
+// hooks/useSpeech.js (compartido: Chef Panchita en cocina y en caja)
 //
 // Envoltura de la Web Speech API nativa del navegador:
 //   - SpeechRecognition (escuchar). Solo existe en Chrome y Edge (con el
@@ -6,9 +6,9 @@
 //   - SpeechSynthesis (hablar). Existe en todos los navegadores modernos.
 //
 // Dos formas de escuchar:
-//   - 'once': el cocinero toca el micrófono y dice UNA frase.
+//   - 'once': quien la usa toca el micrófono y dice UNA frase.
 //   - 'continuous': queda escuchando siempre, pero quien la usa solo atiende
-//     lo que empieza con "Panchita" (ver utils/voice/kitchenCommands.js).
+//     lo que empieza con "Panchita" (cada sistema tiene su intérprete).
 //     Chrome corta la escucha sola tras un rato de silencio; aquí se
 //     reanuda sin que nadie toque nada.
 //

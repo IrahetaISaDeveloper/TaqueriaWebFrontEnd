@@ -12,6 +12,7 @@ import { formatPeriodLabel } from '../../hooks/usePayroll';
 import { useToast } from '@syscor/web-shared/src/components/ToastProvider';
 
 const money = (n) => `$${Number(n || 0).toFixed(2)}`;
+const formatDate = (d) => new Date(d).toLocaleDateString('es-SV', { day: 'numeric', month: 'short', year: 'numeric' });
 
 const DAY_ABBR = {
   lunes: 'Lun', martes: 'Mar', miercoles: 'Mié', jueves: 'Jue',
@@ -87,11 +88,13 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName, period, fetch
   // Las mismas líneas del documento, para poder exportarlas en XML/JSON
   const reportRows = payslip ? [
     { concepto: 'Salario base', tipo: 'Ingreso', monto: payslip.earnings.salary },
+    { concepto: 'Bono', tipo: 'Ingreso', monto: payslip.earnings.bonus },
+    { concepto: 'Total devengado', tipo: 'Subtotal', monto: payslip.earnings.total },
     { concepto: 'AFP', tipo: 'Deduccion', monto: payslip.deductions.afp },
     { concepto: 'ISSS', tipo: 'Deduccion', monto: payslip.deductions.isss },
     { concepto: 'Renta (ISR)', tipo: 'Deduccion', monto: payslip.deductions.isr },
     { concepto: 'Total deducciones', tipo: 'Subtotal', monto: payslip.deductions.total },
-    { concepto: 'Neto a pagar', tipo: 'Total', monto: payslip.netSalary },
+    { concepto: 'Total a pagar', tipo: 'Total', monto: payslip.netPay },
   ] : [];
 
   const employee = payslip?.employee;
@@ -106,7 +109,7 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName, period, fetch
       subtitle={employeeName || employee?.name}
       onClose={onClose}
       cancelLabel="Cerrar"
-      footerNote={payslip ? 'Documento generado desde la planilla general' : undefined}
+      footerNote={payslip ? 'Documento generado desde la planilla' : undefined}
       footerExtra={payslip && (
         <>
           <ReportButton
@@ -118,7 +121,7 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName, period, fetch
             summary={[
               { label: 'Empleado', value: employee.name },
               { label: 'Puesto', value: employee.typeLabel },
-              { label: 'Neto a pagar', value: money(payslip.netSalary) },
+              { label: 'Total a pagar', value: money(payslip.netPay) },
             ]}
           />
           <button
@@ -168,10 +171,15 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName, period, fetch
 
           {/* SECCIÓN 2: Ingresos */}
           <FormSection icon="money-bill-wave" title="Ingresos">
-            <Line label="Salario base" value={payslip.earnings.salary} bold />
-            <p className="text-[11px] text-muted mt-1">
-              Los bonos no aparecen aquí: se documentan en la Planilla de bonos, sin descuentos de ley.
-            </p>
+            <Line label="Salario base" value={payslip.earnings.salary} />
+            <Line
+              label="Bono"
+              hint={payslip.earnings.bonus > 0
+                ? `Exento de descuentos de ley${payslip.earnings.bonusEndsAt ? ` · vigente hasta ${formatDate(payslip.earnings.bonusEndsAt)}` : ''}`
+                : 'Sin bono vigente en el período'}
+              value={payslip.earnings.bonus}
+            />
+            <Line label="Total devengado" value={payslip.earnings.total} bold />
           </FormSection>
 
           {/* SECCIÓN 3: Deducciones */}
@@ -190,10 +198,10 @@ const PayslipModal = ({ isOpen, onClose, employeeId, employeeName, period, fetch
           {/* Neto a pagar */}
           <div className="rounded-xl bg-ac text-white px-5 py-4 flex items-center justify-between shadow-xs">
             <div>
-              <p className="kick text-white/80">Neto a pagar</p>
-              <p className="text-xs text-white/70 mt-0.5">Salario base menos deducciones de ley</p>
+              <p className="kick text-white/80">Total a pagar</p>
+              <p className="text-xs text-white/70 mt-0.5">Salario menos deducciones de ley, más el bono</p>
             </div>
-            <span className="num text-2xl font-light">{money(payslip.netSalary)}</span>
+            <span className="num text-2xl font-light">{money(payslip.netPay)}</span>
           </div>
 
           {/* Si no se le retuvo renta, conviene explicar por qué: es la

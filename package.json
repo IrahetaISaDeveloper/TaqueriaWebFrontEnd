@@ -5,12 +5,14 @@
   "workspaces": [
     "packages/*",
     "SYSCOR-AdminSystem",
-    "SYSCOR-kitchenSystem"
+    "SYSCOR-kitchenSystem",
+    "SYSCOR-cashierSystem"
   ],
   "scripts": {
     "admin": "npm run dev --workspace @syscor/web-admin",
     "kitchen": "npm run dev --workspace @syscor/web-kitchen",
-    "build": "npm run build --workspace @syscor/web-admin --workspace @syscor/web-kitchen",
-    "lint": "npm run lint --workspace @syscor/web-admin --workspace @syscor/web-kitchen"
+    "build": "npm run build --workspace @syscor/web-admin --workspace @syscor/web-kitchen --workspace @syscor/web-cashier",
+    "lint": "npm run lint --workspace @syscor/web-admin --workspace @syscor/web-kitchen --workspace @syscor/web-cashier",
+    "cashier": "npm run dev --workspace @syscor/web-cashier"
   }
 }
